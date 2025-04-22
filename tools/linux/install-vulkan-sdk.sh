@@ -6,7 +6,7 @@ install_vulkan_apt() {
     # Add LunarG public signing key
     wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
     # Add LunarG Vulkan repository
-    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list http://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list
     # Update package list and install Vulkan SDK
     sudo apt update
     sudo apt install vulkan-sdk -y
