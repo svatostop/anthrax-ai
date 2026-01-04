@@ -13,6 +13,7 @@
 #include "anthraxAI/gfx/vkpipeline.h"
 #include "anthraxAI/gfx/vkmesh.h"
 #include "glm/fwd.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <vulkan/vulkan_core.h>
 
@@ -49,17 +50,22 @@ namespace Gfx
 
             RenderTarget* GetRT(Gfx::RenderTargetsList id) const { return RTs[id]; }
             std::vector<std::string> GetRTList();
-
+    #ifdef COMPUTE_SKINNING
+            void FillSkinningBuffer();
+    #endif
             void PrepareCameraBuffer(Keeper::Camera& camera);
             void PrepareInstanceBuffer();
             void GetTransforms(InstanceData* datas, Gfx::RenderObject obj, int i);
             void PrepareStorageBuffer();
             void PrepareCompute();        
-
+        
+            void BarrierVertexCompute(int b);
             void Submit(std::function<void(VkCommandBuffer cmd)>&& function);
 
             void RenderUI();
             void TransferLayoutsDebug();
+    
+            void set_global_animation_buffer(int i, int frame )  { global_animation_bind[frame] = i;}
 
             int GetFrameInd() { return FrameIndex; }
             FrameData& GetFrame() { return Frames[FrameIndex]; }
@@ -74,7 +80,7 @@ namespace Gfx
             void StartRender(Gfx::InputAttachments inputs, AttachmentRules rules, bool multithreaded = false);
             
             void ComputeParticles(Gfx::RenderObject& object);
-            void Compute(Gfx::RenderObject& object);
+            void Compute(Gfx::RenderObject& object, uint32_t work_groups, uint32_t work_groups2 = 1);
             void Draw(Gfx::RenderObject& object);
             void DrawThreaded(VkCommandBuffer cmd, Gfx::RenderObject& object, Material* mat,  Gfx::MeshInfo* mesh, Gfx::MeshPushConstants& constatns, bool ismodel, uint32_t inst_ind);
             void DrawMeshes(Gfx::RenderObject& object);
@@ -84,7 +90,9 @@ namespace Gfx
             void CheckTmpBindings(Gfx::MeshInfo* mesh, Gfx::Material* material, bool* bindpipe, bool* bindindex);
 
         	FrameArray Frames;
-
+            
+            void ResetSkinningIterator() { skinning_iterator = 0; }
+        
             void BeginRendering(VkCommandBuffer cmd, const VkRenderingInfoKHR* renderinfo) { vkCmdBeginRenderingKHR(cmd, renderinfo); }
             void EndRendering(VkCommandBuffer cmd) { vkCmdEndRenderingKHR(cmd); }
             bool IsOnResize() const { return OnResize; }
@@ -108,6 +116,7 @@ namespace Gfx
             void EndRenderName();
 
             VkCommandBuffer GetCmd() { return Cmd.GetCmd(); }
+            Gfx::CommandBuffer& GetCmdHandle() { return Cmd; }
             void SetCmd(VkCommandBuffer cmd) { Cmd.SetCmd(cmd); }
 
             void InitTracy();
@@ -129,11 +138,15 @@ namespace Gfx
             void CompactDrawIndirect(const Modules::RenderQueueMap& map);
             void CompactIndirect(Material* mat, MeshInfo* mesh, int i);
             void ClearIndirectBatches() { indirect_batch.clear(); }
-            void RenderIndirect(const Modules::RenderQueueMap& map);
+            // void RenderIndirect(const Modules::RenderQueueMap& map);
+            void RenderIndirect( Modules::Module& module);
             void RenderIndirectCall(IndirectBatch& batch, MeshInfo* mesh, RenderObject& testobj);
 
             bool GetCubemapRendering() { return HasFrameCubemap; }
             void SetCubemapRendering(bool cube) { HasFrameCubemap = cube; }
+
+
+            int ComputeSkinningMaxVertex = 0;
         private:
             BufferHelper::Buffer DrawIndirect;
             std::vector<Gfx::IndirectBatch> indirect_batch;
@@ -156,12 +169,17 @@ namespace Gfx
             uint32_t InstanceCount = 0;
             uint32_t InstanceIndex = 0;
             
+            std::unordered_map<int, int> united_vertex_offsets;
+            std::unordered_map<int, int> final_mapped_united_vertex_offsets;
+            std::vector<int> final_vertex_offsets;
+            int skinning_iterator = 0;
             bool HasFrameCubemap = false;
             bool UpdateSamples = false;
             bool OnResize = false;
 	        int FrameIndex = 0;
             uint32_t SwapchainIndex = 0;
             uint32_t PrevSwapchainIndex = 0;
+            uint32_t global_animation_bind[MAX_FRAMES] ={ 0, 0, 0};
 
             VkRenderingAttachmentInfoKHR AttachmentInfos[Gfx::RT_SIZE];
             PFN_vkCmdBeginRenderingKHR vkCmdBeginRenderingKHR{VK_NULL_HANDLE};

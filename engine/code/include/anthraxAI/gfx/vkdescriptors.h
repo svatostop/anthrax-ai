@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <algorithm>
+#include <vulkan/vulkan_core.h>
 
 #define MAX_BINDING 4
 
@@ -25,7 +26,17 @@ namespace Gfx
         DESC_SET_LAYOUT_STORAGE,
         DESC_SET_LAYOUT_TRANSFORMS
     };
-
+    
+    enum GPUBufferType {
+        CAMERA = 0,
+        STORAGE,
+        COMPUTE,
+        INSTANCE,
+        ANIMATION,
+        SKINNING_IN,
+        SKINNING_OUT,
+        SKINNING_HELPER
+    };
     class DescriptorsBase : public Utils::Singleton<DescriptorsBase>
     {
         public:
@@ -34,6 +45,10 @@ namespace Gfx
             void CleanBindless();
 
             void AllocateBuffers();
+    
+            VkDeviceMemory GetBufferMemory(uint32_t frame, GPUBufferType type);
+            VkBuffer GetBuffer(uint32_t frame, GPUBufferType type);
+            BufferHelper::Buffer& GetUBO(uint32_t frame, GPUBufferType type);
 
             VkDeviceMemory GetCameraBufferMemory(uint32_t frame) const { return CameraBuffer[frame].DeviceMemory; }
             VkBuffer GetCameraBuffer(uint32_t frame) const { return CameraBuffer[frame].Buffer; }
@@ -47,14 +62,14 @@ namespace Gfx
             BufferHelper::Buffer& GetComputeUBO(uint32_t frame) { return ComputeBuffer[frame]; }
             VkDeviceMemory GetComputeBufferMemory(uint32_t frame) const { return ComputeBuffer[frame].DeviceMemory; }
 
-            VkBuffer GetInstanceBuffer(uint32_t frame) const { return InstanceBuffer[frame].Buffer; }
-            BufferHelper::Buffer& GetInstanceUBO(uint32_t frame) { return InstanceBuffer[frame]; }
-            VkDeviceMemory GetInstanceBufferMemory(uint32_t frame) const { return InstanceBuffer[frame].DeviceMemory; }
+            VkBuffer GetInstanceBuffer(uint32_t frame) const { return InstanceBuffer[0].Buffer; }
+            BufferHelper::Buffer& GetInstanceUBO(uint32_t frame) { return InstanceBuffer[0]; }
+            VkDeviceMemory GetInstanceBufferMemory(uint32_t frame) const { return InstanceBuffer[0].DeviceMemory; }
 
 #ifdef COMPUTE_MTX
-            VkBuffer GetAnimationBuffer(uint32_t frame) const { return AnimationBuffer[frame].Buffer; }
-            BufferHelper::Buffer& GetAnimationUBO(uint32_t frame) { return AnimationBuffer[frame]; }
-            VkDeviceMemory GetAnimationBufferMemory(uint32_t frame) const { return AnimationBuffer[frame].DeviceMemory; }
+            VkBuffer GetAnimationBuffer(uint32_t frame) const { return AnimationBuffer[0].Buffer; }
+            BufferHelper::Buffer& GetAnimationUBO(uint32_t frame) { return AnimationBuffer[0]; }
+            VkDeviceMemory GetAnimationBufferMemory(uint32_t frame) const { return AnimationBuffer[0].DeviceMemory; }
 #endif
             size_t PadUniformBufferSize(size_t originalsize);
 
@@ -65,7 +80,11 @@ namespace Gfx
             VkDescriptorSet* GetBindlessSet(uint32_t frame) { return &BindlessDescriptor[frame]; }
             VkDescriptorSetLayout GetBindlessLayout() { return BindlessLayout; }
             
+            void* GetMappedInstanceData() { return mappedinstancedata; }
+            void* GetMappedAnimationData() { return mappedanimationdata; }
             void ClearTextures();
+
+            void AllocateSkinningBuffer();
         private:
             void AllocateDataBuffers();
             void AllocateStorageBuffers();
@@ -75,8 +94,14 @@ namespace Gfx
             BufferHelper::Buffer StorageBuffer[MAX_FRAMES];
             BufferHelper::Buffer ComputeBuffer[MAX_FRAMES];
             BufferHelper::Buffer InstanceBuffer[MAX_FRAMES];
+            void* mappedinstancedata;
+            void* mappedanimationdata;
             BufferHelper::Buffer AnimationBuffer[MAX_FRAMES];
-           
+    #ifdef COMPUTE_SKINNING
+            BufferHelper::Buffer SkinningBuffer[MAX_FRAMES];
+            BufferHelper::Buffer SkinningHelperBuffer[MAX_FRAMES];
+            BufferHelper::Buffer SkinningOutBuffer[MAX_FRAMES];
+    #endif
             VkDescriptorPool Pool[MAX_FRAMES];
 	        VkDescriptorSetLayout BindlessLayout = VK_NULL_HANDLE;
             VkDescriptorSet BindlessDescriptor[MAX_FRAMES];

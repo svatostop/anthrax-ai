@@ -342,7 +342,7 @@ void Core::ImGuiHelper::DisplayObjectInfo(const std::string& obj, const UI::Elem
     if (Editor->GetName().empty() || !IsDisplayInReset) return;
     
     auto ui_it = std::remove_if(Editor->GetUITabs()[elem].begin(), Editor->GetUITabs()[elem].end(), [](const UI::Element& el) { return el.IsUIDynamic(); });
-    const Keeper::Objects* game_obj = ParseObjectID(obj);
+    Keeper::Objects* game_obj = ParseObjectID(obj);
 
     Editor->GetUITabs()[elem].erase(ui_it, Editor->GetUITabs()[elem].end());
     Editor->Add(elem, UI::Element(UI::TEXT, "Type: ", true));
@@ -355,15 +355,21 @@ void Core::ImGuiHelper::DisplayObjectInfo(const std::string& obj, const UI::Elem
     Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
     if (game_obj->HasAnimations()) {
         Editor->Add(elem, UI::Element(UI::TEXT, "Animations: ", true));
-        Editor->Add(elem, UI::Element(UI::COMBO, "list", true, game_obj->GetAnimations(), [game_obj](std::string tag) -> void { Core::Scene::GetInstance()->ReloadAnimation(game_obj->GetID(), tag); }, false));
+        std::string anim_id = game_obj->GetParsedID();
+        if (!game_obj->GetSpawnName().empty()) {
+            anim_id = game_obj->GetSpawnName();
+        }
+        Editor->Add(elem, UI::Element(UI::COMBO, "list", true, game_obj->GetAnimations(), [anim_id](std::string tag) -> void { Core::Scene::GetInstance()->ReloadAnimation(anim_id, tag); }, false));
         Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
     }
 
+    float minmax[2] = {0.0f,180.0f};
     Editor->Add(elem, UI::Element(UI::IMAGE, "Textures", true));
     Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
     Editor->Add(elem, UI::Element(UI::BUTTON, "Update Object", true, [game_obj]() -> float { Core::Scene::GetInstance()->ExportObjectInfo(game_obj); return 0.0f; }));
     Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
-
+    Editor->Add(elem, UI::Element(UI::SLIDER_3, "Rotation", true, [game_obj](glm::vec3 v) -> void { game_obj->SetRotation(v); }, [game_obj]() -> glm::vec3 { return game_obj->GetRotation(); }, minmax));
+    Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
     IsDisplayInReset = false;
 }
 
@@ -475,7 +481,7 @@ void Core::ImGuiHelper::DebugImage(UI::Element& element)
 
         if (!rt->IsDepthSet()) {
             Gfx::Renderer::GetInstance()->Submit([&](VkCommandBuffer cmd) {
-                rt->MemoryBarrier(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                rt->MemoryBarrier(cmd, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             });
         }
 

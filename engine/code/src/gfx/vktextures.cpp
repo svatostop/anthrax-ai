@@ -44,10 +44,10 @@ void Gfx::Renderer::CleanTextures()
     }
     Cubemaps.clear();
     
-    // for (auto& it : CubemapsImgui) {
-    //     it.second.Clean();
-    // }
-    // CubemapsImgui.clear();
+    for (auto& it : CubemapsImgui) {
+        it.second.Clean();
+    }
+    CubemapsImgui.clear();
 
 }
 

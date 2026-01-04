@@ -25,7 +25,6 @@ void Gfx::Vulkan::Init()
 	Gfx::Pipeline::GetInstance()->Build();
 	Gfx::Mesh::GetInstance()->CreateMeshes();
 	Gfx::Model::GetInstance()->LoadModels();
-
 #ifdef TRACY
         Gfx::Renderer::GetInstance()->InitTracy();
 #endif
@@ -49,6 +48,7 @@ void Gfx::Vulkan::ReloadResources()
 	Gfx::Model::GetInstance()->CleanAll();
 
     Core::Deletor::GetInstance()->CleanIf(Core::Deletor::Type::PIPELINE);
+    Core::Deletor::GetInstance()->CleanIf(Core::Deletor::Type::SKINNING_DESC);
 	Gfx::Renderer::GetInstance()->CleanTextures();
 	Gfx::DescriptorsBase::GetInstance()->CleanAll();
 
@@ -136,7 +136,7 @@ void Gfx::Vulkan::CreateVkInstance()
 	if (ValidationLayersOn) {
 		createinfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYER.size());
 		createinfo.ppEnabledLayerNames = VALIDATION_LAYER.data();
-        createinfo.pNext = Debug.GetInfo();
+	       createinfo.pNext = Debug.GetInfo();
 	}
 	else {
 		createinfo.enabledLayerCount = 0;

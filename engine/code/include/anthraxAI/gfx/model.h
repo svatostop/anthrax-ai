@@ -67,9 +67,11 @@ namespace Gfx
             void LoadModel(const std::string& path);
             ModelInfo* GetModel(const std::string& path);
             const std::vector<std::string>& GetModelNames() const { return ModelNames; }         
-
+            
+            const ModelsMap& GetModels() const { return Models; }
+            ModelsMap& GetNonConstModels()  { return Models; }
             void CleanAll();
-
+            int GetVerteciesSize() const { return total_vertecies; } 
         private:
             void ProcessBones(std::vector<Vertex>& vert, const std::string& path, aiMesh* aimesh, uint32_t vertsize = 0);
             void ProcessNode(const std::string& path, aiNode *node, const aiScene *scene);
@@ -81,6 +83,8 @@ namespace Gfx
             ModelsMap Models;
             int TotalVertex = 0;
             int BoneCounter = 0;
+
+            int total_vertecies = 0;
     };
 
     static inline glm::mat4 mat2glm(aiMatrix4x4 from)

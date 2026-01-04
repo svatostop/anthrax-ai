@@ -1,9 +1,11 @@
 Scene: animated
 Object:
+ID: test
 Spawn:
-x: 30 
+name: group0
+x: 20 
 y: 1
-z: 30
+z: 20
 ID: 0
 Position:
 x: 0
@@ -16,7 +18,28 @@ vert: model.vert
 Texture:
 name: dummy.png
 Model:
-name: Defeated.dae
+name: Defeated.dae 
 Animation:
-name: Defeated.dae
-
+name: Defeated.dae 
+Object:
+ID: test1
+Spawn:
+name: group1
+x: 10 
+y: 1
+z: 10
+ID: 0
+Position:
+x: 10
+y: 0
+z: 10
+Material:
+name: models
+frag: model.frag
+vert: model.vert
+Texture:
+name: dummy.png
+Model:
+name: Defeated.dae 
+Animation:
+name: Excited.dae

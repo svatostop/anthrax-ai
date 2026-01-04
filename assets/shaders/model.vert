@@ -10,13 +10,12 @@
     DefineInstanceResources();
     uint hasanim = GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].hasanimation;
     mat4 bonetransforms = mat4(1.0f);
-
-    if (hasanim == 1) {
-        bonetransforms = GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[0]] * vweight[0];
-        bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[1]] * vweight[1];
-        bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[2]] * vweight[2];
-        bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[3]] * vweight[3];
-    }
+    // if (hasanim == 1) {
+    //     bonetransforms = GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[0]] * vweight[0];
+    //     bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[1]] * vweight[1];
+    //     bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[2]] * vweight[2];
+    //     bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[3]] * vweight[3];
+    // }
 
     mat4 rendermatrix = GetResource(Camera, bufferbind).proj * GetResource(Camera, bufferbind).view * GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].rendermatrix;
 
@@ -25,11 +24,11 @@
     
    // debugPrintfEXT("instanceIndex=%d | %d\n", gl_BaseInstance, GetUniformInd());
     outcoord = vuv;
-    outweight = vweight;
-    outboneid = vboneid;
-    mat4 m = bonetransforms * GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].rendermatrix;
+    // outweight = vweight;
+    // outboneid = vboneid;
+    mat4 m = GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].rendermatrix;
     vec4 p = m * vec4(vposition.xyz, 1.0);
     outpos = p;
-    outnormal = vec4(GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].rendermatrix * vec4(vnormal, 0.0)).xyz ;// transpose(inverse(mat3(m))) * vnormal;
+    outnormal = vnormal;//vec4(GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].rendermatrix * (vnormal)).xyzw ;// transpose(inverse(mat3(m))) * vnormal;
 
 }

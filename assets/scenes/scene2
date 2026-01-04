@@ -2,7 +2,7 @@ Scene: scene2
 Object:
 		ID: light
 	Light:
-		name: sphere.obj
+		name: cube.obj
 	Position:
 		x: -0.968415
 		y: 5.656617
@@ -18,20 +18,6 @@ Object:
 	Texture:
 		name: dummy.png
 Object:
-		ID: plane
-	Position:
-		x: 0.000000
-		y: -4.451660
-		z: 0.000000
-	Material:
-		name: models
-		frag: model.frag
-		vert: model.vert
-	Texture:
-		name: dummy.png
-	Model:
-		name: plane.obj
-Object:
 		ID: monkey
 	Position:
 		x: 4.102942
@@ -44,83 +30,19 @@ Object:
 	Texture:
 		name: dummy.png
 	Model:
+		name: cube.obj
+Object:
+		ID: 2monkey
+	Position:
+		x: 8.102942
+		y: -0.068433
+		z: -9.961462
+	Material:
+		name: models
+		frag: model.frag
+		vert: model.vert
+	Texture:
+		name: dummy.png
+	Model:
 		name: monkeytextured.obj
-Object:
-		ID: cube
-	Position:
-		x: -3.399200
-		y: 2.461193
-		z: -13.578024
-	Material:
-		name: models
-		frag: model.frag
-		vert: model.vert
-	Texture:
-		name: dummy.png
-	Model:
-		name: cube.obj
-Object:
-		ID: anim
-	Position:
-		x: -1.460739
-		y: 2.000000
-		z: 5.927665
-	Material:
-		name: models
-		frag: model.frag
-		vert: model.vert
-	Texture:
-		name: dummy.png
-	Model:
-		name: Defeated.dae
-	Animation:
-		name: Defeated.dae
-	Animation:
-		name: Excited.dae
-	Animation:
-		name: Catwalk.dae
-Object:
-		ID: anim-dancing
-	Position:
-		x: -4.638832
-		y: 5.191078
-		z: -7.181327
-	Material:
-		name: models
-		frag: model.frag
-		vert: model.vert
-	Texture:
-		name: dummy.png
-	Model:
-		name: DancingTwerk.dae
-	Animation:
-		name: DancingTwerk.dae
-Object:
-		ID: lala_4
-	Position:
-		x: 11.994247
-		y: 2.040150
-		z: -8.777160
-	Material:
-		name: models
-	frag:
-	vert:
-	Texture:
-		name: zeroone.png
-	Model:
-		name: cube.obj
-Object:
-		ID: lala_3
-	Position:
-		x: 0.000000
-		y: 8.898911
-		z: -8.919915
-	Material:
-		name: models
-	frag:
-	vert:
-	Texture:
-		name: dummy.png
-	Model:
-		name: sphere.obj
 

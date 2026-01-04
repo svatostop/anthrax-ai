@@ -1,4 +1,5 @@
 #pragma once
+// #include "anthraxAI/gfx/renderhelpers.h"
 #include "anthraxAI/utils/defines.h"
 #include "anthraxAI/gfx/vkdefines.h"
 #include "anthraxAI/gfx/bufferhelper.h"
@@ -19,13 +20,22 @@ namespace Gfx
         int storagebind = 0;
         int instancebind = 0;
         int bufferbind = 0;
+
+    int vertex_out_offset;
+    int vertex_in_offset;
+    int inst_index;
+    int pad2;
     };
 
     struct MeshInfo {
         std::string Path = "";
-
+#ifdef COMPUTE_SKINNING
+        std::vector<VertexComputeSkinning> VerticesNew;
+#endif
         std::vector<Vertex> Vertices;
         BufferHelper::Buffer VertexBuffer;
+        
+        size_t model_id = 0;
 
         std::vector<uint16_t> AIindices;
         std::vector<uint16_t> Indices = {

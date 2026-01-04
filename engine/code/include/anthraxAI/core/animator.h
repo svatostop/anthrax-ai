@@ -24,6 +24,7 @@ namespace Core
   	std::vector<std::string> Paths;
   	int PathIndex = 0;
   	int SceneInd = 0;
+    int animation_array_ind = 0;
   };
     
     
@@ -82,13 +83,13 @@ namespace Core
   	    void Init();
         void Update(Gfx::RenderObject& object);
 
-        Core::aiSceneInfo& Update2(Gfx::ModelInfo* model, int id, float offset);
+        Core::aiSceneInfo& Update2(Gfx::ModelInfo* model, const std::string& id, float offset);
 
-        bool HasAnimation(int id) {
+        bool HasAnimation(const std::string& id) {
     		return Animations.find(id) != Animations.end();
     	}
 
-    void Reload(int id, const std::string& name) {
+    void Reload(const std::string& id, const std::string& name) {
             Animations[id].CurrentPath = name;
             auto it = std::find(AnimationMap.begin(), AnimationMap.end(), "./models/" + name);
             std::size_t index = std::distance(AnimationMap.begin(), it);
@@ -98,12 +99,14 @@ namespace Core
         
     const glm::mat4& GetGlobalTransform() const { return GlobalInverse; }
 
+    int get_animation_array_index(const std::string& id) { if (Animations.find(id) != Animations.end()) { return Animations[id].animation_array_ind; } return -1; }
+    int get_animation_array_index_size() { return Animations.size(); }
     private:
     	Assimp::Importer Importer;
         std::vector<aiSceneInfo> Scenes;
 
         glm::mat4 GlobalInverse;
-    	std::map<int, AnimationData> Animations;
+    	std::map<std::string, AnimationData> Animations;
         std::vector<std::string> AnimationMap;
 
 
@@ -131,8 +134,8 @@ namespace Core
     	void ReadNodeHierarchy3(int i, Gfx::ModelInfo* model,  Core::aiSceneInfo& scene);
     	void Hierarchy(Gfx::ModelInfo* model, Core::aiSceneInfo& scene, int i, float timetick, glm::mat4 parenttransform, glm::mat4 parenttransforms[200]);
         void GetBonesTransform(Gfx::ModelInfo* model, int animid, float time);
-        Core::aiSceneInfo& GetBonesTransform2(Gfx::ModelInfo* model, int animid, float time);
-
+        Core::aiSceneInfo& GetBonesTransform2(Gfx::ModelInfo* model, const std::string& animid, float time);
+        
         void GetNodeChildren(const aiNode* node, Core::NodeRoots& info);
            Core::NodeAnim EMPTY_ANIM_NODE;
   };

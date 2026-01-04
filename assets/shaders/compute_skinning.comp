@@ -1,0 +1,49 @@
+#version 450 
+layout(local_size_x = 256) in;
+
+#include "defines/defines.h"
+
+#extension GL_EXT_debug_printf : enable
+void main()
+{
+    uint ind = gl_GlobalInvocationID.x;
+    int size = GetResource(Camera, GetUniformInd()).compute_skinning_size;
+
+    if (ind < size ) {
+        int helper_ind = pushconstants.vertex_in_offset;
+        int vert_in_off = int(GetResource(Skinning_Helper, helper_ind).data[ind].data.z);//pushconstants.vertex_in_offset;
+        // int vert_out_off = pushconstants.vertex_out_offset;
+        // int vert_count = (GetResource(Skinning_In, GetStorageInd()).vertecies[ind].datas[1]);
+        // int offsett =(GetResource(Skinning_In, GetStorageInd()).vertecies[ind].datas[0]);
+        // if (ind >= vert_out_off && ind < vert_out_off + vert_count) {
+            uint in_ind = int(GetResource(Skinning_Helper, helper_ind).data[ind].data.y);//ind - vert_out_off;
+            GetResource(Skinning_Out, GetInstanceInd()).vertecies_out[ind].vposition = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vposition; //vec4(vert_out_off, vert_out_off, vert_count, vert_count);
+            int inst_index = int(GetResource(Skinning_Helper, helper_ind).data[ind].data.w);//(GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].datas[2]);
+            uint hasanim = GetResource(Instance, GetTextureInd()).instances[inst_index].hasanimation;
+            if (hasanim == 1) {
+                int anim_bind =  GetResource(Camera, GetUniformInd()).global_animation_bind;
+                uint anim_ind = GetResource(Instance, GetTextureInd()).instances[inst_index].anim_ind;
+                mat4 bonetransforms = mat4(1.0f);
+                vec4 fin_pos = vec4(0);//GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_vert_compute_off].vposition;
+                vec4 pos = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vposition;
+                pos.w = 1;
+                for (int bone_it = 0; bone_it < 4; bone_it++) {
+                     int bone_id = (GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vboneid[bone_it]);
+                     if (bone_id > -1) {
+                     float weight = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vweight[bone_it];
+                     vec4 pos_tmp = GetResource(Instance, GetTextureInd()).instances[inst_index].bonesmatrices[bone_id]* pos * weight;
+                     // vec4 pos_tmp =  GetResource(Instance, GetTextureInd()).instances[inst_index].bonesmatrices[bone_id] * pos * weight;
+                     fin_pos += pos_tmp;
+                     // pos = fin_pos;
+                     }
+                }
+                fin_pos.w = 1;
+                GetResource(Skinning_Out, GetInstanceInd()).vertecies_out[ind].vposition = fin_pos;//GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_vert_compute_off].vposition * bonetransforms;
+                debugPrintfEXT("%f|%f|%f|invoke id= %d\n", fin_pos.x, fin_pos.y, fin_pos.z, ind);
+            } 
+        //     GetResource(Skinning_Out, GetInstanceInd()).vertecies_out[ind].vnormal = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vnormal; //vec4(vert_out_off, vert_out_off, vert_count, vert_count);
+        //     GetResource(Skinning_Out, GetInstanceInd()).vertecies_out[ind].vcolor = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vcolor; //vec4(vert_out_off, vert_out_off, vert_count, vert_count);
+        //     GetResource(Skinning_Out, GetInstanceInd()).vertecies_out[ind].vuv = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vuv; //vec4(vert_out_off, vert_out_off, vert_count, vert_count);
+        // // }
+    }
+}

@@ -27,6 +27,7 @@ namespace Keeper {
         std::string Mesh;
         std::vector<std::string> Animations;
         std::string ParsedID = "";
+        std::string SpawnName = "";
         bool Spawn = false;
         bool IsModel = false;
         bool IsLight = false;
@@ -58,6 +59,8 @@ namespace Keeper {
         INFO_SKYBOX,
         INFO_PARTICLES,
         INFO_COMPUTE_MTX,
+        INFO_VISIBILITY_COMPUTE,
+        INFO_COMPUTE_SKINNING,
         INFO_SIZE
     };
 
@@ -84,6 +87,7 @@ namespace Keeper {
             virtual float GetRadius() const { return 0.0f; }
             virtual const std::vector<std::string>& GetAnimations() const { return EmptyAnimations; }
 
+            virtual const glm::vec3& GetRotation() const { return EmptyVec3; }
             virtual Keeper::Objects* GetHandle() const { return nullptr; }
             virtual Keeper::Objects* GetGizmo() const { return  nullptr;}
 
@@ -105,10 +109,16 @@ namespace Keeper {
             virtual const std::string& GetParsedID() const { return ParsedID; }
             virtual void ResetCounterID() { IDCounter = 1; }
 
+           virtual const std::string& GetSpawnName() const { return EMPTY_STRING; }
+           virtual const uint32_t GetInstanceCount() const { return 1; }
+           virtual const bool GetSpawn() const { return false;}
+            
+           virtual void SetRotation(const glm::vec3& v) { }
         private:
             std::string ParsedID = "";
             std::string EMPTY_STRING = "";
             std::vector<std::string> EmptyAnimations;
+            glm::vec3 EmptyVec3 = glm::vec3(0);
             int UniqueID = 1;
             inline static std::atomic_int IDCounter = 1;
     };

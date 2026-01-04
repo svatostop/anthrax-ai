@@ -44,11 +44,13 @@ void Gfx::Device::CreatePhysicalDevice()
 			break;
 		}
 	}
-	VkPhysicalDeviceProperties props;
-	vkGetPhysicalDeviceProperties(PhysicalDevice, &props);
-	std::cout << "\nDevice: " << props.deviceName << '\n';
-	std::cout << "The GPU has a minimum buffer alignment of " << props.limits.minUniformBufferOffsetAlignment << std::endl;
-	MinUniformBufferOffsetAlignment = props.limits.minUniformBufferOffsetAlignment;
+	VkPhysicalDeviceProperties2 props{};
+    props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
+	vkGetPhysicalDeviceProperties2(PhysicalDevice, &props);
+	std::cout << "\nDevice: " << props.properties.deviceName << '\n';
+	std::cout << "The GPU has a minimum buffer alignment of " << props.properties.limits.minUniformBufferOffsetAlignment << std::endl;
+	std::cout << "The GPU has group size " << props.properties.limits.maxComputeWorkGroupCount[0] << std::endl;
+	MinUniformBufferOffsetAlignment = props.properties.limits.minUniformBufferOffsetAlignment;
 	ASSERT(PhysicalDevice == VK_NULL_HANDLE, "failed to find a suitable GPU");
 }
 
@@ -118,12 +120,12 @@ void Gfx::Device::CreateDevice()
     createInfo.enabledExtensionCount = static_cast<uint32_t>(count);
     createInfo.ppEnabledExtensionNames = ext.data();
 
-    if (Gfx::Vulkan::GetInstance()->IsValidationLayersOn()) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYER.size());
-        createInfo.ppEnabledLayerNames = VALIDATION_LAYER.data();
-    } else {
+    // if (Gfx::Vulkan::GetInstance()->IsValidationLayersOn()) {
+    //     createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYER.size());
+    //     createInfo.ppEnabledLayerNames = VALIDATION_LAYER.data();
+    // } else {
         createInfo.enabledLayerCount = 0;
-    }
+    // }
 
 	VK_ASSERT(vkCreateDevice(PhysicalDevice, &createInfo, nullptr, &LogicalDevice), "failed to create logical device!");
 

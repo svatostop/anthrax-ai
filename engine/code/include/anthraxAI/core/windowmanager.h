@@ -25,7 +25,7 @@ static inline xcb_intern_atom_reply_t* intern_atom_helper(xcb_connection_t *conn
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 #endif
 
-#define MAX_FPS 60
+#define MAX_FPS 120
 
 enum WindowEvents {
     WINDOW_EVENT_RUN            = 1 << 0,	/* 0000 0001 */

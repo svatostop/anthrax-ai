@@ -1,0 +1,10 @@
+#version 450 
+layout(local_size_x = 64) in;
+
+#include "defines/defines.h"
+
+
+void main()
+{
+
+}

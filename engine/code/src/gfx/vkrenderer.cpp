@@ -4,6 +4,7 @@
 #include "anthraxAI/gamemodules/modules.h"
 #include "anthraxAI/gameobjects/gameobjects.h"
 #include "anthraxAI/gfx/bufferhelper.h"
+#include "anthraxAI/gfx/model.h"
 #include "anthraxAI/gfx/renderhelpers.h"
 #include "anthraxAI/gfx/vkdevice.h"
 #include "anthraxAI/gfx/vkbase.h"
@@ -11,16 +12,19 @@
 #include "anthraxAI/core/windowmanager.h"
 #include "anthraxAI/gameobjects/objects/camera.h"
 #include "anthraxAI/gfx/vkmesh.h"
+#include "anthraxAI/gfx/vkpipeline.h"
 #include "anthraxAI/gfx/vkrendertarget.h"
 #include "anthraxAI/utils/debug.h"
 #include "anthraxAI/utils/defines.h"
 #include "anthraxAI/utils/mathdefines.h"
 #include "anthraxAI/utils/thread.h"
 #include "anthraxAI/gfx/vkdefines.h"
+#include "glm/common.hpp"
 #include "glm/detail/qualifier.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include "glm/geometric.hpp"
+#include "glm/trigonometric.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -53,7 +57,15 @@ void Gfx::Renderer::RenderIndirectCall(IndirectBatch& batch, MeshInfo* mesh, Ren
 
 	    if (bindindex) {
 	    	VkDeviceSize offset = {0};
+        #ifdef COMPUTE_SKINNING
+            if (skinning_iterator == 0) {
+                VkBuffer buffer = Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, SKINNING_OUT);
+	    	    vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &buffer, &offset);
+                skinning_iterator++;
+            }
+        #else 
 	    	vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &mesh->VertexBuffer.Buffer, &offset);
+        #endif
 	    	vkCmdBindIndexBuffer(Cmd.GetCmd(), mesh->IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT16);
 	    }
 	    
@@ -63,7 +75,8 @@ void Gfx::Renderer::RenderIndirectCall(IndirectBatch& batch, MeshInfo* mesh, Ren
         Utils::Debug::GetInstance()->DebugDrawCall();
 }
 
-void Gfx::Renderer::RenderIndirect(const Modules::RenderQueueMap& map)
+// void Gfx::Renderer::RenderIndirect(const Modules::RenderQueueMap& map)
+void Gfx::Renderer::RenderIndirect( Modules::Module& module)
 {
 #ifdef TRACY
     ZoneScopedN("Renderer::RenderIndirect");
@@ -76,8 +89,10 @@ void Gfx::Renderer::RenderIndirect(const Modules::RenderQueueMap& map)
     
     int i = 0;
     RenderObject testobj;
-    for (const auto& it : map) {
-        for (const RenderObject& obj : it.second) {
+    skinning_iterator = 0;
+    // for (const auto& it : map) {
+        // for (const RenderObject& obj : it.second) {
+        for ( RenderObject& obj : module.GetSkinningRQ()) {
             if (i == 0) {
                 testobj = obj;
             }
@@ -86,8 +101,18 @@ void Gfx::Renderer::RenderIndirect(const Modules::RenderQueueMap& map)
 	            for (int k = 0; k < meshsize; k++) {
                     draw_cmds[i].firstInstance = i;
                     draw_cmds[i].firstIndex = 0;
-                    draw_cmds[i].instanceCount = 1;
-                    draw_cmds[i].indexCount = obj.Model[0]->Meshes[k]->AIindices.size(); 
+                    if (obj.Spawn) {
+                        draw_cmds[i].instanceCount = obj.instance_size;
+                    }
+                    else {
+                        draw_cmds[i].instanceCount = 1;
+                    }
+                    draw_cmds[i].indexCount = obj.Model[0]->Meshes[k]->AIindices.size();
+                    #ifdef COMPUTE_SKINNING
+                    // printf("iter---%d|%d\n", skinning_iterator, final_vertex_offsets.size());
+                    draw_cmds[i].vertexOffset = final_vertex_offsets[skinning_iterator];// i * obj.Model[0]->Meshes[k]->Vertices.size();
+                    skinning_iterator++;
+                    #endif
                     i++;
                 }
             }
@@ -98,13 +123,18 @@ void Gfx::Renderer::RenderIndirect(const Modules::RenderQueueMap& map)
                 draw_cmds[i].indexCount = obj.Mesh->Indices.size();
                     i++;
             }
+            if (obj.Spawn) {
+                break;
+            }
         }
-    }
+    // }
     vkUnmapMemory(Gfx::Device::GetInstance()->GetDevice(),DrawIndirect.DeviceMemory);
     
+    skinning_iterator = 0;
     for (IndirectBatch& batch : indirect_batch) {
             RenderIndirectCall(batch, batch.mesh, testobj); 
     }
+    skinning_iterator = 0;
 }
 
 void Gfx::Renderer::InitDrawIndirect()
@@ -229,11 +259,39 @@ void Gfx::Renderer::DrawMesh(Gfx::RenderObject& object, Gfx::MeshInfo* mesh, boo
     }
 	vkCmdPushConstants(Cmd.GetCmd(), object.Material->PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(Gfx::MeshPushConstants), &constants);
 
-	if (bindindex) {
-		VkDeviceSize offset = {0};
-		vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &mesh->VertexBuffer.Buffer, &offset);
+    // why are you binding buffer for every mesh O.o
+        #ifdef COMPUTE_SKINNING
+        // if (!final_vertex_offsets.empty() && object.Model[0]) {
+        if (object.skinned_vertex) {    
+     // printf("ooooooaahhhhhhhhhwwwwwwww\n");
+    // printf("%d----%d\n", skinning_iterator, final_vertex_offsets.size());
+        VkDeviceSize    offset = sizeof(VertexOutputData) * final_vertex_offsets[skinning_iterator];
+            skinning_iterator++;
+        VkBuffer buffer = Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, SKINNING_OUT);
+		vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &buffer, &offset);
+        }
+        else if (object.input_vertex) {
+		    VkDeviceSize    offset = sizeof(VertexInputData) * united_vertex_offsets[object.Model[0]->Meshes[0]->model_id];
+            VkBuffer buffer = Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, SKINNING_IN);
+		    vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &buffer, &offset);
+        }
+        else if (object.output_vertex) {
+		    VkDeviceSize    offset = sizeof(VertexOutputData) * final_mapped_united_vertex_offsets[object.Model[0]->Meshes[0]->model_id];
+            VkBuffer buffer = Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, SKINNING_OUT);
+		    vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &buffer, &offset);
+        }
+        else {
+		    VkDeviceSize offset = {0};
+		    vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &mesh->VertexBuffer.Buffer, &offset);
+        }
 		vkCmdBindIndexBuffer(Cmd.GetCmd(), mesh->IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT16);
-	}
+        #else
+        	if (bindindex) {
+		        VkDeviceSize offset = {0};
+        		vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &mesh->VertexBuffer.Buffer, &offset);
+        		vkCmdBindIndexBuffer(Cmd.GetCmd(), mesh->IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT16);
+        	}
+        #endif
 	if (ismodel) {
 		vkCmdDrawIndexed(Cmd.GetCmd(), static_cast<uint32_t>(mesh->AIindices.size()), 1, 0, 0, InstanceIndex);
         InstanceIndex++;
@@ -282,8 +340,9 @@ void Gfx::Renderer::Draw(Gfx::RenderObject& object)
 	}
 }
 
-void Gfx::Renderer::Compute(Gfx::RenderObject& object)
+void Gfx::Renderer::Compute(Gfx::RenderObject& object, uint32_t work_groups, uint32_t work_groups2 )
 {
+    // Cmd.MemoryBarrier(VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 #ifdef TRACY
      ZoneScopedN("Renderer::PrepareInstanceBuffer::compute");
 #endif
@@ -299,11 +358,40 @@ void Gfx::Renderer::Compute(Gfx::RenderObject& object)
 	Gfx::MeshPushConstants constants;
     constants.storagebind = object.StorageBind[GetFrameInd()];
     constants.instancebind = object.InstanceBind[GetFrameInd()];
+    constants.bufferbind = object.BufferBind[GetFrameInd()];
+    // used by compute skinning shader in order to grab the instance buffer
+    constants.texturebind = object.TextureBind[GetFrameInd()];
+    constants.vertex_in_offset = object.SkinningHelperBind[GetFrameInd()];
+    // size of animation compute pass
+    constants.inst_index = u_int32_t(Core::Scene::GetInstance()->GetAnimationIndexSize()); 
+    bool skip_barrier = false;
+    if (object.Model[0]) {
+        skip_barrier = true;
+        // constants.vertex_in_offset = final_vertex_offsets[skinning_iterator];//united_vertex_offsets[object.Model[0]->Meshes[0]->model_id];
+        // constants.vertex_out_offset = final_vertex_offsets[skinning_iterator];
+        // constants.inst_index = skinning_iterator;
+        // skinning_iterator++;
+        //Core::Scene::GetInstance()->GetFinalVertOffset(object.Model[0]->Meshes[0]->model_id);
+    }
 	vkCmdPushConstants(Cmd.GetCmd(), mat->PipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(Gfx::MeshPushConstants), &constants);
 
-    vkCmdDispatch(Cmd.GetCmd(), u_int32_t(MAX_INSTANCES) / 256, 1, 1);
+    vkCmdDispatch(Cmd.GetCmd(), work_groups, work_groups2, 1);
 //printf("sizeof------%lu|%lu\n", sizeof(glm::vec4), sizeof(glm::vec2));
-    Cmd.MemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);
+#ifndef COMPUTE_SKINNING
+    if (!skip_barrier)
+        Cmd.MemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);
+#endif
+}
+
+void Gfx::Renderer::BarrierVertexCompute(int b)
+{
+    if (b == 0) {
+        Cmd.MemoryBarrier(0,0, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+    }
+    if (b == 1) {
+        Cmd.MemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+    }
 }
 
 void Gfx::Renderer::ComputeParticles(Gfx::RenderObject& object)
@@ -419,7 +507,7 @@ void Gfx::Renderer::StartRender(Gfx::InputAttachments inputs, AttachmentRules ru
         Gfx::RenderingAttachmentInfo info;
 		info.IsDepth = false;
 		info.Image = GetRT(inputs.GetColor())->GetImage();
-        if (((rules & Gfx::ATTACHMENT_RULE_LOAD) == Gfx::ATTACHMENT_RULE_LOAD) || inputs.GetColor()  == Gfx::RT_MASK) {
+        if (((rules & Gfx::ATTACHMENT_RULE_LOAD) == Gfx::ATTACHMENT_RULE_LOAD)) {
             info.Layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         }
         info.ImageView = GetRT(inputs.GetColor())->GetImageView();
@@ -464,7 +552,6 @@ void Gfx::Renderer::TransferLayoutsDebug()
     GetRT(Gfx::RT_POSITION)->MemoryBarrier(Cmd.GetCmd(),VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     GetRT(Gfx::RT_NORMAL)->MemoryBarrier(Cmd.GetCmd(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   //  GetRT(Gfx::RT_SHADOWS)->MemoryBarrier(Cmd.GetCmd(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    GetRT(Gfx::RT_MASK)->MemoryBarrier(Cmd.GetCmd(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 void Gfx::Renderer::RenderUI()
@@ -703,9 +790,211 @@ uint32_t dst[DEPTH_ARRAY_SCALE] = {0};
 
 
 }
+#ifdef COMPUTE_SKINNING
+void Gfx::Renderer::FillSkinningBuffer()
+{
 
+    // update global anim buffer bind 
+    //
+    // global_animation_bind = Gfx::DescriptorsBase::GetInstance()->UpdateCompute(Gfx::DescriptorsBase::GetInstance()->GetAnimationBuffer(0), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetAnimationUBO(0).tag, 0);
+
+    Modules::ScenesMap& map =  Core::Scene::GetInstance()->GetScenes();
+    // Modules::Module& module = map[Core::Scene::GetInstance()->GetCurrentScene()];
+    Modules::Module& module = map["gbuffer"];
+   
+    size_t scene_size = Core::Scene::GetInstance()->GetSceneVertSize();
+    Gfx::Model* model = Gfx::Model::GetInstance();
+    void*data;
+    int size = model->GetVerteciesSize();
+    size_t buffersize = sizeof(VertexInputData) * size;//size;
+    // if (buffersize == 0) {
+        // return;
+    // }
+    BufferHelper::Buffer stagingbuffer;
+    BufferHelper::AllocateBuffer(stagingbuffer, buffersize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    vkMapMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory, 0, buffersize, 0, (void**)&data);
+    
+    VertexInputData* datas = (VertexInputData*)data;
+    {
+    int vert_offset = 0;
+    int final_vert_size = 0;
+    int buf_ind = 0;
+    int model_id = 0;
+    skinning_iterator = 0;
+    // for (auto& m : module.GetRenderQueueMap()) {
+    for ( auto& it : model->GetNonConstModels()) {
+        // for (RenderObject& o : m.second) {
+            
+            it.second.Meshes[0]->model_id = model_id;    
+            united_vertex_offsets[model_id] = vert_offset;
+            final_vert_size = 0;
+            for (Vertex v : it.second.Meshes[0]->Vertices) {
+                datas[buf_ind].datas[0] = vert_offset;
+                datas[buf_ind].vposition = v.position;
+                datas[buf_ind].vboneid = glm::vec4(v.boneID[0],v.boneID[1],v.boneID[2],v.boneID[3]);
+                datas[buf_ind].vcolor = glm::vec4(v.color, 1.0);
+                datas[buf_ind].vnormal = glm::vec4(v.normal, 1.0);
+                datas[buf_ind].vuv = glm::vec4(v.uv, 1.0f,1.0f);
+                datas[buf_ind].vweight = glm::vec4(v.weights[0],v.weights[1],v.weights[2],v.weights[3]);
+                
+                datas[buf_ind].datas[1] = it.second.Meshes[0]->Vertices.size();//it.second.Meshes[i]->Vertices.size();//it.second.MeshBase[i];
+                datas[buf_ind].datas[2] = skinning_iterator; 
+                // datas[buf_ind].datas1 = glm::vec4(1.0);
+                final_vert_size++;
+                buf_ind++;
+            }
+            skinning_iterator++;
+        // }
+        model_id++;
+        vert_offset += final_vert_size;
+    }
+    }
+
+    vkUnmapMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory);
+
+    Submit([&](VkCommandBuffer cmd) {
+            VkBufferCopy copy{};
+            copy.dstOffset = 0;
+            copy.srcOffset = 0;
+            copy.size = buffersize;
+            for (int i = 0 ; i < 1; i++) {
+                vkCmdCopyBuffer(cmd, stagingbuffer.Buffer, Gfx::DescriptorsBase::GetInstance()->GetBuffer(i, SKINNING_IN), 1, &copy );
+            }
+        });    
+    vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.Buffer, nullptr);
+    vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory, nullptr);
+    
+
+    buffersize = sizeof(VertexOutputHelper) * scene_size;//size;
+    BufferHelper::AllocateBuffer(stagingbuffer, buffersize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    void*data1;
+    vkMapMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory, 0, buffersize, 0, (void**)&data1);
+    
+    VertexOutputHelper* datas2 = (VertexOutputHelper*)data1;
+    {
+    int vert_offset = 0;
+    int final_vert_size = 0;
+    int buf_ind = 0;
+    int model_id = 0;
+    skinning_iterator = 0;
+    // for (auto& m : module.GetRenderQueueMap()) {
+        // for (RenderObject& o : m.second) {
+        for (const RenderObject& o : module.GetSkinningRQ()) {
+            // o.Model[0]->Meshes[0]->model_id = model_id;    
+            // united_vertex_offsets[model_id] = vert_offset;
+            final_vert_size = 0;
+            for (Vertex v : o.Model[0]->Meshes[0]->Vertices) {
+                // datas[buf_ind].datas[0] = vert_offset;
+                datas2[buf_ind].data = glm::vec4(1, final_vert_size, united_vertex_offsets[o.Model[0]->Meshes[0]->model_id], skinning_iterator);
+                final_vert_size++;
+                buf_ind++;
+            }
+            skinning_iterator++;
+        }
+        model_id++;
+        vert_offset += final_vert_size;
+    // }
+    }
+
+    vkUnmapMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory);
+
+    Submit([&](VkCommandBuffer cmd) {
+            VkBufferCopy copy{};
+            copy.dstOffset = 0;
+            copy.srcOffset = 0;
+            copy.size = buffersize;
+            for (int i = 0 ; i < 1; i++) {
+                vkCmdCopyBuffer(cmd, stagingbuffer.Buffer, Gfx::DescriptorsBase::GetInstance()->GetBuffer(i, SKINNING_HELPER), 1, &copy );
+            }
+        });    
+    vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.Buffer, nullptr);
+    vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory, nullptr);
+    
+   {
+    buffersize = sizeof(VertexOutputData) * scene_size;//size;
+    BufferHelper::AllocateBuffer(stagingbuffer, buffersize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    void*data1;
+    vkMapMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory, 0, buffersize, 0, (void**)&data1);
+    
+    VertexOutputData* datas2 = (VertexOutputData*)data1;
+    {
+    int vert_offset = 0;
+    int final_vert_size = 0;
+    int buf_ind = 0;
+    int model_id = 0;
+    skinning_iterator = 0;
+    // for (auto& m : module.GetRenderQueueMap()) {
+        // for (RenderObject& o : m.second) {
+        for (const RenderObject& o : module.GetSkinningRQ()) {
+            // o.Model[0]->Meshes[0]->model_id = model_id;    
+            // united_vertex_offsets[model_id] = vert_offset;
+            final_vert_size = 0;
+            for (Vertex v : o.Model[0]->Meshes[0]->Vertices) {
+                // datas[buf_ind].datas[0] = vert_offset;
+                // datas2[buf_ind].data = glm::vec4(1, final_vert_size, united_vertex_offsets[o.Model[0]->Meshes[0]->model_id], skinning_iterator);
+                // datas2[buf_ind].vuv = glm::vec4(1.0f, 1.0f, final_vert_size, united_vertex_offsets[o.Model[0]->Meshes[0]->model_id]);
+                datas2[buf_ind].vnormal = glm::vec4(v.normal, 1.0);
+                datas2[buf_ind].vcolor = glm::vec4(v.color, 1.0);
+                datas2[buf_ind].vuv = glm::vec4(v.uv, 1.0f, 1.0);
+                // datas[buf_ind].vboneid = glm::vec4(v.boneID[0],v.boneID[1],v.boneID[2],v.boneID[3]);
+                // datas[buf_ind].vcolor = glm::vec4(v.color, 1.0);
+                // datas[buf_ind].vnormal = glm::vec4(v.normal, 1.0);
+                // datas[buf_ind].vuv = glm::vec4(v.uv, 1.0f,1.0f);
+                // datas[buf_ind].vweight = glm::vec4(v.weights[0],v.weights[1],v.weights[2],v.weights[3]);
+                //
+                // datas[buf_ind].datas[1] = o.Model[0]->Meshes[0]->Vertices.size();//it.second.Meshes[i]->Vertices.size();//it.second.MeshBase[i];
+                // datas[buf_ind].datas[2] = skinning_iterator; 
+                // datas[buf_ind].datas1 = glm::vec4(1.0);
+                final_vert_size++;
+                buf_ind++;
+            }
+            skinning_iterator++;
+        }
+        model_id++;
+        vert_offset += final_vert_size;
+    // }
+    }
+
+    vkUnmapMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory);
+
+    Submit([&](VkCommandBuffer cmd) {
+            VkBufferCopy copy{};
+            copy.dstOffset = 0;
+            copy.srcOffset = 0;
+            copy.size = buffersize;
+            for (int i = 0 ; i < 1; i++) {
+                vkCmdCopyBuffer(cmd, stagingbuffer.Buffer, Gfx::DescriptorsBase::GetInstance()->GetBuffer(i, SKINNING_OUT), 1, &copy );
+            }
+        });    
+    vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.Buffer, nullptr);
+    vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory, nullptr);
+    
+
+    }
+    // }
+    skinning_iterator = 0;
+    final_vertex_offsets.clear();
+    int vert_count = 0;
+    int iter = 0;
+    // for (auto& m : module.GetRenderQueueMap()) {
+        // for (RenderObject& o : m.second) {
+        for (const RenderObject& o : module.GetSkinningRQ()) {
+            final_vertex_offsets.push_back(vert_count);
+            final_mapped_united_vertex_offsets[o.Model[0]->Meshes[0]->model_id] = final_vertex_offsets[iter];
+            vert_count += o.Model[0]->Meshes[0]->Vertices.size();
+            //if ()
+            iter++;
+        }
+    // }
+
+}
+#endif
 void Gfx::Renderer::PrepareInstanceBuffer()
 {
+    skinning_iterator = 0;
     Modules::ScenesMap& map =  Core::Scene::GetInstance()->GetScenes();
     Modules::Module& modulegizmo = map["gizmo"];
     Modules::Module& module = map[Core::Scene::GetInstance()->GetCurrentScene()];
@@ -752,7 +1041,7 @@ void Gfx::Renderer::PrepareInstanceBuffer()
 
     }
         int i = 0;
-        InstanceData* datas = (InstanceData*)instancedata;
+        InstanceData* datas = (InstanceData*)instancedata ;//Gfx::DescriptorsBase::GetInstance()->GetMappedInstanceData();
     {
 #ifdef TRACY
     ZoneNamedN(Zone3, "Renderer::PrepareInstanceBuffer::OldCode-DeadCode", true);
@@ -776,16 +1065,17 @@ void Gfx::Renderer::PrepareInstanceBuffer()
 //                 ZoneNamedN(Zone4, "Renderer::PrepareInstanceBuffer::Loop-get-bones", true);
 // #endif
 #ifndef COMPUTE_MTX
-                    if (hasanim) {
-                        for (int k = 0; k < obj.Model[GetFrameInd()]->Bones.Info.size(); k++) {
-                            datas[i].bonesmatrices[k] = obj.Model[GetFrameInd()]->Bones.Info[k].FinTransform;
-                        }
-                    }
+                    // if (hasanim) {
+                    //     for (int k = 0; k < obj.Model[GetFrameInd()]->Bones.Info.size(); k++) {
+                    //         datas[i].bonesmatrices[k] = obj.Model[GetFrameInd()]->Bones.Info[k].FinTransform;
+                    //     }
+                    // }
 #endif
                     if (hasanim) {
                         for (int k = 0; k < 200; k++) {
                             datas[i].anim_transforms[k] = glm::mat4(1);//obj.Model[GetFrameInd()]->Bones.Info[k].FinTransform;
                         }
+                        datas[i].anim_ind = Core::Scene::GetInstance()->GetAnimationIndex(obj.SpawnName); 
                     }
 
 //                 }
@@ -795,10 +1085,17 @@ void Gfx::Renderer::PrepareInstanceBuffer()
 #endif
                     datas[i].hasanimation = hasanim ? 1 : 0;
                     datas[i].position = glm::vec4(obj.Position.convert(), 1.0f);
+                    datas[i].rotation = glm::mat4(1); 
+                    if (obj.rotation.x > 0 || obj.rotation.y > 0 || obj.rotation.z > 0) {
+                    glm::mat rot = glm::mat4(1);
+                    rot = glm::rotate(glm::mat4(1), glm::radians(obj.rotation.x), glm::vec3(1,0,0));
+                    rot = glm::rotate(rot, glm::radians(obj.rotation.y), glm::vec3(0,1,0));
+                    datas[i].rotation = glm::rotate(rot, glm::radians(obj.rotation.z), glm::vec3(0,0,1));
+                        }
                     datas[i].gizmo_dist = glm::vec4(1.0);
-#ifndef COMPUTE_MTX
-                    datas[i].rendermatrix =glm::translate(glm::mat4(1.0f), glm::vec3(obj.Position.x, obj.Position.y, obj.Position.z));
-#endif
+// #ifndef COMPUTE_MTX
+                    datas[i].rendermatrix =  glm::translate(glm::mat4(1.0f), glm::vec3(obj.Position.x, obj.Position.y, obj.Position.z));
+// #endif
 	                datas[i].texturebind = obj.TextureBind[GetFrameInd()];
 	                datas[i].bufferbind = obj.BufferBind[GetFrameInd()];
 	    //    da    tas[i].boneID = -1;
@@ -837,10 +1134,11 @@ void Gfx::Renderer::PrepareInstanceBuffer()
 
                     datas[i].gizmo_dist = glm::vec4(distfin, 1.0f);
                     datas[i].position = glm::vec4(obj.Position.convert(), 1.0f);
-#ifndef COMPUTE_MTX
+                    datas[i].rotation = glm::mat4(1); 
+// #ifndef COMPUTE_MTX
                     datas[i].rendermatrix = glm::translate(glm::mat4(1.0f), glm::vec3(obj.Position.x, obj.Position.y, obj.Position.z));
                     datas[i].rendermatrix = glm::scale(datas[i].rendermatrix, distfin);
-#endif
+// #endif
                     datas[i].texturebind = obj.TextureBind[GetFrameInd()];
 	                datas[i].bufferbind = obj.BufferBind[GetFrameInd()];
 	                if (obj.HasStorage) {
@@ -873,18 +1171,20 @@ void Gfx::Renderer::PrepareInstanceBuffer()
 #ifdef TRACY
         ZoneNamedN(Zone8, "Renderer::PrepareInstanceBuffer::Mapmem-anim", true);
 #endif
-        const size_t buffersize = sizeof(AnimationComputeData) * MAX_INSTANCES ;
+        const size_t buffersize = sizeof(AnimationComputeData) * Core::Scene::GetInstance()->GetAnimationIndexSize();//sizeof(AnimationComputeData) * MAX_INSTANCES ;
         vkMapMemory(Gfx::Device::GetInstance()->GetDevice(),Gfx::DescriptorsBase::GetInstance()->GetAnimationBufferMemory(GetFrameInd()), 0, buffersize, 0, (void**)&animdata);
     }
-    AnimationComputeData* animdatas = (AnimationComputeData*)animdata;
+    AnimationComputeData* animdatas = (AnimationComputeData*)animdata;//Gfx::DescriptorsBase::GetInstance()->GetMappedAnimationData();
     bool hasanim = false;
     i = 0;
+    int anim_ind = 0;
     {
 #ifdef TRACY
         ZoneNamedN(Zone9, "Renderer::PrepareInstanceBuffer::iterate-anim", true);
 #endif
-        for (auto& it : module.GetRenderQueueMap()) {
-            for (Gfx::RenderObject& obj : it.second) {
+        Modules::Module& module_anim = map["gbuffer"];
+        // for (auto& it : module.GetRenderQueueMap()) {
+            for (Gfx::RenderObject& obj : module_anim.GetSkinningRQ()) {
                 {
 #ifdef TRACY
                     ZoneNamedN(Zone12, "Renderer::PrepareInstanceBuffer::check-for-anim", true);
@@ -904,34 +1204,34 @@ void Gfx::Renderer::PrepareInstanceBuffer()
 #endif
 
 
-                    const Core::aiSceneInfo& scene = Core::Scene::GetInstance()->GetInfo(obj.Model[GetFrameInd()], obj.ID, obj.AnimOffset); 
+                    const Core::aiSceneInfo& scene = Core::Scene::GetInstance()->GetInfo(obj.Model[GetFrameInd()], obj.SpawnName, obj.AnimOffset); 
                     for (int k = 0; k < obj.Model[GetFrameInd()]->Meshes.size(); k++ ) {
                     if (hasanim) {
                         {
 #ifdef TRACY
                             ZoneNamedN(Zone11, "Renderer::PrepareInstanceBuffer::in-loop-processanim", true);
 #endif
-                            AnimationComputeData& animdat = animdatas[i];
+                            AnimationComputeData& animdat = animdatas[anim_ind];
                             animdat.rootssize = scene.rootssize;
                             animdat.timetick = scene.timeticks;
-                            animdat.global_transform = Core::Scene::GetInstance()->GetGlobalTransform();
                             animdat.animsize = scene.animsize;
+                            animdat.instance_buffer_ind = i;//scene.animsize;
 
 #ifndef MEMCPY_TEST
-                            memcpy(animdat.animisempty, scene.floats.animisempty, sizeof(int) * 108);
+                            // memcpy(animdat.animisempty, scene.floats.animisempty, sizeof(int) * 108);
                             memcpy(animdat.pos_factor, scene.floats.pos_factor, sizeof(float) * 108);
                             memcpy(animdat.scale_factor, scene.floats.scale_factor, sizeof(float) * 108);
                             memcpy(animdat.rot_factor, scene.floats.rot_factor, sizeof(float) * 108);
-                            memcpy(animdat.pos_comp, scene.floats.pos_comp, sizeof(int) * 108);
-                            memcpy(animdat.scale_comp, scene.floats.scale_comp, sizeof(int) * 108);
-                            memcpy(animdat.rot_comp, scene.floats.rot_comp, sizeof(int) * 108);
-                            memcpy(animdat.pos_out, scene.matricies.pos_out, sizeof(glm::vec4) * 108);
+                            // memcpy(animdat.pos_comp, scene.floats.pos_comp, sizeof(int) * 108);
+                            // memcpy(animdat.scale_comp, scene.floats.scale_comp, sizeof(int) * 108);
+                            // memcpy(animdat.rot_comp, scene.floats.rot_comp, sizeof(int) * 108);
+                            // memcpy(animdat.pos_out, scene.matricies.pos_out, sizeof(glm::vec4) * 108);
                             memcpy(animdat.pos_start, scene.matricies.pos_start, sizeof(glm::vec4) * 108);
                             memcpy(animdat.pos_end, scene.matricies.pos_end, sizeof(glm::vec4) * 108);
-                            memcpy(animdat.scale_out, scene.matricies.scale_out, sizeof(glm::vec4) * 108);
+                            // memcpy(animdat.scale_out, scene.matricies.scale_out, sizeof(glm::vec4) * 108);
                             memcpy(animdat.scale_start, scene.matricies.scale_start, sizeof(glm::vec4) * 108);
                             memcpy(animdat.scale_end, scene.matricies.scale_end, sizeof(glm::vec4) * 108);
-                            memcpy(animdat.rot_out, scene.matricies.rot_out, sizeof(glm::mat4) * 108);
+                            // memcpy(animdat.rot_out, scene.matricies.rot_out, sizeof(glm::mat4) * 108);
                             memcpy(animdat.rot_start, scene.matricies.rot_start, sizeof(glm::mat4) * 108);
                             memcpy(animdat.rot_end, scene.matricies.rot_end, sizeof(glm::mat4) * 108);
                             // memcpy(animdat.animrot, scene.animrot, sizeof(glm::mat4) * 108);
@@ -939,46 +1239,33 @@ void Gfx::Renderer::PrepareInstanceBuffer()
                             memcpy(animdat.nodeAnimInd, scene.floats.nodeAnimInd, sizeof(int) * 108);
                             memcpy(animdat.nodeBoneInd, scene.floats.nodeBoneInd, sizeof(int) * 108);
                             memcpy(animdat.nodeIndex, scene.floats.nodeIndex, sizeof(int) * 108);
-                            memcpy(animdat.nodesettransform, scene.floats.nodesettransform, sizeof(int) * 108);
+                            // memcpy(animdat.nodesettransform, scene.floats.nodesettransform, sizeof(int) * 108);
                             memcpy(animdat.nodeOffset, scene.matricies.nodeOffset, sizeof(glm::mat4) * 108);
                             memcpy(animdat.nodeTransform, scene.matricies.nodeTransform, sizeof(glm::mat4) * 108);
 #else
-                            // memcpy(animdat.animisempty, scene.animisempty, sizeof(int) * 108);
-                            // memcpy(animdat.pos_factor, scene.pos_factor, sizeof(float) * 108);
-                            // memcpy(animdat.scale_factor, scene.scale_factor, sizeof(float) * 108);
-                            // memcpy(animdat.rot_factor, scene.rot_factor, sizeof(float) * 108);
-                            // memcpy(animdat.pos_comp, scene.pos_comp, sizeof(int) * 108);
-                            // memcpy(animdat.scale_comp, scene.scale_comp, sizeof(int) * 108);
-                            // memcpy(animdat.rot_comp, scene.rot_comp, sizeof(int) * 108);
-                            //
-                            memcpy(&animdat.matricies, &scene.matricies, sizeof(AnimMatricies));
-                            memcpy(&animdat.floats, &scene.floats, sizeof(AnimFloats));
-                            // memcpy(animdat.pos_out, scene.pos_out, sizeof(glm::vec4) * 108);
-                            // memcpy(animdat.pos_start, scene.pos_start, sizeof(glm::vec4) * 108);
-                            // memcpy(animdat.pos_end, scene.pos_end, sizeof(glm::vec4) * 108);
-                            // memcpy(animdat.scale_out, scene.scale_out, sizeof(glm::vec4) * 108);
-                            // memcpy(animdat.scale_start, scene.scale_start, sizeof(glm::vec4) * 108);
-                            // memcpy(animdat.scale_end, scene.scale_end, sizeof(glm::vec4) * 108);
-                            // memcpy(animdat.rot_out, scene.rot_out, sizeof(glm::mat4) * 108);
-                            // memcpy(animdat.rot_start, scene.rot_start, sizeof(glm::mat4) * 108);
-                            // memcpy(animdat.rot_end, scene.rot_end, sizeof(glm::mat4) * 108);
-                            // memcpy(animdat.animrot, scene.animrot, sizeof(glm::mat4) * 108);
 
-                            // memcpy(animdat.nodeAnimInd, scene.nodeAnimInd, sizeof(int) * 108);
-                            // memcpy(animdat.nodeBoneInd, scene.nodeBoneInd, sizeof(int) * 108);
-                            // memcpy(animdat.nodeIndex, scene.nodeIndex, sizeof(int) * 108);
-                            // memcpy(animdat.nodesettransform, scene.nodesettransform, sizeof(int) * 108);
-                            // memcpy(animdat.nodeOffset, scene.nodeOffset, sizeof(glm::mat4) * 108);
-                            // memcpy(animdat.nodeTransform, scene.nodeTransform, sizeof(glm::mat4) * 108);
-
+                            {
+#ifdef TRACY
+                            ZoneNamedN(Zone19, "Renderer::PrepareInstanceBuffer::in-loop-matricies", true);
 #endif
+                            memcpy(&animdat.matricies, &scene.matricies, sizeof(AnimMatricies));
+                            }
+                            {
+#ifdef TRACY
+                                ZoneNamedN(Zone18, "Renderer::PrepareInstanceBuffer::in-loop-floats", true);
+#endif
+
+                                memcpy(&animdat.floats, &scene.floats, sizeof(AnimFloats));
+                            }
+#endif
+                            anim_ind++;
                         }
                         i++;
                         }
                     }
                 }     
             }
-        }
+        // }
     }
     {
 #ifdef TRACY
@@ -1001,8 +1288,13 @@ void Gfx::Renderer::PrepareCameraBuffer(Keeper::Camera& camera)
     
     glm::mat4 sky_projection = glm::perspective(glm::radians(45.f), float(Gfx::Device::GetInstance()->GetSwapchainSize().x) / float(Gfx::Device::GetInstance()->GetSwapchainSize().y), 0.10f, 1000.0f);
 	sky_projection[1][1] *= -1;
-
-	CamData.model = glm::mat4(1.0f);
+    
+    if (Core::Scene::GetInstance()->HasGameModules() && Core::Scene::GetInstance()->HasAnimator()) {
+	    CamData.global_transform = Core::Scene::GetInstance()->GetGlobalTransform();
+    }
+    CamData.compute_skinning_size = Core::Scene::GetInstance()->GetSceneVertSize();
+ComputeSkinningMaxVertex = CamData.compute_skinning_size;
+    CamData.model = glm::mat4(1.0f);
 	CamData.proj = projection;
 	CamData.view = view;
 	CamData.skybox_proj = sky_projection;
@@ -1043,7 +1335,7 @@ void Gfx::Renderer::PrepareCameraBuffer(Keeper::Camera& camera)
     }
 
     CamData.point_light_size = i;
- 
+    CamData.global_animation_bind = global_animation_bind[FrameIndex]; 
     glm::vec3 light_pos = glm::vec3(50.0f, 0.0f, -15.0f);
     float near_plane = 1.0f;
     float far_plane = 1000.0f;

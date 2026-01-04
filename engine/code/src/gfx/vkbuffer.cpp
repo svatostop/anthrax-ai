@@ -58,13 +58,19 @@ void BufferHelper::CreateBuffer(Buffer& bufferhandler, VkBufferUsageFlags flags[
     vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), stagingbuffer.DeviceMemory, nullptr);
 }
 
-void BufferHelper::CreateBuffer(Buffer& bufferhandler, VkDeviceSize buffersize, VkBufferUsageFlagBits usage)
+void BufferHelper::CreateBuffer(Buffer& bufferhandler, VkDeviceSize buffersize, VkBufferUsageFlagBits usage, bool device_only )
 {
-    if (usage == VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) {
-        AllocateBuffer(bufferhandler, buffersize, usage, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (device_only) {
+        // usage = static_cast<VkBufferUsageFlagBits>(usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+            AllocateBuffer(bufferhandler, buffersize, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     }
     else {
-        AllocateBuffer(bufferhandler, buffersize, usage, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        if (usage == VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) {
+            AllocateBuffer(bufferhandler, buffersize, usage, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        }
+        else {
+            AllocateBuffer(bufferhandler, buffersize, usage, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        }
     }
 }
 void BufferHelper::CreateTextureBuffer(Buffer& bufferhandler, VkDeviceSize buffersize, void *pixels)

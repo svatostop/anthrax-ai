@@ -132,7 +132,7 @@ void main()
    // debugPrintfEXT("%d|||%f|%f|---||%f|%f|%f-----%f|%f|%f\n",GetTextureInd() + 1, uv.x, uv.y, position.r, position.g, position.b, albedo.x, albedo.y, albedo.z);
     }
     result = clamp(result , vec3(0), vec3(1));
-    if (result.x <= 0 && result.y <= 0 && result.z <= 0 && shadow == 0) {
+    if (result.x <= 0 && result.y <= 0 && result.z <= 0 ) {
         discard;
     }
     outfragcolor = vec4(result  * cubemap, 1);//outfragcolor = vec4(position.xyz / 10.0, 1.0);

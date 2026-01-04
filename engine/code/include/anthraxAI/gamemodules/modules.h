@@ -36,6 +36,7 @@ namespace Modules
     enum QueueType {
         RQ_GENERAL,
         RQ_LIGHT,
+        RQ_SKINNED,
     };
     typedef std::vector<Gfx::RenderObject> RenderQueueVec;
     typedef std::map<QueueType, std::vector<Gfx::RenderObject>> RenderQueueMap;
@@ -63,11 +64,14 @@ namespace Modules
             void AddRQ(QueueType type, Gfx::RenderObject obj) { RenderQueue[type].push_back(obj); }
 
             void SetRenderQueue(QueueType type, std::vector<Gfx::RenderObject>& rq) { RenderQueue[type] = rq; }
+            void SetSkinnginRenderQueue(std::vector<Gfx::RenderObject>& rq) { SkinningRqHelper = rq; }
+             std::vector<Gfx::RenderObject>& GetSkinningRQ()  { return SkinningRqHelper; } 
         private:
             std::string Tag;
             Gfx::InputAttachments IAttachments;
             RenderQueueMap RenderQueue;
             Gfx::BindlessDataType BindlessType;
+            RenderQueueVec SkinningRqHelper;
 
             int ColorID;
             int DepthID;
@@ -76,6 +80,7 @@ namespace Modules
             bool HasStorageBuffer;
             bool HasTexture;
             bool HasGizmo;
+
 
     };
     typedef std::unordered_map<std::string, Module> ScenesMap;
@@ -97,12 +102,18 @@ namespace Modules
             bool Find(const std::string& key) const { return SceneModules.find(key) != SceneModules.end(); }        
 
             bool HasFrameOutline() const { return HasOutline; }
-            void ReloadAnimation(uint32_t id, const std::string& s) { if (Animator) { Animator->Reload(id, s); } }
-            bool HasAnimation(uint32_t id) { if (Animator) { return Animator->HasAnimation(id); } return false; }
-            const Core::aiSceneInfo& GetInfo(Gfx::ModelInfo* info, uint32_t id, float offset) {  return Animator->Update2(info, id, offset);   }
+            void ReloadAnimation(const std::string& id, const std::string& s) { if (Animator) { Animator->Reload(id, s); } }
+// #ifndef COMPUTE_MTX
+            // bool HasAnimation(uint32_t id) { if (Animator) { return Animator->HasAnimation(id); } return false; }
+// #endif
+            int GetAnimationIndex(const std::string& id) { return Animator->get_animation_array_index(id); }
+            int GetAnimationIndexSize() { return Animator->get_animation_array_index_size(); }
+            const Core::aiSceneInfo& GetInfo(Gfx::ModelInfo* info, const std::string& id, float offset) {  return Animator->Update2(info, id, offset);   }
             void SetRenderQueue(QueueType type, const std::string& key, RenderQueueVec& rq) { SceneModules[key].SetRenderQueue(type, rq); }
+            void SetSkinnginRenderQueue(const std::string& key, RenderQueueVec& rq) { SceneModules[key].SetSkinnginRenderQueue( rq); }
 
             void RestartAnimator();
+            bool HasAnimator() const { return Animator; }
             const glm::mat4& GetGlobalTransform() const { return Animator->GetGlobalTransform(); }
 
             ScenesMap& GetSceneModules() { return SceneModules; }
@@ -113,6 +124,9 @@ namespace Modules
             uint32_t GetCubemapBind(uint32_t ind) { return CubemapBind[ind]; }
             void SetCubemapTexture(const std::string& s) { CubemapTexture = s; }
             const std::string& GetCubemapTexture() const { return CubemapTexture; }
+            size_t GetSceneVertSize() { return vertex_count; }
+
+            const std::unordered_map<std::string, int>& get_mapped_spawn_vertecies();
         private:
             uint32_t CubemapBind[MAX_FRAMES];
             bool HasOutline = false;
@@ -122,7 +136,10 @@ namespace Modules
             Core::AnimatorBase* Animator = nullptr;
 
             std::string CubemapTexture;
-
+            
+            bool was_vertecies_count = 0;
+            int vertex_count = 0;
+            std::unordered_map<std::string, int> mapped_spawn_vertecies;
             Gfx::RenderObject LoadResources(const Keeper::Objects* info);
             void UpdateResources();
             void UpdateResource(Modules::Module& module, Gfx::RenderObject& obj);

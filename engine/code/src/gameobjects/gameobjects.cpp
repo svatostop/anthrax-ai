@@ -233,6 +233,10 @@ Keeper::Base::Base()
     DefaultObjects[Infos::INFO_PARTICLES] = modules;
     modules.Material = "compute_mtx";
     DefaultObjects[Infos::INFO_COMPUTE_MTX] = modules;
+    modules.Material = "visibility_compute";
+    DefaultObjects[Infos::INFO_VISIBILITY_COMPUTE] = modules;
+    modules.Material = "compute_skinning";
+    DefaultObjects[Infos::INFO_COMPUTE_SKINNING] = modules;
 
     modules.Material = "grid";
     modules.Texture = "dummy.png";

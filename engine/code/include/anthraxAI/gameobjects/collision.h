@@ -6,15 +6,31 @@
 #include "anthraxAI/gameobjects/objects/camera.h"
 
 namespace Gfx {
- struct Vertex {
-        glm::vec4 position;
-        glm::vec3 normal;
-        glm::vec3 color;
-        glm::vec2 uv;
-        float weights[4];
-        int boneID[4];
+struct VertexComputeSkinning {
+        glm::vec4 position = glm::vec4(0);
+        glm::vec4 normal = glm::vec4(0);
+        glm::vec4 color = glm::vec4(0);
+        glm::vec4 uv = glm::vec4(0);
     };
-    
+struct VertexComputeSkinningIn {
+        glm::vec4 position = glm::vec4(0);
+        glm::vec4 normal = glm::vec4(0);
+        glm::vec4 color = glm::vec4(0);
+        glm::vec4 uv = glm::vec4(0);
+        glm::vec4 vweight;
+        glm::ivec4 vboneid;
+   
+        glm::ivec4 datas;
+
+    };
+ struct Vertex {
+        glm::vec4 position = glm::vec4(0);
+        glm::vec3 normal = glm::vec3(0);
+        glm::vec3 color = glm::vec3(0,0,0);
+        glm::vec2 uv = glm::vec2(0,0);
+        float weights[4] = { 0.0f, 0.0f, 0.0f, 0.0f};
+        int boneID[4] = { -1, -1, -1, -1};
+    };
     struct ComputeVertex {
         glm::vec2 position;
         glm::vec2 velocity;

@@ -18,6 +18,7 @@
 #include <vulkan/vulkan_core.h>
 #include "anthraxAI/utils/tracy.h"
 
+// #define VISIBILITY_COMPUTE 
 #define COMPUTE_MTX
 #define DRAW_INDIRECT
 namespace Core
@@ -34,9 +35,11 @@ namespace Core
             void ExportScene();
             void ExportObjectInfo(const Keeper::Objects* obj);
             void RenderScene(bool playmode);
-            // bool HasAnimation(uint32_t id) { if (GameModules) { return GameModules->HasAnimation(id); } return false; }
-            const Core::aiSceneInfo& GetInfo(Gfx::ModelInfo* info, uint32_t id, float offset) {  return GameModules->GetInfo(info, id, offset);   }
-            void ReloadAnimation(uint32_t id, const std::string& s) { if (GameModules) { return GameModules->ReloadAnimation(id, s); }}
+            int GetAnimationIndexSize() { if (GameModules) { return GameModules->GetAnimationIndexSize(); } return 0;}
+            int GetAnimationIndex(const std::string& id) { if (GameModules) { return GameModules->GetAnimationIndex(id); } return 0; }
+            bool HasAnimator() { if (GameModules) { return GameModules->HasAnimator(); } return false; }
+            const Core::aiSceneInfo& GetInfo(Gfx::ModelInfo* info, const std::string& id, float offset) {  return GameModules->GetInfo(info, id, offset);   }
+            void ReloadAnimation(const std::string& id, const std::string& s) { if (GameModules) { return GameModules->ReloadAnimation(id, s); }}
             
             void SetCurrentSceneForUpdate(const std::string& name) { CurrentSceneForUpdate = name; }
             void SetCurrentScene(const std::string& str);
@@ -78,6 +81,7 @@ namespace Core
             uint32_t GetSelectedID() { return GameObjects->GetSelectedID(); }
 
             const glm::mat4& GetGlobalTransform() const { return GameModules->GetGlobalTransform(); }
+            bool HasGameModules() const { return GameModules; }
             bool RenderPassed = false;
 
             uint32_t GetCubemapBind(uint32_t ind) { return GameModules->GetCubemapBind(ind);}
@@ -88,12 +92,13 @@ namespace Core
             void SetParticles(bool particle) { HasCompute = particle; }
             bool GetParticles() { return HasCompute; }
 
+            size_t GetSceneVertSize() { return GameModules->GetSceneVertSize(); }
         private:
             void PopulateModules();
 
             void LoadScene(const std::string& filename);
             void Render(Modules::Module& module);
-            void Compute(Modules::Module& module);
+            void Compute(Modules::Module& module, uint32_t work_groups, uint32_t work_groups2 = 1);
             void RenderThreaded(Modules::Module& module);
 
             Keeper::Base* GameObjects = nullptr;

@@ -19,6 +19,9 @@ Keeper::Npc::Npc(const Info& info)
     Animations = info.Animations;
     IsAnimated = !Animations.empty();
     ParsedID = info.ParsedID;
+    Spawn = info.Spawn;
+    SpawnName = info.SpawnName;
+    InstanceCount = info.Offset.x * info.Offset.y * info.Offset.z;
 
     AnimOffset = info.AnimOffset;
     PrintInfo();

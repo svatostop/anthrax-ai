@@ -37,7 +37,7 @@ namespace Gfx
             const std::vector<std::string>& GetMaterialNames() { return MaterialNames; } 
             void Build();
 
-            void CompileShader(const std::string& name, shaderc_shader_kind kind, std::string& data);
+            void CompileShader(const std::string& material, const std::string& name, shaderc_shader_kind kind, std::string& data);
 
         private:
         	VkPipeline Pipeline;
@@ -66,8 +66,8 @@ namespace Gfx
             Material* CreateMaterial(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name);
             void Setup(Gfx::RenderTargetsList id);
             void SetupCompute(VkShaderModule computeshader);
-            void GetVertexDescription(bool iscompute = false);
-            VkPipelineVertexInputStateCreateInfo VertexInputStageCreateInfo(bool iscompute = false);
+            void GetVertexDescription(bool iscompute = false, bool isskinningin = false );
+            VkPipelineVertexInputStateCreateInfo VertexInputStageCreateInfo(bool iscompute = false, bool isskinningin = false);
             
             std::vector<std::string> MaterialNames;
             std::unordered_map<std::string,Material> Materials;

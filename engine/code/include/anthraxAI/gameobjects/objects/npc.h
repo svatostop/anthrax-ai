@@ -2,6 +2,7 @@
 
 #include "anthraxAI/gameobjects/gameobjects.h"
 #include "anthraxAI/gameobjects/objects/gizmo.h"
+#include <cstdint>
 
 namespace Keeper
 {
@@ -20,6 +21,9 @@ namespace Keeper
             void Update() override;
             void PrintInfo() override;
 
+           const glm::vec3& GetRotation() const override { return rotation; }
+           void SetRotation(const glm::vec3& v) override { rotation = v; }
+    
             bool HasAnimations() const override { return IsAnimated; }
             void SetGizmo(Keeper::Objects* gizmo) override { GizmoHandle = reinterpret_cast<Keeper::Gizmo*>(gizmo); }
 
@@ -32,7 +36,9 @@ namespace Keeper
             const std::string& GetMaterialName() const override { return MaterialName; }
             const std::string& GetFragmentName() const override { return Fragment; }
             const std::string& GetVertexName() const override { return Vertex; }
-
+            const std::string& GetSpawnName() const override { return SpawnName; }
+            const uint32_t GetInstanceCount() const override { return InstanceCount; }
+            const bool GetSpawn() const override { return Spawn;}
             const std::string& GetParsedID() const override { return ParsedID; }
             const std::vector<std::string>& GetAnimations() const override { return Animations; }
         
@@ -44,17 +50,21 @@ namespace Keeper
             
             float AnimOffset = 1.0;
     bool ResetMouse = false;
+            glm::vec3 rotation = glm::vec3(0);        
 
             std::string ParsedID = "";
+            std::string SpawnName = "";
             std::string Vertex;
             std::string Fragment;
             std::string TextureName;
             std::string MaterialName;
             std::string ModelName;
             bool Visible = true;
+            bool Spawn = false;
             bool Selected = false;
             bool IsAnimated = false;
-
+            
+            uint32_t InstanceCount = 1;
    bool reset = true;
             std::vector<std::string> Animations;
 

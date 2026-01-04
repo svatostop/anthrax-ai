@@ -32,6 +32,17 @@ void Gfx::VkDebug::Setup(VkInstance instance, bool validationon)
 	VK_ASSERT(CreateDebugUtilsMessengerEXT(instance, &MessengerCreateInfo, nullptr, &Messenger), "failed to set up debug messenger!");
 }
 
+void Gfx::VkDebug::SetDebugName(const std::string& name, uint64_t handle, VkObjectType type)
+{
+    VkDebugUtilsObjectNameInfoEXT info;
+	info.pNext = nullptr;
+	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	info.objectHandle = handle;
+	info.objectType = type;
+	info.pObjectName = name.c_str();
+    SetName(info);
+}
+
 void Gfx::VkDebug::SetRTName(const std::string& name, VkImage image)
 {
     VkDebugUtilsObjectNameInfoEXT info;

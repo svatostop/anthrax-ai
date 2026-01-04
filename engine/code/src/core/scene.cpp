@@ -9,6 +9,7 @@
 #include "anthraxAI/gameobjects/objects/sprite.h"
 #include "anthraxAI/gfx/renderhelpers.h"
 #include "anthraxAI/gfx/vkbase.h"
+#include "anthraxAI/gfx/vkdescriptors.h"
 #include "anthraxAI/gfx/vkrenderer.h"
 #include "anthraxAI/gfx/model.h"
 #include "anthraxAI/gfx/vkrendertarget.h"
@@ -17,6 +18,7 @@
 #include "anthraxAI/utils/parser.h"
 #include "anthraxAI/utils/thread.h"
 #include "anthraxAI/utils/tracy.h"
+#include <cstdint>
 #include <cstdio>
 #include <ctime>
 #include <string>
@@ -127,11 +129,11 @@ void Core::Scene::RenderThreaded(Modules::Module& module)
         Gfx::Renderer::GetInstance()->SetCmd(Gfx::Renderer::GetInstance()->GetFrame().MainCommandBuffer);
         if (!sec_cmds.empty()) {
             vkCmdExecuteCommands(Gfx::Renderer::GetInstance()->GetCmd(),sec_cmds.size(), sec_cmds.data());
-        }
+    }
     }
 }
 
-void Core::Scene::Compute(Modules::Module& module)
+void Core::Scene::Compute(Modules::Module& module, uint32_t work_groups, uint32_t work_groups2 )
 {
     Gfx::Renderer::GetInstance()->DebugRenderName(module.GetTag());
  
@@ -142,7 +144,7 @@ void Core::Scene::Compute(Modules::Module& module)
                 Gfx::Renderer::GetInstance()->ComputeParticles(obj);
             }
             else {
-                Gfx::Renderer::GetInstance()->Compute(obj);
+                Gfx::Renderer::GetInstance()->Compute(obj, work_groups, work_groups2);
             }
         }
     }
@@ -206,39 +208,117 @@ void Core::Scene::RenderScene(bool playmode)
             else {
 #ifdef COMPUTE_MTX
                 if (playmode) {
-                    Compute(GameModules->Get("compute_mtx"));
+                    Gfx::Renderer::GetInstance()->GetCmdHandle().MemoryBarrier(
+                            Gfx::DescriptorsBase::GetInstance()->GetBuffer(Gfx::Renderer::GetInstance()->GetFrameInd(), Gfx::INSTANCE),
+                            sizeof(Gfx::InstanceData) * MAX_INSTANCES,
+                            VK_ACCESS_SHADER_READ_BIT,
+                            VK_ACCESS_SHADER_WRITE_BIT,
+                            VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+                    );
+                    Compute(GameModules->Get("compute_mtx"), u_int32_t(GameModules->GetAnimationIndexSize()) );
+                    Gfx::Renderer::GetInstance()->GetCmdHandle().MemoryBarrier(
+                            Gfx::DescriptorsBase::GetInstance()->GetBuffer(Gfx::Renderer::GetInstance()->GetFrameInd(), Gfx::INSTANCE),
+                            sizeof(Gfx::InstanceData) * MAX_INSTANCES,
+                            VK_ACCESS_SHADER_WRITE_BIT,
+                            VK_ACCESS_SHADER_READ_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+                    );
+                }
+#endif
+#ifdef COMPUTE_SKINNING
+                {
+                    Gfx::Renderer::GetInstance()->GetCmdHandle().MemoryBarrier(
+                            Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, Gfx::SKINNING_OUT),
+                            sizeof(Gfx::VertexOutputData) * GetSceneVertSize(),
+                            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+                            VK_ACCESS_SHADER_WRITE_BIT,
+                            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+                    );
+                    Gfx::Renderer::GetInstance()->GetCmdHandle().MemoryBarrier(
+                            Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, Gfx::SKINNING_IN),
+                            sizeof(Gfx::VertexInputData) * Gfx::Model::GetInstance()->GetVerteciesSize(),
+                            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+                            VK_ACCESS_SHADER_WRITE_BIT,
+                            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+                    );
+
+                    // Gfx::Renderer::GetInstance()->BarrierVertexCompute(0);
+                    Compute(GameModules->Get("compute_skinning"), ((Gfx::Renderer::GetInstance()->ComputeSkinningMaxVertex )+ 255) / 256);// (Gfx::Renderer::GetInstance()->ComputeSkinningMaxVertex + 32));
+                    // Gfx::Renderer::GetInstance()->BarrierVertexCompute(1);
+                    Gfx::Renderer::GetInstance()->GetCmdHandle().MemoryBarrier(
+                            Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, Gfx::SKINNING_OUT),
+                            sizeof(Gfx::VertexOutputData) * GetSceneVertSize(),
+                            VK_ACCESS_SHADER_WRITE_BIT,
+                            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
+                    );
+                    Gfx::Renderer::GetInstance()->GetCmdHandle().MemoryBarrier(
+                            Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, Gfx::SKINNING_IN),
+                            sizeof(Gfx::VertexInputData) * Gfx::Model::GetInstance()->GetVerteciesSize(),
+                            VK_ACCESS_SHADER_WRITE_BIT,
+                            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
+                    );
+
+                    //
+                    Gfx::Renderer::GetInstance()->GetCmdHandle().MemoryBarrier(
+                            Gfx::DescriptorsBase::GetInstance()->GetBuffer(Gfx::Renderer::GetInstance()->GetFrameInd(), Gfx::INSTANCE),
+                            sizeof(Gfx::InstanceData) * MAX_INSTANCES,
+                            VK_ACCESS_SHADER_READ_BIT,
+                            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
+                    );
+
                 }
 #endif
                 if (HasCompute) {
-                    Compute(GameModules->Get("particles"));
+                    Compute(GameModules->Get("particles"), 0);
                     
                     Gfx::Renderer::GetInstance()->StartRender(GameModules->Get("particles").GetIAttachments(), Gfx::AttachmentRules::ATTACHMENT_RULE_CLEAR);
                     Render(GameModules->Get("particles"));
                     Gfx::Renderer::GetInstance()->EndRender();
                 }
                 else {
+// #ifndef COMPUTE_SKINNING
                     if (Gfx::Renderer::GetInstance()->GetCubemapRendering()) {
                         Gfx::Renderer::GetInstance()->StartRender(GameModules->Get("lighting").GetIAttachments(), Gfx::AttachmentRules::ATTACHMENT_RULE_CLEAR);
                         Render(GameModules->Get("skybox"));
                         Gfx::Renderer::GetInstance()->EndRender();
                     }
+            // #endif
                 }
                 // objects from map
 #ifdef DRAW_INDIRECT
+#ifdef VISIBILITY_COMPUTE
+                {
+                    // Compute(GameModules->Get("visibility_compute"), 64);
+                }
+#else
+                Gfx::Renderer::GetInstance()->ResetSkinningIterator();
                 Gfx::Renderer::GetInstance()->ClearIndirectBatches();
                 Gfx::Renderer::GetInstance()->CompactDrawIndirect(GameModules->Get("gbuffer").GetRenderQueueMap());
     Gfx::Renderer::GetInstance()->DebugRenderName(GameModules->Get("gbuffer").GetTag());
                 Gfx::Renderer::GetInstance()->StartRender(GameModules->Get("gbuffer").GetIAttachments(), Gfx::AttachmentRules::ATTACHMENT_RULE_CLEAR, false);
-                Gfx::Renderer::GetInstance()->RenderIndirect(GameModules->Get("gbuffer").GetRenderQueueMap());
+                // Gfx::Renderer::GetInstance()->RenderIndirect(GameModules->Get("gbuffer").GetRenderQueueMap());
+                Gfx::Renderer::GetInstance()->RenderIndirect(GameModules->Get("gbuffer"));
                 Gfx::Renderer::GetInstance()->EndRender();
     Gfx::Renderer::GetInstance()->EndRenderName();
-
+#endif
                 if (HasFrameShadows) { 
+                    Gfx::Renderer::GetInstance()->ResetSkinningIterator();
                     Gfx::Renderer::GetInstance()->ClearIndirectBatches();
                     Gfx::Renderer::GetInstance()->CompactDrawIndirect(GameModules->Get("shadows").GetRenderQueueMap());
     Gfx::Renderer::GetInstance()->DebugRenderName(GameModules->Get("shadows").GetTag());
                     Gfx::Renderer::GetInstance()->StartRender(GameModules->Get("shadows").GetIAttachments(), Gfx::AttachmentRules::ATTACHMENT_RULE_CLEAR);
-                    Gfx::Renderer::GetInstance()->RenderIndirect(GameModules->Get("shadows").GetRenderQueueMap());
+                    // Gfx::Renderer::GetInstance()->RenderIndirect(GameModules->Get("shadows").GetRenderQueueMap());
+                    Gfx::Renderer::GetInstance()->RenderIndirect(GameModules->Get("shadows"));
                     Gfx::Renderer::GetInstance()->EndRender();
     Gfx::Renderer::GetInstance()->EndRenderName();
 
@@ -246,10 +326,12 @@ void Core::Scene::RenderScene(bool playmode)
 
                 
 #else
+                Gfx::Renderer::GetInstance()->ResetSkinningIterator();
                 Gfx::Renderer::GetInstance()->StartRender(GameModules->Get("gbuffer").GetIAttachments(), Gfx::AttachmentRules::ATTACHMENT_RULE_CLEAR, GameModules->Get("gbuffer").GetRenderQueue(Modules::RQ_GENERAL).size() > Thread::MAX_RENDER_THREAD_NUM * 2 ? true : false);
                 Render(GameModules->Get("gbuffer"));
                 Gfx::Renderer::GetInstance()->EndRender();
                 if (HasFrameShadows) { 
+                    Gfx::Renderer::GetInstance()->ResetSkinningIterator();
                     Gfx::Renderer::GetInstance()->ResetInstanceInd();
                     Gfx::Renderer::GetInstance()->StartRender(GameModules->Get("shadows").GetIAttachments(), Gfx::AttachmentRules::ATTACHMENT_RULE_CLEAR);
                     Render(GameModules->Get("shadows"));
@@ -274,12 +356,15 @@ void Core::Scene::RenderScene(bool playmode)
                 Render(GameModules->Get("sprite"));
                 Gfx::Renderer::GetInstance()->EndRender();
             }
+            #ifndef COMPUTE_SKINNING
             Gfx::Renderer::GetInstance()->CopyImage(Gfx::RT_MAIN_COLOR, Gfx::RT_MAIN_DEBUG);
+            #endif
             // gizmo, outline
             if (playmode && HasFrameGizmo) {
                 
                 if (GameModules->HasFrameOutline()) {
                     Gfx::Renderer::GetInstance()->ResetInstanceInd();
+                    Gfx::Renderer::GetInstance()->GetRT(Gfx::RT_MASK)->MemoryBarrier(Gfx::Renderer::GetInstance()->GetCmd(),VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
                     Gfx::Renderer::GetInstance()->StartRender(GameModules->Get("mask").GetIAttachments(), Gfx::AttachmentRules::ATTACHMENT_RULE_CLEAR);
                     Render(GameModules->Get("mask"));
                     Gfx::Renderer::GetInstance()->EndRender();
@@ -576,13 +661,39 @@ void Core::Scene::PopulateModules()
                 GameObjects->GetInfo(Keeper::Infos::INFO_COMPUTE_MTX)
             );
         }
+#endif 
+#ifdef VISIBILITY_COMPUTE
+        {
+            Modules::Info info;
+            info.BindlessType = Gfx::BINDLESS_DATA_STORAGE;
+            info.IAttachments.Add(Gfx::RT_VISIBILITY);
+            GameModules->Populate("visibility_compute", info,
+                GameObjects->GetInfo(Keeper::Infos::INFO_VISIBILITY_COMPUTE)
+            );
+
+        }
+#endif
+#ifdef COMPUTE_SKINNING
+        {
+            Modules::Info info;
+            info.BindlessType = Gfx::BINDLESS_DATA_SKINNING;
+            info.IAttachments.Add(Gfx::RT_MAIN_COLOR);
+            GameModules->Populate("compute_skinning", info,
+                GameObjects->GetInfo(Keeper::Infos::INFO_COMPUTE_SKINNING)
+            );
+
+        }
+        GameModules->RestartAnimator();
+#ifdef COMPUTE_SKINNING
+	Gfx::DescriptorsBase::GetInstance()->AllocateSkinningBuffer();
+    Gfx::Renderer::GetInstance()->FillSkinningBuffer();
+#endif
+
 #endif
         HasFrameGrid = true;
         HasFrameGizmo = true;
     }
     GameModules->Update(Modules::Update::RESOURCES, true);
-
-    GameModules->RestartAnimator();
 }
 
 void Core::Scene::ClearNewObjectInfo()
@@ -754,6 +865,7 @@ void Core::Scene::LoadScene(const std::string& filename)
 
         Utils::NodeIt spawn = Parse.GetChild(node, Utils::LEVEL_ELEMENT_SPAWN);
         if (Parse.IsNodeValid(spawn)) {
+            info.SpawnName = Parse.GetElement<std::string>(spawn, Utils::LEVEL_ELEMENT_NAME, "");
             xpos = Parse.GetElement<float>(spawn, Utils::LEVEL_ELEMENT_X, 0.0);
             ypos = Parse.GetElement<float>(spawn, Utils::LEVEL_ELEMENT_Y, 0.0);
             zpos = Parse.GetElement<float>(spawn, Utils::LEVEL_ELEMENT_Z, 0.0);

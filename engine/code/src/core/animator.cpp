@@ -5,9 +5,11 @@
 #include "anthraxAI/utils/defines.h"
 #include "assimp/anim.h"
 #include "assimp/scene.h"
+#include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <vector>
 
 void Core::AnimatorBase::Update(Gfx::RenderObject& object)
@@ -23,7 +25,7 @@ void Core::AnimatorBase::Update(Gfx::RenderObject& object)
     uint32_t frame = Gfx::Renderer::GetInstance()->GetFrameInd();
     GetBonesTransform(object.Model[frame], object.ID, timesec);
 }
-Core::aiSceneInfo& Core::AnimatorBase::Update2(Gfx::ModelInfo* model, int id, float offset)
+Core::aiSceneInfo& Core::AnimatorBase::Update2(Gfx::ModelInfo* model, const std::string& id, float offset)
 {
 #ifdef TRACY
     ZoneScopedN("Core::AnimatorBase::Update2");
@@ -150,13 +152,22 @@ printf("anim node channels: %d\n", scene->mAnimations[0]->mNumChannels );
 
 void Core::AnimatorBase::Init()
 {
+    int animation_ind = 0;
     Core::Scene* scene = Core::Scene::GetInstance();
     for (auto& it : scene->GetGameObjects()->GetObjects()) {
         for (Keeper::Objects* info : it.second) {
             if (info->GetModelName().empty() || !info->HasAnimations()) continue;
-            AnimationData& data =  Animations[info->GetID()];
+            // AnimationData& data =  Animations[info->GetID()];
+            std::string key = info->GetParsedID();
+            if (!info->GetSpawnName().empty()) {
+                key = info->GetSpawnName();
+            }
+            if (Animations.find(key) != Animations.end()) continue;;
+
+            AnimationData& data =  Animations[key];
             data.Paths.reserve(info->GetAnimations().size());
             data.SceneInd = 0;
+            data.animation_array_ind = animation_ind;
             for (const std::string& animpath : info->GetAnimations()) {
                 data.Paths.push_back("./models/" + animpath);
 
@@ -175,18 +186,19 @@ void Core::AnimatorBase::Init()
             }
             data.CurrentPath = data.Paths[0];
             data.PathIndex = 0;
+            animation_ind++;
         }
     }
     GlobalInverse = glm::inverse(glm::mat4(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
     glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-    GlobalInverse *= rot;
+    GlobalInverse *= rot ;//*  glm::scale(glm::mat4(1.0f), glm::vec3(0.03));
 }
 
 void Core::AnimatorBase::Hierarchy(Gfx::ModelInfo* model, Core::aiSceneInfo& scene, int i, float timetick, glm::mat4 parenttransform, glm::mat4 parenttransforms[200])
 {
     glm::mat4 nodetransf = scene.matricies.nodeTransform[i];
     glm::mat4 globaltransf; 
-    if (scene.floats.animisempty[scene.floats.nodeAnimInd[i]] == 0) {
+    if (scene.floats.nodeAnimInd[i] != -1) { // scene.floats.animisempty[scene.floats.nodeAnimInd[i]] == 0) {
                 {
 #ifdef TRACY
         ZoneNamedN(ZoneAnim5, "AnimatorBase::ReadNodeHierarchy::Mult-scale-rot-transl", true);
@@ -205,7 +217,7 @@ void Core::AnimatorBase::Hierarchy(Gfx::ModelInfo* model, Core::aiSceneInfo& sce
 //         else {
     parenttransforms[ scene.floats.nodeIndex[i]] = globaltransf;
         // }
-    if (scene.floats.nodesettransform[i] == 1) {
+    if (scene.floats.nodeBoneInd[i] != -1) {
         int boneind = scene.floats.nodeBoneInd[i];
         model->Bones.Info[boneind].FinTransform = GlobalInverse * globaltransf * scene.matricies.nodeOffset[i];
     }
@@ -217,10 +229,10 @@ void Core::AnimatorBase::ReadNodeHierarchy3(int i, Gfx::ModelInfo* model,  Core:
     std::string& nodename = scene.Names[i];
     int animind = FindAnimInt(scene, nodename);
     scene.floats.nodeAnimInd[i] = animind;
-    scene.floats.animisempty[animind] = 1;
+    // scene.floats.animisempty[animind] = 1;
 // printf("animind: %d\n", animind);
     if (animind != -1) {
-        scene.floats.animisempty[animind] = 0;
+        // scene.floats.animisempty[animind] = 0;
         {
 #ifdef TRACY
         ZoneNamedN(ZoneAnim2, "AnimatorBase::ReadNodeHierarchy::Scaling", true);
@@ -245,10 +257,11 @@ void Core::AnimatorBase::ReadNodeHierarchy3(int i, Gfx::ModelInfo* model,  Core:
         }
 
     }
-    scene.floats.nodesettransform[i] = 0;
+    //scene.floats.nodesettransform[i] = 0;
+    scene.floats.nodeBoneInd[i] = -1;
     const auto& it = model->Bones.BoneMap.find(nodename);
     if (it != model->Bones.BoneMap.end()) {
-        scene.floats.nodesettransform[i] = 1;
+        // scene.floats.nodesettransform[i] = 1;
         scene.floats.nodeBoneInd[i] = it->second;
         scene.matricies.nodeOffset[i] = model->Bones.Info[it->second].Offset;
     }
@@ -336,10 +349,10 @@ glm::mat4 globaltransf;
     }
 }
 
-Core::aiSceneInfo& Core::AnimatorBase::GetBonesTransform2(Gfx::ModelInfo* model, int animid, float time)
+Core::aiSceneInfo& Core::AnimatorBase::GetBonesTransform2(Gfx::ModelInfo* model, const std::string& animid, float time)
 {
 #ifdef TRACY
-    ZoneScopedN("Core::AnimatorBase::GetBonesTransform2");
+    ZoneNamedN(Zone1, "Core::AnimatorBase::GetBonesTransform2", true);
 #endif
 
     Core::AnimationData& data = Animations[animid];
@@ -388,6 +401,7 @@ Core::aiSceneInfo& Core::AnimatorBase::GetBonesTransform2(Gfx::ModelInfo* model,
 }
 void Core::AnimatorBase::GetBonesTransform(Gfx::ModelInfo* model, int animid, float time)
 {
+    #ifndef COMPUTE_MTX
     Core::AnimationData& data = Animations[animid];
 
     Core::aiSceneInfo& scene = Scenes[data.SceneInd];
@@ -426,6 +440,7 @@ void Core::AnimatorBase::GetBonesTransform(Gfx::ModelInfo* model, int animid, fl
     // }
     //------0-----
     ReadNodeHierarchy(model, animid, scene, scene.RootNode, timeticks, glm::mat4(1.0));
+#endif
 }
 
 glm::mat4 Core::AnimatorBase::InterpolatePos(glm::vec3 out, float timeticks, const NodeAnim& animnode)
@@ -459,8 +474,9 @@ void Core::AnimatorBase::InterpolatePos(float timeticks, const NodeAnim& animnod
 {
     glm::vec3 out;
     if (animnode.NumPositionsKeys == 1) {
-        scene.matricies.pos_out[ind] = glm::vec4(animnode.PositionKeys[0], 1.0);
-        scene.floats.pos_comp[ind] = 0; 
+        assert(animnode.NumPositionsKeys == 1);
+        // scene.matricies.pos_out[ind] = glm::vec4(animnode.PositionKeys[0], 1.0);
+        // scene.floats.pos_comp[ind] = 0; 
         return;
         // return glm::translate(glm::mat4(1.0f), out);
     }
@@ -474,7 +490,7 @@ void Core::AnimatorBase::InterpolatePos(float timeticks, const NodeAnim& animnod
     scene.floats.pos_factor[ind] = (timeticks - t1) / DeltaTime;
     scene.matricies.pos_start[ind] = glm::vec4(animnode.PositionKeys[PositionIndex],1.0);
     scene.matricies.pos_end[ind] = glm::vec4( animnode.PositionKeys[NextPositionIndex], 1.0);
-    scene.floats.pos_comp[ind] = 1; 
+    // scene.floats.pos_comp[ind] = 1; 
     // const glm::vec3& End = animnode.PositionKeys[NextPositionIndex];
     // const glm::vec3& Start = animnode.PositionKeys[PositionIndex];
     // const glm::vec3& End = animnode.PositionKeys[NextPositionIndex];
@@ -527,8 +543,9 @@ glm::mat4 Core::AnimatorBase::InterpolateRot(glm::quat out, float timeticks, con
 void Core::AnimatorBase::InterpolateRot(float timeticks, const NodeAnim& animnode, aiSceneInfo& scene, int ind)
 {
     if (animnode.NumRotationKeys == 1) {
-        scene.matricies.rot_out[ind] = glm::toMat4(static_cast<glm::quat>((animnode.RotationKeys[0])));
-        scene.floats.rot_comp[ind] = 0; 
+        assert(animnode.NumRotationKeys == 1);
+        // scene.matricies.rot_out[ind] = glm::toMat4(static_cast<glm::quat>((animnode.RotationKeys[0])));
+        // scene.floats.rot_comp[ind] = 0; 
         return;
     }
 
@@ -541,7 +558,7 @@ void Core::AnimatorBase::InterpolateRot(float timeticks, const NodeAnim& animnod
     scene.floats.rot_factor[ind] = (timeticks - t1) / DeltaTime;
     scene.matricies.rot_start[ind] = glm::toMat4(animnode.RotationKeys[RotationIndex]);
     scene.matricies.rot_end[ind] = glm::toMat4(animnode.RotationKeys[NextRotationIndex]);
-        scene.floats.rot_comp[ind] = 1; 
+        // scene.floats.rot_comp[ind] = 1; 
     // glm::quat finrot = glm::slerp(static_cast<glm::quat>(StartRotationQ), static_cast<glm::quat>(EndRotationQ), Factor);
     // finrot = glm::normalize(finrot);
     // return glm::toMat4(finrot);
@@ -568,8 +585,9 @@ u_int Core::AnimatorBase::FindRot(float timeticks, const NodeAnim& animnode)
 void Core::AnimatorBase::InterpolateScale(float timeticks, const NodeAnim& animnode, Core::aiSceneInfo& scene, int ind)
 {
     if (animnode.NumScalingKeys == 1) {
-        scene.matricies.scale_out[ind] = glm::vec4(animnode.ScalingKeys[0], 1.0);
-        scene.floats.scale_comp[ind] = 0; 
+        assert(animnode.NumScalingKeys == 1);
+        // scene.matricies.scale_out[ind] = glm::vec4(animnode.ScalingKeys[0], 1.0);
+        // scene.floats.scale_comp[ind] = 0; 
         return;
 
         // out = animnode.ScalingKeys[0];
@@ -585,7 +603,7 @@ void Core::AnimatorBase::InterpolateScale(float timeticks, const NodeAnim& animn
     scene.floats.scale_factor[ind] = (timeticks - (float)t1) / DeltaTime;
     scene.matricies.scale_start[ind] = glm::vec4(animnode.ScalingKeys[ScalingIndex], 1.0);
     scene.matricies.scale_end[ind] = glm::vec4(animnode.ScalingKeys[NextScalingIndex], 1.0);
-        scene.floats.scale_comp[ind] = 1; 
+        // scene.floats.scale_comp[ind] = 1; 
     // glm::vec3 Delta = End - Start;
    // out = glm::mix(Start, End, Factor);//Start + Factor * Delta;
     // return glm::scale(glm::mat4(1.0f), out);

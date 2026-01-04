@@ -20,8 +20,15 @@ Gfx::MeshInfo* Gfx::Mesh::GetMesh(const std::string& name)
 void Gfx::Mesh::Update(MeshInfo& mesh)
 {
     VkBufferUsageFlags flags[2] = {VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT};
-	BufferHelper::CreateBuffer(mesh.VertexBuffer, flags, sizeof(mesh.Vertices[0]) * mesh.Vertices.size(), mesh.Vertices.data());
-
+#ifdef COMPUTE_SKINNING
+    if (!mesh.VerticesNew.empty()) {
+	    BufferHelper::CreateBuffer(mesh.VertexBuffer, flags, sizeof(mesh.VerticesNew[0]) * mesh.VerticesNew.size(), mesh.VerticesNew.data());
+    }
+    else
+#endif
+    {
+	    BufferHelper::CreateBuffer(mesh.VertexBuffer, flags, sizeof(mesh.Vertices[0]) * mesh.Vertices.size(), mesh.Vertices.data());
+    }
 	VkBufferUsageFlags flags2[2] = {VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT};
 	if (mesh.AIindices.empty()) {
 		BufferHelper::CreateBuffer(mesh.IndexBuffer, flags2, sizeof(mesh.Indices[0]) * mesh.Indices.size(), mesh.Indices.data());
@@ -178,24 +185,45 @@ void Gfx::Mesh::UpdateDummy()
     tmp->Clean();
 
     Gfx::MeshInfo mesh;
+#ifndef COMPUTE_SKINNING
     mesh.Vertices.resize(4);
+#else
+    mesh.VerticesNew.resize(4);
+#endif
     Vector2<int> res = Core::WindowManager::GetInstance()->GetScreenResolution();
     mesh.Path = "dummy";
+#ifndef COMPUTE_SKINNING
     mesh.Vertices[0].position = {0, 0, 0.0f, 1.0f};
     mesh.Vertices[1].position = {0, 0 + res.y, 0.0f, 1.0f};
     mesh.Vertices[2].position = {0 + res.x, 0 + res.y, 0.0f, 1.0f};
     mesh.Vertices[3].position ={0 + res.x, 0, 0.0f, 1.0f};
 
-    mesh.Vertices[0].color = { 0.f, 1.f, 0.0f };
-    mesh.Vertices[1].color = { 0.f, 1.f, 0.0f };
-    mesh.Vertices[2].color = { 0.f, 1.f, 0.0f };
-    mesh.Vertices[3].color = { 1.f, 0.f, 0.0f };
+    mesh.Vertices[0].color = { 0.f, 1.f, 0.0f};
+    mesh.Vertices[1].color = { 0.f, 1.f, 0.0f};
+    mesh.Vertices[2].color = { 0.f, 1.f, 0.0f};
+    mesh.Vertices[3].color = { 1.f, 0.f, 0.0f};
 
-    mesh.Vertices[1].uv = {0.0f, 0.0f};
-    mesh.Vertices[0].uv = {0.0f, 1.0f};
-    mesh.Vertices[3].uv = {1.0f, 1.0f};
-    mesh.Vertices[2].uv = {1.0f, 0.0f};
+    mesh.Vertices[1].uv = {0.0f, 0.0};
+    mesh.Vertices[0].uv = {0.0f, 1.0};
+    mesh.Vertices[3].uv = {1.0f, 1.0};
+    mesh.Vertices[2].uv = {1.0f, 0.0};
 
+#else
+    mesh.VerticesNew[0].position = {0, 0, 0.0f, 1.0f};
+    mesh.VerticesNew[1].position = {0, 0 + res.y, 0.0f, 1.0f};
+    mesh.VerticesNew[2].position = {0 + res.x, 0 + res.y, 0.0f, 1.0f};
+    mesh.VerticesNew[3].position ={0 + res.x, 0, 0.0f, 1.0f};
+
+    mesh.VerticesNew[0].color = { 0.f, 1.f, 0.0f, 1.0f};
+    mesh.VerticesNew[1].color = { 0.f, 1.f, 0.0f, 1.0f};
+    mesh.VerticesNew[2].color = { 0.f, 1.f, 0.0f, 1.0f};
+    mesh.VerticesNew[3].color = { 1.f, 0.f, 0.0f, 1.0f};
+
+    mesh.VerticesNew[1].uv = {0.0f, 0.0, 0.0f, 1.0f};
+    mesh.VerticesNew[0].uv = {0.0f, 1.0, 0.0f, 1.0f};
+    mesh.VerticesNew[3].uv = {1.0f, 1.0, 0.0f, 1.0f};
+    mesh.VerticesNew[2].uv = {1.0f, 0.0, 0.0f, 1.0f};
+#endif
     Update(mesh);
     Meshes["dummy"] = mesh;
 
@@ -206,10 +234,15 @@ void Gfx::Mesh::CreateMeshes()
     Gfx::TexturesMap texturemap = Gfx::Renderer::GetInstance()->GetTextureMap();
 
     Gfx::MeshInfo mesh;
+#ifndef COMPUTE_SKINNING
     mesh.Vertices.resize(4);
+#else
+    mesh.VerticesNew.resize(4);
+#endif
     for (auto it : texturemap) {
         if (it.first == "dummy") continue;
         mesh.Path = it.first;
+#ifndef COMPUTE_SKINNING
         mesh.Vertices[0].position = {0, 0, 0.0f, 1.0f};
         mesh.Vertices[1].position = {0, 0 + it.second.GetSize().y, 0.0f, 1.0f};
         mesh.Vertices[2].position = {0 + it.second.GetSize().x, 0 + it.second.GetSize().y, 0.0f, 1.0f};
@@ -224,13 +257,29 @@ void Gfx::Mesh::CreateMeshes()
         mesh.Vertices[1].uv = {0.0f, 1.0f};
         mesh.Vertices[2].uv = {1.0f, 1.0f};
         mesh.Vertices[3].uv = {1.0f, 0.0f};
-
+#else
+        mesh.VerticesNew[0].position = {0, 0, 0.0f, 1.0f};
+        mesh.VerticesNew[1].position = {0, 0 + it.second.GetSize().y, 0.0f, 1.0f};
+        mesh.VerticesNew[2].position = {0 + it.second.GetSize().x, 0 + it.second.GetSize().y, 0.0f, 1.0f};
+        mesh.VerticesNew[3].position ={0 + it.second.GetSize().x, 0, 0.0f, 1.0f};
+    
+        mesh.VerticesNew[0].color = { 0.f, 1.f, 0.0f, 1.0f};
+        mesh.VerticesNew[1].color = { 0.f, 1.f, 0.0f, 1.0f};
+        mesh.VerticesNew[2].color = { 0.f, 1.f, 0.0f, 1.0f};
+        mesh.VerticesNew[3].color = { 1.f, 0.f, 0.0f, 1.0f};
+    
+        mesh.VerticesNew[1].uv = {0.0f, 0.0, 0.0f, 1.0f};
+        mesh.VerticesNew[0].uv = {0.0f, 1.0, 0.0f, 1.0f};
+        mesh.VerticesNew[3].uv = {1.0f, 1.0, 0.0f, 1.0f};
+        mesh.VerticesNew[2].uv = {1.0f, 0.0, 0.0f, 1.0f};
+#endif
         Update(mesh);
         Meshes[it.first] = mesh;
     }
 
     Vector2<int> res = Core::WindowManager::GetInstance()->GetScreenResolution();//, 1080 };
     mesh.Path = "dummy";
+#ifndef COMPUTE_SKINNING
     mesh.Vertices[0].position = {0, 0, 0.0f, 1.0f};
     mesh.Vertices[1].position = {0, 0 + res.y, 0.0f, 1.0f};
     mesh.Vertices[2].position = {0 + res.x, 0 + res.y, 0.0f, 1.0f};
@@ -245,7 +294,22 @@ void Gfx::Mesh::CreateMeshes()
     mesh.Vertices[0].uv = {0.0f, 1.0f};
     mesh.Vertices[3].uv = {1.0f, 1.0f};
     mesh.Vertices[2].uv = {1.0f, 0.0f};
+#else
+    mesh.VerticesNew[0].position = {0, 0, 0.0f, 1.0f};
+    mesh.VerticesNew[1].position = {0, 0 + res.y, 0.0f, 1.0f};
+    mesh.VerticesNew[2].position = {0 + res.x, 0 + res.y, 0.0f, 1.0f};
+    mesh.VerticesNew[3].position ={0 + res.x, 0, 0.0f, 1.0f};
 
+    mesh.VerticesNew[0].color = { 0.f, 1.f, 0.0f, 1.0f};
+    mesh.VerticesNew[1].color = { 0.f, 1.f, 0.0f, 1.0f};
+    mesh.VerticesNew[2].color = { 0.f, 1.f, 0.0f, 1.0f};
+    mesh.VerticesNew[3].color = { 1.f, 0.f, 0.0f, 1.0f};
+
+    mesh.VerticesNew[1].uv = {0.0f, 0.0, 0.0f, 1.0f};
+    mesh.VerticesNew[0].uv = {0.0f, 1.0, 0.0f, 1.0f};
+    mesh.VerticesNew[3].uv = {1.0f, 1.0, 0.0f, 1.0f};
+    mesh.VerticesNew[2].uv = {1.0f, 0.0, 0.0f, 1.0f};
+#endif
     Update(mesh);
     Meshes["dummy"] = mesh;
 

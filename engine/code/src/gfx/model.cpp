@@ -103,6 +103,7 @@ void Gfx::Model::ProcessNode(const std::string& path, aiNode *node, const aiScen
 
 void Gfx::Model::CleanAll()
 {
+    total_vertecies = 0;
     for (auto& model : Models) {
         for (auto& mesh : model.second.Meshes) {
             mesh->Clean();
@@ -126,7 +127,12 @@ void Gfx::Model::LoadModels()
             LoadModel(path + info->GetModelName());
         }
     }
-
+    //  int s = 0;
+    // for (auto& v : Models) {
+    //     for (MeshInfo* i : v.second.Meshes) {
+    //         s += i->Vertices.size();
+    //     }
+    // }
     if (ModelNames.empty()) {
         ModelNames.reserve(100);
         std::vector<std::string> names;
@@ -140,6 +146,7 @@ void Gfx::Model::LoadModels()
             }
         }
     }
+
 }
 
 void Gfx::Model::LoadModel(const std::string& path)
@@ -158,7 +165,8 @@ void Gfx::Model::LoadModel(const std::string& path)
     // else {
         ProcessNode2(path, scene->mRootNode, scene);
     // }
-
+    
+    total_vertecies += TotalVertex;
     importer.FreeScene();
 }
 

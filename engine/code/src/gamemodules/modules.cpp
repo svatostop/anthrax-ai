@@ -17,7 +17,10 @@
 
 void Modules::Base::Clear()
 {
+    was_vertecies_count = false;
     SceneModules.clear();
+    vertex_count = 0;
+    mapped_spawn_vertecies.clear();
 }
 
 void Modules::Base::Populate(const std::string& key, Modules::Info scene, std::function<bool(Keeper::Type)> skip_type)
@@ -39,15 +42,6 @@ void Modules::Base::Populate(const std::string& key, Modules::Info scene, std::f
             module.AddRQ(type, LoadResources(info));
         }
     }
-    // std::sort(module.GetRenderQueue(RQ_GENERAL).begin(), module.GetRenderQueue(RQ_GENERAL).end(), [](const Gfx::RenderObject& a, const Gfx::RenderObject& b) {
-    //         if (a.Model[0] && b.Model[0]) { return a.Model[0] == b.Model[0]; } 
-    //         else { return a.Mesh == b.Mesh; } 
-    //     });
-    // std::sort(module.GetRenderQueue(RQ_LIGHT).begin(), module.GetRenderQueue(RQ_LIGHT).end(), [](const Gfx::RenderObject& a, const Gfx::RenderObject& b) {
-    //         if (a.Model[0] && b.Model[0]) { return a.Model[0] == b.Model[0]; } 
-    //         else { return a.Mesh == b.Mesh; } 
-    //     });
-
     SceneModules[key] = module;
 }
 
@@ -81,19 +75,22 @@ void Modules::Base::Populate(const std::string& key, Modules::Info scene, Keeper
     rqobj.Position = Vector3<float>(0.0f);
     rqobj.MaterialName = info.Material;
     rqobj.Material = Gfx::Pipeline::GetInstance()->GetMaterial(info.Material);
-    if (key == "particles" || key == "compute_mtx") {
+    if (key == "particles" || key == "compute_mtx"|| key == "compute_skinning") {
         rqobj.IsCompute = true;
         module.AddRQ(RQ_GENERAL, rqobj);
         SceneModules[key] = module;
         return;
     }
     if (info.Texture == "mask") {
+        rqobj.output_vertex = true; 
         rqobj.Texture = Gfx::Renderer::GetInstance()->GetRT(Gfx::GetKey(info.Texture));
     }
     if (info.Texture == "albedo") {
         rqobj.Texture = Gfx::Renderer::GetInstance()->GetRT(Gfx::GetKey(info.Texture));
     }
     if (key == "skybox") {
+        rqobj.input_vertex = true; 
+        rqobj.ModelName = info.Model; 
         rqobj.TextureName =  info.Texture;
         rqobj.Texture = Gfx::Renderer::GetInstance()->GetCubemap(info.Texture);
         rqobj.Model[0] = Gfx::Model::GetInstance()->GetModel(info.Model);
@@ -127,28 +124,75 @@ void Modules::Base::Populate(const std::string& key, Modules::Info scene, Keeper
     module.AddRQ(RQ_GENERAL, rqobj);
 
     SceneModules[key] = module;
-
+    float offsets = 0;
+    std::string tmp_spawn;
     if (key == "mask" || key == "gbuffer" || key == "shadows") {
         Modules::RenderQueueVec rq = SceneModules[CurrentScene].GetRenderQueue(RQ_GENERAL);
+        Modules::RenderQueueVec rq_skinned;
+        for (Gfx::RenderObject& obj : rq) {
+            obj.MaterialName = key;
+            obj.Material =  Gfx::Pipeline::GetInstance()->GetMaterial(obj.MaterialName);
+#ifdef COMPUTE_SKINNING
+            if (key == "mask") {
+                obj.output_vertex = true; 
+            }
+
+            if (key == "shadows" || key == "gbuffer") {
+                obj.skinned_vertex = true; 
+            }
+            if (!was_vertecies_count && key == "gbuffer") {
+                if (tmp_spawn != obj.SpawnName) {
+                    for (auto& info : obj.Model[0]->Meshes) {
+                        vertex_count += info->Vertices.size(); 
+                    }
+                    mapped_spawn_vertecies[obj.SpawnName] = vertex_count;
+                    tmp_spawn = obj.SpawnName;
+                    rq_skinned.push_back(obj);
+                }
+            }
+#endif
+        }
+        SetRenderQueue(RQ_GENERAL, key, rq);
+        rq = SceneModules[CurrentScene].GetRenderQueue(RQ_LIGHT);
+        if (rq.empty() || key == "shadows") {
+            if (key == "gbuffer" && !was_vertecies_count) was_vertecies_count = true; 
+            SetSkinnginRenderQueue(key, rq_skinned);
+            return;
+        }
         
         for (Gfx::RenderObject& obj : rq) {
             obj.MaterialName = key;
             obj.Material =  Gfx::Pipeline::GetInstance()->GetMaterial(obj.MaterialName);
-        }
-        SetRenderQueue(RQ_GENERAL, key, rq);
+#ifdef COMPUTE_SKINNING
+            if (key == "mask") {
+                obj.output_vertex = true; 
+            }
 
-        rq = SceneModules[CurrentScene].GetRenderQueue(RQ_LIGHT);
-        if (rq.empty() || key == "shadows") {
-            return;
-        }
+            if (key == "shadows" || key == "gbuffer") {
+            obj.skinned_vertex = true; 
+            }
+            if (!was_vertecies_count && key == "gbuffer") {
+                if (tmp_spawn != obj.SpawnName) {
+                    for (auto& info : obj.Model[0]->Meshes) {
+                        vertex_count += info->Vertices.size(); 
+                    }
+                    mapped_spawn_vertecies[obj.SpawnName] = vertex_count;
+                    tmp_spawn = obj.SpawnName;
+                    rq_skinned.push_back(obj);
+                }
+            }
 
-        for (Gfx::RenderObject& obj : rq) {
-            obj.MaterialName = key;
-            obj.Material =  Gfx::Pipeline::GetInstance()->GetMaterial(obj.MaterialName);
+            // if (key == "compute_skinning") {
+            // for (auto& info : obj.Model[0]->Meshes) {
+            //     vertex_count += info->Vertices.size(); 
+            // }
+            // }
+#endif
         }
         SetRenderQueue(RQ_LIGHT, key, rq);
-
+        SetSkinnginRenderQueue(key, rq_skinned);
     }
+    was_vertecies_count = true;
 }
 
 void Modules::Base::EraseSelected()
@@ -266,12 +310,27 @@ void Modules::Base::UpdateResource(Modules::Module& module, Gfx::RenderObject& o
             }
             break;
         }
+#ifdef COMPUTE_SKINNING
+        case Gfx::BINDLESS_DATA_SKINNING: {
+            for (int i = 0; i < MAX_FRAMES; i++) {
+                obj.SkinningHelperBind[i] = Gfx::DescriptorsBase::GetInstance()->UpdateCompute(Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, Gfx::SKINNING_HELPER), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetUBO(0, Gfx::SKINNING_HELPER).tag, i);
+
+    	        obj.BufferBind[i] = Gfx::DescriptorsBase::GetInstance()->UpdateBuffer(Gfx::DescriptorsBase::GetInstance()->GetCameraBuffer(i), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetCameraUBO(i).tag, i);
+    	        obj.StorageBind[i] = Gfx::DescriptorsBase::GetInstance()->UpdateCompute(Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, Gfx::SKINNING_IN), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetUBO(0, Gfx::SKINNING_IN).tag, i);
+                obj.InstanceBind[i] = Gfx::DescriptorsBase::GetInstance()->UpdateCompute(Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, Gfx::SKINNING_OUT), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetUBO(0, Gfx::SKINNING_OUT).tag, i);
+    	        obj.TextureBind[i] = Gfx::DescriptorsBase::GetInstance()->UpdateCompute(Gfx::DescriptorsBase::GetInstance()->GetInstanceBuffer(i), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetInstanceUBO(i).tag, i);
+            }
+            break;
+        }
+
+#endif    
 #ifdef COMPUTE_MTX
         case Gfx::BINDLESS_DATA_STORAGE: {
             for (int i = 0; i < MAX_FRAMES; i++) {
+    	        obj.BufferBind[i] = Gfx::DescriptorsBase::GetInstance()->UpdateBuffer(Gfx::DescriptorsBase::GetInstance()->GetCameraBuffer(i), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetCameraUBO(i).tag, i);
     	        obj.StorageBind[i] = Gfx::DescriptorsBase::GetInstance()->UpdateCompute(Gfx::DescriptorsBase::GetInstance()->GetInstanceBuffer(i), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetInstanceUBO(i).tag, i);
                 obj.InstanceBind[i] = Gfx::DescriptorsBase::GetInstance()->UpdateCompute(Gfx::DescriptorsBase::GetInstance()->GetAnimationBuffer(i), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, Gfx::DescriptorsBase::GetInstance()->GetAnimationUBO(i).tag, i);
-
+            Gfx::Renderer::GetInstance()->set_global_animation_buffer(obj.InstanceBind[i], i);
             }
             break;
         }
@@ -297,6 +356,13 @@ void Modules::Base::UpdateResources()
             UpdateResource(it.second, obj);
         }
         }
+    }
+    for (auto& it : SceneModules) {
+        // for (auto& it_v : it.second.GetRenderQueueMap()) {
+        for (Gfx::RenderObject& obj : it.second.GetSkinningRQ()) {
+            UpdateResource(it.second, obj);
+        }
+        // }
     }
 }
 
@@ -330,9 +396,11 @@ void Modules::Base::ThreadedRQ(int i, Keeper::Objects* info)
     }
     SceneModules[CurrentScene].GetRenderQueue(type)[i].IsVisible = info->IsVisible();
     SceneModules[CurrentScene].GetRenderQueue(type)[i].Position = info->GetPosition();
+    SceneModules[CurrentScene].GetRenderQueue(type)[i].rotation = info->GetRotation();
     SceneModules["gbuffer"].GetRenderQueue(type)[i].IsSelected =SceneModules[CurrentScene].GetRenderQueue(type)[i].IsSelected ; 
     SceneModules["gbuffer"].GetRenderQueue(type)[i].IsVisible = info->IsVisible();
     SceneModules["gbuffer"].GetRenderQueue(type)[i].Position = info->GetPosition();
+    SceneModules["gbuffer"].GetRenderQueue(type)[i].rotation = info->GetRotation();
 #ifndef COMPUTE_MTX
     if (SceneModules[CurrentScene].GetRenderQueue(type)[i].IsVisible && HasAnimation(SceneModules[CurrentScene].GetRenderQueue(type)[i].ID)) {
         Animator->Update(SceneModules[CurrentScene].GetRenderQueue(type)[i]);
@@ -537,10 +605,17 @@ Gfx::RenderObject Modules::Base::LoadResources(const Keeper::Objects* info)
     Gfx::RenderObject rqobj;
     if (info->GetAxis() != -1) {
        rqobj.GizmoType = info->GetAxis();
+        rqobj.input_vertex = true;
+    }
+    
+    rqobj.Spawn = info->GetSpawn();
+    rqobj.instance_size = info->GetInstanceCount();
+    rqobj.SpawnName = info->GetParsedID();// info->GetSpawnName();
+    if (!info->GetSpawnName().empty()) {
+        rqobj.SpawnName = info->GetSpawnName();
     }
     rqobj.ID = info->GetID();
     rqobj.AnimOffset = info->GetAnimOffset();
-    printf("ofset----%f\n", rqobj.AnimOffset);
     rqobj.IsVisible = info->IsVisible();
     rqobj.Position = info->GetPosition();
     rqobj.MaterialName = info->GetMaterialName();

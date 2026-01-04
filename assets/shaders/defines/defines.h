@@ -22,6 +22,9 @@
     layout(Layout, set = BindlessDescriptorSet, binding = BindlessComputeBinding) \
     buffer Name Struct GetLayoutVariableName(Name)[]
 
+#define RegisterBufferCompute(Layout, BufferAccess, Name, Struct) \
+    layout(Layout, set = BindlessDescriptorSet, binding = BindlessComputeBinding) \
+    BufferAccess buffer Name Struct GetLayoutVariableName(Name)[]
 
 
 #define GetResource(Name, Index) \
@@ -29,6 +32,7 @@
 
 RegisterUniform(DummyUniform, {uint ignore; });
 RegisterBuffer(std430, readonly, DummyBuffer, { uint ignore; });
+RegisterBufferCompute(std430, readonly, DummyBufferCompute, { uint ignore; });
 RegisterBufferReadWrite(std430, DummyStorage, { uint ignore; });
 
 layout(set = BindlessDescriptorSet, binding = BindlessSamplerBinding) \
@@ -42,6 +46,11 @@ layout( push_constant ) uniform constants
     int bindstorage;
     int bindinstance;
     int bindbuffer;
+
+    int vertex_out_offset;
+    int vertex_in_offset;
+    int inst_index;
+    int pad2;
 
 } pushconstants;
 
@@ -76,20 +85,21 @@ RegisterUniform(Camera, {
     mat4 proj;
     mat4 skybox_proj;
     mat4 shadow_matrix;
-
+    mat4 global_transform;
+    
     float time;          
     int point_light_size;
     int cubemapbind;
     int pad0;
 
     bool hasshadows;
-    int pad1;
+    int compute_skinning_size;
     bool hascubemap;   
-    int pad2;
+    int global_animation_bind;
 });
 
 #define DEPTH_ARRAY_SCALE 1000 
-#define MAX_INSTANCES 9600 
+#define MAX_INSTANCES 10500 
 const int MAX_BONES = 200;
 
 #define NUM_PARTICLES_PER_WORKGROUP 64
@@ -104,6 +114,7 @@ struct InstanceData {
     mat4 bonesmatrices[MAX_BONES];
     mat4 anim_transforms[MAX_BONES];
     mat4 rendermatrix;
+    mat4 rotation;
 
     vec4 position;
     vec4 gizmo_dist;
@@ -116,21 +127,27 @@ struct InstanceData {
     uint selected;
     uint boneID;
     uint gizmo;
+    uint anim_ind;
+    uint pad0;
+    uint pad1;
+    uint pad2;
+
 };
 #define MEMCPY_TEST
 struct AnimMatricies {
+    // mat4 bonesmatrices[MAX_BONES];
     mat4 nodeOffset[108];
     mat4 nodeTransform[108];
 
-    mat4 rot_out[108];
+    // mat4 rot_out[108];
     mat4 rot_start[108];
     mat4 rot_end[108];
 
-    vec4 pos_out[108];
+    // vec4 pos_out[108];
     vec4 pos_start[108];
     vec4 pos_end[108];
 
-    vec4 scale_out[108];
+    // vec4 scale_out[108];
     vec4 scale_start[108];
     vec4 scale_end[108];
 };
@@ -140,11 +157,11 @@ struct AnimFloats {
     float pos_factor[108];
     float scale_factor[108];
 
-    int rot_comp[108];
-    int pos_comp[108];
-    int scale_comp[108]; 
-    int animisempty[108];
-    int nodesettransform[108];
+    // int rot_comp[108];
+    // int pos_comp[108];
+    // int scale_comp[108]; 
+    // int animisempty[108];
+    // int nodesettransform[108];
     int nodeIndex[108];
     int nodeAnimInd[108];
     int nodeBoneInd[108];
@@ -154,28 +171,27 @@ struct AnimationComputeData {
     mat4 nodeOffset[108];
     mat4 nodeTransform[108];
 
-    mat4 rot_out[108];
+    // mat4 rot_out[108];
     mat4 rot_start[108];
     mat4 rot_end[108];
 
-    vec4 pos_out[108];
+    // vec4 pos_out[108];
     vec4 pos_start[108];
     vec4 pos_end[108];
 
-    vec4 scale_out[108];
+    // vec4 scale_out[108];
     vec4 scale_start[108];
     vec4 scale_end[108];
 
-    mat4 global_transform;
     
     float rot_factor[108];
     float pos_factor[108];
     float scale_factor[108];
 
-    int rot_comp[108];
-    int pos_comp[108];
-    int scale_comp[108]; 
-    int animisempty[108];
+    // int rot_comp[108];
+    // int pos_comp[108];
+    // int scale_comp[108]; 
+    // int animisempty[108];
     int nodesettransform[108];
     int nodeIndex[108];
     int nodeAnimInd[108];
@@ -183,7 +199,6 @@ struct AnimationComputeData {
 
 #else
     AnimMatricies matricies;
-    mat4 global_transform;
     
     AnimFloats floats;
 #endif
@@ -191,7 +206,7 @@ struct AnimationComputeData {
     int animsize;
     int rootssize;
     float timetick;
-    float pad0;
+    int instance_buffer_ind;
 
     // NodeAnimCompute animnodes[MAX_BONES];
         // NodeRootsCompute noderoots[MAX_BONES];
@@ -209,6 +224,48 @@ RegisterBufferReadWrite(std140, Instance, {
 
 RegisterBufferReadWrite(std430,  Animation, {
        AnimationComputeData animations[];
+});
+
+struct VertexInputData {
+    vec4 vposition;
+    vec4 vnormal;
+    vec4 vcolor;
+    vec4 vuv;
+    vec4 vweight;
+    ivec4 vboneid;
+    
+    ivec4 datas;
+
+};
+struct VertexOutputHelper {
+        vec4 data;
+    };
+
+struct VertexOutputData {
+        vec4 vposition;
+        vec4 vnormal;
+        vec4 vcolor;
+        vec4 vuv;
+        // glm::vec4 vweight;
+        // glm::ivec4 vboneid;
+   
+    // vec4 datas;
+        // int offset;
+        // int vertex_count;
+        // int pad0;
+        // int pad1;
+};
+
+
+RegisterBufferCompute(std430, readonly, Skinning_In, {
+    VertexInputData vertecies[];
+});
+
+RegisterBufferCompute(std430, readonly, Skinning_Helper, {
+    VertexOutputHelper data[];
+});
+RegisterBufferCompute(std430, writeonly, Skinning_Out, {
+    VertexOutputData vertecies_out[];
 });
 
 RegisterBuffer(std430, writeonly, Storage, {

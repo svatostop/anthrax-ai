@@ -1,5 +1,7 @@
 #include "anthraxAI/gfx/vkpipeline.h"
+#include "anthraxAI/gameobjects/collision.h"
 #include "anthraxAI/gfx/renderhelpers.h"
+#include "anthraxAI/gfx/vkbase.h"
 #include "anthraxAI/gfx/vkmesh.h"
 #include "anthraxAI/core/windowmanager.h"
 #include "anthraxAI/gfx/vkdevice.h"
@@ -7,6 +9,7 @@
 #include "anthraxAI/core/deletor.h"
 #include "anthraxAI/gfx/vkrendertarget.h"
 #include "anthraxAI/utils/defines.h"
+#include <cstdint>
 #include <cstdio>
 #include <shaderc/shaderc.h>
 #include <string>
@@ -175,18 +178,21 @@ Gfx::Material* Gfx::Pipeline::CreateMaterial(VkPipeline pipeline, VkPipelineLayo
 	return &Materials[name];
 }
 
-void Gfx::Pipeline::CompileShader(const std::string& name, shaderc_shader_kind kind, std::string& data) {
+void Gfx::Pipeline::CompileShader(const std::string& material, const std::string& name, shaderc_shader_kind kind, std::string& data) {
 
 	std::vector<char> buffer;
 	Utils::ReadFile(name, buffer);
 
 	shaderc::Compiler compiler;
   	shaderc::CompileOptions options{};
-
+    
+    // options.SetOptimizationLevel(shaderc_optimization_level_size);
+    // options.SetGenerateDebugInfo();
 	options.SetIncluder(std::make_unique<Gfx::ShadercIncluder>());
 
   	// Like -DMY_DEFINE=1
-  	//options.AddMacroDefinition("MY_DEFINE", "1");
+  	if (material == "skybox")
+        options.AddMacroDefinition("SKINNING_IN_DECL");
 
   	shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(buffer.data(), buffer.size(), kind, name.c_str(), options);
 
@@ -205,19 +211,21 @@ void Gfx::Pipeline::BuildMaterial(const std::string& material, VkShaderModule* v
 
     std::string shaderbuf;
     if (!fragname.empty()) {
-        CompileShader(fragname, iscompute ? shaderc_glsl_compute_shader : shaderc_glsl_fragment_shader, shaderbuf);
+        CompileShader(material, fragname, iscompute ? shaderc_glsl_compute_shader : shaderc_glsl_fragment_shader, shaderbuf);
 	    LoadShader(shaderbuf, fragshader);
     }
 	shaderbuf.clear();
     if (!iscompute) {
-	    CompileShader(vertname, shaderc_glsl_vertex_shader, shaderbuf);
+	    CompileShader(material, vertname, shaderc_glsl_vertex_shader, shaderbuf);
 	    LoadShader(shaderbuf, vertexshader);
 	    shaderbuf.clear();
         ShaderStages.push_back(PipelineShaderCreateinfo(VK_SHADER_STAGE_VERTEX_BIT, *vertexshader));
+        Gfx::Vulkan::GetInstance()->SetDebugName(vertname, reinterpret_cast<uint64_t>(*vertexshader), VK_OBJECT_TYPE_SHADER_MODULE);
     }
 
     if (!fragname.empty()) {
         ShaderStages.push_back(PipelineShaderCreateinfo(VK_SHADER_STAGE_FRAGMENT_BIT, *fragshader));
+        Gfx::Vulkan::GetInstance()->SetDebugName(fragname, reinterpret_cast<uint64_t>(*fragshader), VK_OBJECT_TYPE_SHADER_MODULE);
     }
     if (iscompute) {
         SetupCompute(*fragshader);
@@ -227,6 +235,7 @@ void Gfx::Pipeline::BuildMaterial(const std::string& material, VkShaderModule* v
         Setup(id);
         CreateMaterial(Pipeline, PipelineLayout, material);
     }
+    
 }
 
 void Gfx::Pipeline::Build()
@@ -285,12 +294,20 @@ void Gfx::Pipeline::Build()
     for (auto& it : scene->GetGameObjects()->GetObjects()) {
         for (Keeper::Objects* info : it.second) {
             if (info->GetFragmentName().empty() || info->GetVertexName().empty() || info->GetMaterialName().empty()) continue;
+            
+            if (info->GetMaterialName() == "gizmo") continue;
+            //  VertexInputInfo = VertexInputStageCreateInfo(false, true);
+            // }
+            // else {
+            //  VertexInputInfo = VertexInputStageCreateInfo();
+            // }
 
             VK_ASSERT(vkCreatePipelineLayout(Gfx::Device::GetInstance()->GetDevice(), &pipelinelayoutinfo, nullptr, &PipelineLayout), "failed to create pipeline layput!");
 
             std::string frag = "./shaders/" + info->GetFragmentName();
             std::string vert = "./shaders/" + info->GetVertexName();
-
+            
+            
             if (fragmap.find(frag) != fragmap.end() && vertmap.find(vert) != vertmap.end()) {
                 Setup(main_rt);
                 CreateMaterial(Pipeline, PipelineLayout, info->GetMaterialName());
@@ -338,7 +355,16 @@ void Gfx::Pipeline::Build()
     vert = "./shaders/sprite.vert";
     BuildMaterial("lighting", &vertexshader, vert, &fragshader, frag, main_rt);
 
-// lighting
+// gizmo 
+	VertexInputInfo = VertexInputStageCreateInfo(false, true);
+	Rasterizer = RasterizationCreateInfo(VK_POLYGON_MODE_FILL);
+    VK_ASSERT(vkCreatePipelineLayout(Gfx::Device::GetInstance()->GetDevice(), &pipelinelayoutinfo, nullptr, &PipelineLayout), "failed to create pipeline layout!");
+    frag = "./shaders/gizmo.frag";
+    vert = "./shaders/gizmo.vert";
+    BuildMaterial("gizmo", &vertexshader, vert, &fragshader, frag, main_rt);
+
+// skybox 
+	VertexInputInfo = VertexInputStageCreateInfo(false, true);
 	Rasterizer = RasterizationCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT);
     VK_ASSERT(vkCreatePipelineLayout(Gfx::Device::GetInstance()->GetDevice(), &pipelinelayoutinfo, nullptr, &PipelineLayout), "failed to create pipeline layout!");
     frag = "./shaders/skybox.frag";
@@ -347,6 +373,7 @@ void Gfx::Pipeline::Build()
 
 
 // sprite
+	VertexInputInfo = VertexInputStageCreateInfo();
 	Rasterizer = RasterizationCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT);
 	VK_ASSERT(vkCreatePipelineLayout(Gfx::Device::GetInstance()->GetDevice(), &pipelinelayoutinfo, nullptr, &PipelineLayout), "failed to create pipeline layout!");
 	frag = "./shaders/sprite.frag";
@@ -374,12 +401,31 @@ void Gfx::Pipeline::Build()
 	vkDestroyShaderModule(Gfx::Device::GetInstance()->GetDevice(), fragshader, nullptr);
     BuildMaterial("compute_mtx", &vertexshader, vert, &fragshader, frag, main_rt, true);
 
+// visibility
+#ifdef VISIBILITY_COMPUTE
+    VK_ASSERT(vkCreatePipelineLayout(Gfx::Device::GetInstance()->GetDevice(), &pipelinelayoutinfo, nullptr, &ComputeLayout), "failed to create pipeline layout!");
+	frag = "./shaders/visibility.comp";
+    vert = "";
+    ShaderStages.clear();
+	vkDestroyShaderModule(Gfx::Device::GetInstance()->GetDevice(), fragshader, nullptr);
+    BuildMaterial("visibility_compute", &vertexshader, vert, &fragshader, frag, main_rt, true);
+#endif
+
+#ifdef COMPUTE_SKINNING
+    VK_ASSERT(vkCreatePipelineLayout(Gfx::Device::GetInstance()->GetDevice(), &pipelinelayoutinfo, nullptr, &ComputeLayout), "failed to create pipeline layout!");
+	frag = "./shaders/compute_skinning.comp";
+    vert = "";
+    ShaderStages.clear();
+	vkDestroyShaderModule(Gfx::Device::GetInstance()->GetDevice(), fragshader, nullptr);
+    BuildMaterial("compute_skinning", &vertexshader, vert, &fragshader, frag, main_rt, true);
+#endif
 // particle-draw
 	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pipelinelayoutinfo.pPushConstantRanges = &push_constant;
 	pipelinelayoutinfo.pushConstantRangeCount = 1;
     ShaderStages.clear();
 	vkDestroyShaderModule(Gfx::Device::GetInstance()->GetDevice(), fragshader, nullptr);
+	// vkDestroyShaderModule(Gfx::Device::GetInstance()->GetDevice(), vertexshader, nullptr);
 	VertexInputInfo = VertexInputStageCreateInfo(true);
 	DepthStencil = DepthStencilCreateInfo(false, false, VK_COMPARE_OP_LESS_OR_EQUAL);
     VK_ASSERT(vkCreatePipelineLayout(Gfx::Device::GetInstance()->GetDevice(), &pipelinelayoutinfo, nullptr, &PipelineLayout), "failed to create pipeline layout!");
@@ -507,12 +553,21 @@ void Gfx::Pipeline::Setup(Gfx::RenderTargetsList id) {
 	VK_ASSERT(vkCreateGraphicsPipelines(Gfx::Device::GetInstance()->GetDevice(), VK_NULL_HANDLE, 1, &pipelineinfo, nullptr, &Pipeline), "failed to create write pipeline\n");
 }
 
-void Gfx::Pipeline::GetVertexDescription(bool iscompute)
+void Gfx::Pipeline::GetVertexDescription(bool iscompute, bool isskinningin )
 {
 	VkVertexInputBindingDescription mainBinding = {};
 	mainBinding.binding = 0;
     if (!iscompute) {
+#ifndef COMPUTE_SKINNING    
 	    mainBinding.stride = sizeof(Vertex);
+#else
+        if (isskinningin) {
+	        mainBinding.stride = sizeof(VertexComputeSkinningIn);
+        }
+        else {
+	        mainBinding.stride = sizeof(VertexComputeSkinning);
+        }
+#endif
     }
     else {
 	    mainBinding.stride = sizeof(ComputeVertex);
@@ -520,9 +575,92 @@ void Gfx::Pipeline::GetVertexDescription(bool iscompute)
     mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	VertexDescription.Bindings.push_back(mainBinding);
-    
     if (!iscompute) {
-    	VkVertexInputAttributeDescription positionAttribute = {};
+#ifdef COMPUTE_SKINNING    
+        if (isskinningin) {
+        	VkVertexInputAttributeDescription positionAttribute = {};
+        	positionAttribute.binding = 0;
+        	positionAttribute.location = 0;
+        	positionAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        	positionAttribute.offset = offsetof(VertexComputeSkinningIn, position);
+        
+        	VkVertexInputAttributeDescription normalAttribute = {};
+        	normalAttribute.binding = 0;
+        	normalAttribute.location = 1;
+        	normalAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        	normalAttribute.offset = offsetof(VertexComputeSkinningIn, normal);
+        
+        	VkVertexInputAttributeDescription colorAttribute = {};
+        	colorAttribute.binding = 0;
+        	colorAttribute.location = 2;
+        	colorAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        	colorAttribute.offset = offsetof(VertexComputeSkinningIn, color);
+        
+        	VkVertexInputAttributeDescription uvattr = {};
+        	uvattr.binding = 0;
+            uvattr.location = 3;
+            uvattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            uvattr.offset = offsetof(VertexComputeSkinningIn, uv);
+            
+            VkVertexInputAttributeDescription weghtattr = {};
+        	weghtattr.binding = 0;
+            weghtattr.location = 4;
+            weghtattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            weghtattr.offset = offsetof(VertexComputeSkinningIn, vweight);
+        
+            VkVertexInputAttributeDescription boneattr = {};
+        	boneattr.binding = 0;
+            boneattr.location = 5;
+            boneattr.format = VK_FORMAT_R32G32B32A32_SINT;
+            boneattr.offset = offsetof(VertexComputeSkinningIn, vboneid);
+
+            VkVertexInputAttributeDescription dataattr = {};
+        	dataattr.binding = 0;
+            dataattr.location = 6;
+            dataattr.format = VK_FORMAT_R32G32B32A32_SINT;
+            dataattr.offset = offsetof(VertexComputeSkinningIn, datas);
+
+            VertexDescription.Attributes.push_back(positionAttribute);
+        	VertexDescription.Attributes.push_back(normalAttribute);
+        	VertexDescription.Attributes.push_back(colorAttribute);
+        	VertexDescription.Attributes.push_back(uvattr);
+        	VertexDescription.Attributes.push_back(weghtattr);
+        	VertexDescription.Attributes.push_back(boneattr);
+        	VertexDescription.Attributes.push_back(dataattr);
+        }
+        else {
+            VkVertexInputAttributeDescription positionAttribute = {};
+    	    positionAttribute.binding = 0;
+    	    positionAttribute.location = 0;
+    	    positionAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    	    positionAttribute.offset = offsetof(VertexComputeSkinning, position);
+    
+    	    VkVertexInputAttributeDescription normalAttribute = {};
+    	    normalAttribute.binding = 0;
+    	    normalAttribute.location = 1;
+    	    normalAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    	    normalAttribute.offset = offsetof(VertexComputeSkinning, normal);
+    
+    	    VkVertexInputAttributeDescription colorAttribute = {};
+    	    colorAttribute.binding = 0;
+    	    colorAttribute.location = 2;
+    	    colorAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    	    colorAttribute.offset = offsetof(VertexComputeSkinning, color);
+    
+    	    VkVertexInputAttributeDescription uvattr = {};
+    	    uvattr.binding = 0;
+            uvattr.location = 3;
+            uvattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            uvattr.offset = offsetof(VertexComputeSkinning, uv);
+    
+            VertexDescription.Attributes.push_back(positionAttribute);
+    	    VertexDescription.Attributes.push_back(normalAttribute);
+    	    VertexDescription.Attributes.push_back(colorAttribute);
+    	    VertexDescription.Attributes.push_back(uvattr);
+
+        }
+#else 
+        VkVertexInputAttributeDescription positionAttribute = {};
     	positionAttribute.binding = 0;
     	positionAttribute.location = 0;
     	positionAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -545,26 +683,25 @@ void Gfx::Pipeline::GetVertexDescription(bool iscompute)
         uvattr.location = 3;
         uvattr.format = VK_FORMAT_R32G32_SFLOAT;
         uvattr.offset = offsetof(Vertex, uv);
-    
-    
-    	 VkVertexInputAttributeDescription weightattr = {};
-    	 weightattr.binding = 0;
-    	 weightattr.location = 4;
-    	 weightattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    	 weightattr.offset = offsetof(Vertex, weights);
-    
-    	 VkVertexInputAttributeDescription boneattr = {};
-    	 boneattr.binding = 0;
-    	 boneattr.location = 5;
-    	 boneattr.format =  VK_FORMAT_R32G32B32A32_SINT;
-    	 boneattr.offset = offsetof(Vertex, boneID);
-    
+     	VkVertexInputAttributeDescription weightattr = {};
+    	uvattr.binding = 0;
+        uvattr.location = 4;
+        uvattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        uvattr.offset = offsetof(Vertex, weights );
+     	VkVertexInputAttributeDescription boneattr = {};
+    	uvattr.binding = 0;
+        uvattr.location = 5;
+        uvattr.format = VK_FORMAT_R32G32B32A32_UINT;
+        uvattr.offset = offsetof(Vertex, boneID);
+
     	VertexDescription.Attributes.push_back(positionAttribute);
     	VertexDescription.Attributes.push_back(normalAttribute);
     	VertexDescription.Attributes.push_back(colorAttribute);
     	VertexDescription.Attributes.push_back(uvattr);
     	VertexDescription.Attributes.push_back(weightattr);
     	VertexDescription.Attributes.push_back(boneattr);
+
+#endif
     }
     else {
     	VkVertexInputAttributeDescription positionAttribute = {};
@@ -591,14 +728,14 @@ void Gfx::Pipeline::GetVertexDescription(bool iscompute)
     }
 }
 
-VkPipelineVertexInputStateCreateInfo Gfx::Pipeline::VertexInputStageCreateInfo(bool iscompute) {
+VkPipelineVertexInputStateCreateInfo Gfx::Pipeline::VertexInputStageCreateInfo(bool iscompute, bool isskinningin ) {
     
     if (!VertexDescription.Bindings.empty()) {
         VertexDescription.Bindings.clear();
         VertexDescription.Attributes.clear();
     }
 
-	GetVertexDescription(iscompute);
+	GetVertexDescription(iscompute, isskinningin);
 	VkPipelineVertexInputStateCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	info.pNext = nullptr;

@@ -1,5 +1,5 @@
 #version 450 
-layout(local_size_x = 256) in;
+layout(local_size_x = 128) in;
 
 #include "defines/defines.h"
 
@@ -84,23 +84,23 @@ mat4 slerp_mat4(mat4 A, mat4 B, float t) {
     M[3] = vec4(T, 1.0);
     return M;
 }
-#ifdef MEMCPY_TEST
-void Hierarchy(int animind, int boneind, int aindex, int settransform,  mat4 aoffset,  mat4 transform, mat4 global_inverse, mat4 parenttransform)
+void Hierarchy(int inst_ind, int animind, int boneind, int aindex, int settransform,  mat4 aoffset,  mat4 transform, mat4 global_inverse, mat4 parenttransform)
 {
     mat4 nodetransf = transform;
     mat4 globaltransf;
 
-    int isempty = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.animisempty[animind];
+    int isempty = animind != -1 ? 0 : 1;//nt isempty = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.animisempty[animind];
     if (isempty == 0) {
         // mat4 pos = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].animpos[animind];
         // mat4 rot = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].animrot[animind];
         
-        int rot_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.rot_comp[animind];
+        // int rot_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.rot_comp[animind];
         mat4 rot;
-        if (rot_comp == 0) {
-            rot = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.rot_out[animind];
-        }
-        else {
+        // if (rot_comp == 0) {
+            // rot = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.rot_out[animind];
+        // }
+        // else 
+        {
             mat4 start = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.rot_start[animind];
             mat4 end = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.rot_end[animind];
             float factor = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.rot_factor[animind];
@@ -108,16 +108,17 @@ void Hierarchy(int animind, int boneind, int aindex, int settransform,  mat4 aof
             rot = slerp_mat4(start, end, factor);
         }
 
-        int pos_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.pos_comp[animind];
+        // int pos_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.pos_comp[animind];
         mat4 pos;
-        if (pos_comp == 0) {
-            vec4 pout = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.pos_out[animind];
-            pos =   mat4( 1.0, 0, 0, 0,
-                        0, 1.0, 0, 0,
-                        0, 0, 1.0, 0,
-                        pout.x, pout.y, pout.z, pout.w);
-        }
-        else {
+        // if (pos_comp == 0) {
+            // vec4 pout = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.pos_out[animind];
+            // pos =   mat4( 1.0, 0, 0, 0,
+        //                 0, 1.0, 0, 0,
+        //                 0, 0, 1.0, 0,
+        //                 pout.x, pout.y, pout.z, pout.w);
+        // }
+        // else 
+        {
             vec4 start = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.pos_start[animind];
             vec4 end = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.pos_end[animind];
             float factor = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.pos_factor[animind];
@@ -129,16 +130,17 @@ void Hierarchy(int animind, int boneind, int aindex, int settransform,  mat4 aof
                         pout.x, pout.y, pout.z, pout.w);
         }
 
-        int scale_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.scale_comp[animind];
+        // int scale_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.scale_comp[animind];
         mat4 scale;
-        if (scale_comp == 0) {
-            vec4 pout = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.scale_out[animind];
-            scale =   mat4( 1.0, 0, 0, 0,
-                        0, 1.0, 0, 0,
-                        0, 0, 1.0, 0,
-                        pout.x, pout.y, pout.z, pout.w);
-        }
-        else {
+        // if (scale_comp == 0) {
+        //     vec4 pout = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.scale_out[animind];
+        //     scale =   mat4( 1.0, 0, 0, 0,
+        //                 0, 1.0, 0, 0,
+        //                 0, 0, 1.0, 0,
+        //                 pout.x, pout.y, pout.z, pout.w);
+        // }
+        // else 
+        {
             vec4 start = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.scale_start[animind];
             vec4 end = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.scale_end[animind];
             float factor = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.scale_factor[animind];
@@ -154,141 +156,51 @@ void Hierarchy(int animind, int boneind, int aindex, int settransform,  mat4 aof
         nodetransf = pos * rot *  scale;
     }
 
-    globaltransf = ( aindex == 0 ? parenttransform : GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].anim_transforms[aindex - 1]) * nodetransf;
-    GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].anim_transforms[aindex] = globaltransf;
+    globaltransf = ( aindex == 0 ? parenttransform : GetResource(Instance, GetStorageInd()).instances[inst_ind].anim_transforms[aindex - 1]) * nodetransf;
+    GetResource(Instance, GetStorageInd()).instances[inst_ind].anim_transforms[aindex] = globaltransf;
 
     if (settransform == 1) {
-        GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].bonesmatrices[boneind] = global_inverse * globaltransf * aoffset;
+        uint anim_ind = GetResource(Instance, GetStorageInd()).instances[inst_ind].anim_ind;
+        // GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.bonesmatrices[boneind] = global_inverse * globaltransf * aoffset;
+        GetResource(Instance, GetStorageInd()).instances[inst_ind].bonesmatrices[boneind] = global_inverse * globaltransf * aoffset;
     }
 }
 
-void ProcessAnimation()
+void ProcessAnimation(int inst_ind)
 {
     mat4 globaltransf[200];
-    mat4 global_inverse = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].global_transform;
+    mat4 global_inverse = GetResource(Camera, GetUniformInd()).global_transform;
+    // mat4 global_inverse = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].global_transform;
     int rootsize = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].rootssize;
     for (int i = 0; i < rootsize; i++) {
         int animind = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.nodeAnimInd[i];
         int aindex = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.nodeIndex[i];
         int boneind = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.nodeBoneInd[i];
-        int settransform = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.nodesettransform[i];
+        int settransform = boneind != -1 ? 1 : 0;// GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].floats.nodesettransform[i];
         mat4 aoffset = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.nodeOffset[i];
         mat4 transform = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.nodeTransform[i];
-        Hierarchy(animind, boneind, aindex, settransform, aoffset, transform, global_inverse, mat4(1));
-    }
-
-}
-#else
-void Hierarchy(int animind, int boneind, int aindex, int settransform,  mat4 aoffset,  mat4 transform, mat4 global_inverse, mat4 parenttransform)
-{
-    mat4 nodetransf = transform;
-    mat4 globaltransf;
-
-    int isempty = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].animisempty[animind];
-    if (isempty == 0) {
-        // mat4 pos = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].animpos[animind];
-        // mat4 rot = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].animrot[animind];
-        
-        int rot_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].rot_comp[animind];
-        mat4 rot;
-        if (rot_comp == 0) {
-            rot = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].rot_out[animind];
-        }
-        else {
-            mat4 start = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].rot_start[animind];
-            mat4 end = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].rot_end[animind];
-            float factor = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].rot_factor[animind];
-
-            rot = slerp_mat4(start, end, factor);
-        }
-
-        int pos_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].pos_comp[animind];
-        mat4 pos;
-        if (pos_comp == 0) {
-            vec4 pout = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].pos_out[animind];
-            pos =   mat4( 1.0, 0, 0, 0,
-                        0, 1.0, 0, 0,
-                        0, 0, 1.0, 0,
-                        pout.x, pout.y, pout.z, pout.w);
-        }
-        else {
-            vec4 start = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].pos_start[animind];
-            vec4 end = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].pos_end[animind];
-            float factor = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].pos_factor[animind];
-
-            vec4 pout = mix(start, end, factor);
-            pos =   mat4( 1.0, 0, 0, 0,
-                        0, 1.0, 0, 0,
-                        0, 0, 1.0, 0,
-                        pout.x, pout.y, pout.z, pout.w);
-        }
-
-        int scale_comp =   GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].scale_comp[animind];
-        mat4 scale;
-        if (scale_comp == 0) {
-            vec4 pout = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].scale_out[animind];
-            scale =   mat4( 1.0, 0, 0, 0,
-                        0, 1.0, 0, 0,
-                        0, 0, 1.0, 0,
-                        pout.x, pout.y, pout.z, pout.w);
-        }
-        else {
-            vec4 start = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].scale_start[animind];
-            vec4 end = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].scale_end[animind];
-            float factor = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].scale_factor[animind];
-
-            vec4 pout = mix(start, end, factor);
-            scale =   mat4( 1.0 * pout.x, 0, 0, 0,
-                        0, 1.0 * pout.y, 0, 0,
-                        0, 0, 1.0 * pout.z, 0,
-                        1, 1, 1, 1);
-        }
-
-        // mat4 scale = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].animscale[animind];
-        nodetransf = pos * rot *  scale;
-    }
-
-    globaltransf = ( aindex == 0 ? parenttransform : GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].anim_transforms[aindex - 1]) * nodetransf;
-    GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].anim_transforms[aindex] = globaltransf;
-
-    if (settransform == 1) {
-        GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].bonesmatrices[boneind] = global_inverse * globaltransf * aoffset;
+        Hierarchy(inst_ind, animind, boneind, aindex, settransform, aoffset, transform, global_inverse, mat4(1));
     }
 }
 
-void ProcessAnimation()
-{
-    mat4 globaltransf[200];
-    mat4 global_inverse = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].global_transform;
-    int rootsize = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].rootssize;
-    for (int i = 0; i < rootsize; i++) {
-        int animind = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].nodeAnimInd[i];
-        int aindex = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].nodeIndex[i];
-        int boneind = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].nodeBoneInd[i];
-        int settransform = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].nodesettransform[i];
-        mat4 aoffset = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].nodeOffset[i];
-        mat4 transform = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].nodeTransform[i];
-        Hierarchy(animind, boneind, aindex, settransform, aoffset, transform, global_inverse, mat4(1));
-    }
-
-}
-#endif
 void main()
 {
-    if (gl_GlobalInvocationID.x < MAX_INSTANCES) {
+    int anim_buffer_size = pushconstants.inst_index;
+    if (gl_GlobalInvocationID.x < anim_buffer_size) {
         //mat4 render_mat = GetResource(Compute, GetStorageInd()).rendermatrix[gl_GlobalInvocationID.x];
         //GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].hasanimation = 0;
-        uint hasanim = GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].hasanimation;
+        int instance_buffer_ind = GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].instance_buffer_ind;
+        uint hasanim = GetResource(Instance, GetStorageInd()).instances[instance_buffer_ind].hasanimation;
         if (hasanim == 1) {
-            ProcessAnimation();
+            ProcessAnimation(instance_buffer_ind);
         }
 
-        vec4 gizmo_dist = GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].gizmo_dist;
-        vec4 pos = GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].position ;
+        vec4 gizmo_dist = GetResource(Instance, GetStorageInd()).instances[instance_buffer_ind].gizmo_dist;
+        vec4 pos = GetResource(Instance, GetStorageInd()).instances[instance_buffer_ind].position ;
         mat4 mp = mat4( 1.0 * gizmo_dist.x, 0, 0, 0,
                         0, 1.0 * gizmo_dist.y, 0, 0,
                         0, 0, 1.0 * gizmo_dist.z, 0,
                         pos.x, pos.y, pos.z, pos.w);
-        GetResource(Instance, GetStorageInd()).instances[gl_GlobalInvocationID.x].rendermatrix = mp;
+        GetResource(Instance, GetStorageInd()).instances[instance_buffer_ind].rendermatrix = mp * GetResource(Instance, GetStorageInd()).instances[instance_buffer_ind].rotation;
     }
 }

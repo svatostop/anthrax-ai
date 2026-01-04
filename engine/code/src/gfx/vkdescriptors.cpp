@@ -1,8 +1,11 @@
 #include "anthraxAI/gfx/vkdescriptors.h"
+#include "anthraxAI/core/scene.h"
+#include "anthraxAI/gfx/model.h"
 #include "anthraxAI/gfx/renderhelpers.h"
 #include "anthraxAI/gfx/vkdefines.h"
 #include "anthraxAI/gfx/vkdevice.h"
 #include "anthraxAI/gfx/vkrenderer.h"
+#include "anthraxAI/utils/defines.h"
 #include <cstdint>
 #include <cstdio>
 
@@ -16,6 +19,129 @@ size_t Gfx::DescriptorsBase::PadUniformBufferSize(size_t originalsize)
 	return alignedsize;
 }
 
+VkDeviceMemory Gfx::DescriptorsBase::GetBufferMemory(uint32_t frame, GPUBufferType type)
+{
+    switch (type) {
+        case CAMERA:
+            return CameraBuffer[frame].DeviceMemory;
+            break;
+        case STORAGE:
+            return StorageBuffer[frame].DeviceMemory;
+            break;
+        case COMPUTE:
+            return ComputeBuffer[frame].DeviceMemory;
+            break;
+        case INSTANCE:
+            return InstanceBuffer[0].DeviceMemory;
+            break;
+        case ANIMATION:
+            return AnimationBuffer[0].DeviceMemory;
+            break;
+        case SKINNING_HELPER:
+#ifdef COMPUTE_SKINNING
+            return SkinningHelperBuffer[frame].DeviceMemory;
+            break;
+#endif
+        case SKINNING_IN:
+#ifdef COMPUTE_SKINNING
+            return SkinningBuffer[frame].DeviceMemory;
+            break;
+#endif
+        case SKINNING_OUT:
+#ifdef COMPUTE_SKINNING
+            return SkinningOutBuffer[frame].DeviceMemory;
+            break;
+#endif
+
+        default:
+            ASSERT(true, "Unkonown GPUBufferType type!");
+            break;
+    }
+    return CameraBuffer[frame].DeviceMemory;
+}
+VkBuffer Gfx::DescriptorsBase::GetBuffer(uint32_t frame, GPUBufferType type) 
+{
+    switch (type) {
+        case CAMERA:
+            return CameraBuffer[frame].Buffer;
+            break;
+        case STORAGE:
+            return StorageBuffer[frame].Buffer;
+            break;
+        case COMPUTE:
+            return ComputeBuffer[frame].Buffer;
+            break;
+        case INSTANCE:
+            return InstanceBuffer[0].Buffer;
+            break;
+        case ANIMATION:
+            return AnimationBuffer[0].Buffer;
+            break;
+        case SKINNING_HELPER:
+#ifdef COMPUTE_SKINNING
+            return SkinningHelperBuffer[frame].Buffer;
+            break;
+#endif
+        case SKINNING_IN:
+#ifdef COMPUTE_SKINNING
+            return SkinningBuffer[frame].Buffer;
+            break;
+#endif
+        case SKINNING_OUT:
+#ifdef COMPUTE_SKINNING
+            return SkinningOutBuffer[frame].Buffer;
+            break;
+#endif
+
+        default:
+            ASSERT(true, "Unkonown GPUBufferType type!");
+            break;
+    }
+    return CameraBuffer[frame].Buffer;
+
+}
+BufferHelper::Buffer& Gfx::DescriptorsBase::GetUBO(uint32_t frame, GPUBufferType type)
+{
+    switch (type) {
+        case CAMERA:
+            return CameraBuffer[frame];
+            break;
+        case STORAGE:
+            return StorageBuffer[frame];
+            break;
+        case COMPUTE:
+            return ComputeBuffer[frame];
+            break;
+        case INSTANCE:
+            return InstanceBuffer[0];
+            break;
+        case ANIMATION:
+            return AnimationBuffer[0];
+            break;
+        case SKINNING_HELPER:
+#ifdef COMPUTE_SKINNING
+            return SkinningHelperBuffer[frame];
+            break;
+#endif
+        case SKINNING_IN:
+#ifdef COMPUTE_SKINNING
+            return SkinningBuffer[frame];
+            break;
+#endif
+        case SKINNING_OUT:
+#ifdef COMPUTE_SKINNING
+            return SkinningOutBuffer[frame];
+            break;
+#endif
+
+        default:
+            ASSERT(true, "Unkonown GPUBufferType type!");
+            break;
+    }
+    return CameraBuffer[frame];
+
+
+}
 VkDescriptorSetLayoutBinding DescriptorLayoutBinding(VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t binding)
 {
 	VkDescriptorSetLayoutBinding setbind = {};
@@ -31,13 +157,12 @@ void Gfx::DescriptorsBase::ClearTextures()
 {
     for (int i = 0; i < MAX_FRAMES; i++) {
         TextureBindings[i].clear();
-    }
-    TextureHandle = 0;
-
-    for (int i = 0; i < MAX_FRAMES; i++) {
+        ComputeBindings[i].clear();
         BufferBindings[i].clear();
     }
+    TextureHandle = 0;
     BufferHandle = 0;
+    ComputeHandle = 0;
 
 }
 
@@ -168,7 +293,7 @@ void Gfx::DescriptorsBase::AllocateDataBuffers()
 	Gfx::Vulkan::GetInstance()->SetDebugName(info);
 
     for (int i = 0; i < MAX_FRAMES; i++) {
-	    Core::Deletor::GetInstance()->Push(Core::Deletor::Type::NONE, [=, this]() {
+	    Core::Deletor::GetInstance()->Push(Core::Deletor::Type::DESC, [=, this]() {
 		    vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), CameraBuffer[i].Buffer, nullptr);
     	    vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), CameraBuffer[i].DeviceMemory, nullptr);
 	    });
@@ -190,7 +315,7 @@ void Gfx::DescriptorsBase::AllocateComputeBuffers()
 	Gfx::Vulkan::GetInstance()->SetDebugName(info);
 
     for (int i = 0; i < MAX_FRAMES; i++) {
-    	Core::Deletor::GetInstance()->Push(Core::Deletor::Type::NONE, [=, this]() {
+    	Core::Deletor::GetInstance()->Push(Core::Deletor::Type::DESC, [=, this]() {
     		vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), ComputeBuffer[i].Buffer, nullptr);
         	vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), ComputeBuffer[i].DeviceMemory, nullptr);
     	});
@@ -213,14 +338,14 @@ void Gfx::DescriptorsBase::AllocateStorageBuffers()
 	Gfx::Vulkan::GetInstance()->SetDebugName(info);
 
     for (int i = 0; i < MAX_FRAMES; i++) {
-    	Core::Deletor::GetInstance()->Push(Core::Deletor::Type::NONE, [=, this]() {
+    	Core::Deletor::GetInstance()->Push(Core::Deletor::Type::DESC, [=, this]() {
     		vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), StorageBuffer[i].Buffer, nullptr);
         	vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), StorageBuffer[i].DeviceMemory, nullptr);
     	});
     }
 
     buffersize = sizeof(InstanceData) * MAX_INSTANCES ;
-    for (int i = 0; i < MAX_FRAMES; i++) {
+    for (int i = 0; i < 1; i++) {
 	    BufferHelper::CreateBuffer(InstanceBuffer[i], buffersize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
         InstanceBuffer[i].tag = "instance";
     }
@@ -231,17 +356,73 @@ void Gfx::DescriptorsBase::AllocateStorageBuffers()
 	info.pObjectName = "INSTANCE buffer #1 frame";
 	Gfx::Vulkan::GetInstance()->SetDebugName(info);
 
-    for (int i = 0; i < MAX_FRAMES; i++) {
-        Core::Deletor::GetInstance()->Push(Core::Deletor::Type::NONE, [=, this]() {
+    for (int i = 0; i < 1; i++) {
+        Core::Deletor::GetInstance()->Push(Core::Deletor::Type::DESC, [=, this]() {
+         // vkUnmapMemory(Gfx::Device::GetInstance()->GetDevice(), InstanceBuffer[i].DeviceMemory);
 	    	vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), InstanceBuffer[i].Buffer, nullptr);
         	vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), InstanceBuffer[i].DeviceMemory, nullptr);
 	    });
     }
+    // vkMapMemory(Gfx::Device::GetInstance()->GetDevice(),InstanceBuffer[0].DeviceMemory, 0, buffersize, 0, (void**)&mappedinstancedata);
 
+
+
+}
+void Gfx::DescriptorsBase::AllocateSkinningBuffer()
+{
+#ifdef COMPUTE_SKINNING
+    // vkDeviceWaitIdle(Gfx::Device::GetInstance()->GetDevice());
+    Core::Deletor::GetInstance()->CleanIf(Core::Deletor::Type::SKINNING_DESC);
+    
+    size_t size = Gfx::Model::GetInstance()->GetVerteciesSize();
+    size_t scene_size = Core::Scene::GetInstance()->GetSceneVertSize();
+    size_t buffersize = sizeof(VertexInputData) * size;//size;
+    size_t buffersize_out = sizeof(VertexOutputData) * scene_size;
+    size_t buffersize_helper_out = sizeof(VertexOutputHelper) * scene_size;
+    if (buffersize == 0 || buffersize_out == 0) {
+        return;
+    }
+    for (int i = 0; i < 1; i++) {
+        BufferHelper::CreateBuffer(SkinningHelperBuffer[i], buffersize_helper_out, static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT), true);
+        SkinningHelperBuffer[i].tag = "skinning_helper";
+
+	    BufferHelper::CreateBuffer(SkinningBuffer[i], buffersize, static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |VK_BUFFER_USAGE_STORAGE_BUFFER_BIT), true);
+        SkinningBuffer[i].tag = "skinning_in";
+        BufferHelper::CreateBuffer(SkinningOutBuffer[i], buffersize_out, static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT), true);
+        SkinningOutBuffer[i].tag = "skinning_out";
+    }
+    VkDebugUtilsObjectNameInfoEXT info;
+	info.pNext = nullptr;
+	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	info.objectHandle = reinterpret_cast<uint64_t>(SkinningBuffer[0].DeviceMemory);
+	info.objectType = VK_OBJECT_TYPE_DEVICE_MEMORY;;
+	info.pObjectName = "skinning in buffer #1 frame";
+	Gfx::Vulkan::GetInstance()->SetDebugName(info);
+
+    info.pNext = nullptr;
+	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	info.objectHandle = reinterpret_cast<uint64_t>(SkinningOutBuffer[0].DeviceMemory);
+	info.objectType = VK_OBJECT_TYPE_DEVICE_MEMORY;;
+	info.pObjectName = "skinning out buffer #1 frame";
+	Gfx::Vulkan::GetInstance()->SetDebugName(info);
+
+
+    for (int i = 0; i < 1; i++) {
+        Core::Deletor::GetInstance()->Push(Core::Deletor::Type::SKINNING_DESC, [=, this]() {
+	    	vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), SkinningHelperBuffer[i].Buffer, nullptr);
+        	vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), SkinningHelperBuffer[i].DeviceMemory, nullptr);
+	    	vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), SkinningBuffer[i].Buffer, nullptr);
+        	vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), SkinningBuffer[i].DeviceMemory, nullptr);
+	    	vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), SkinningOutBuffer[i].Buffer, nullptr);
+        	vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), SkinningOutBuffer[i].DeviceMemory, nullptr);
+	    });
+    }
+#endif
 #ifdef COMPUTE_MTX
 
-    buffersize = sizeof(AnimationComputeData) * MAX_INSTANCES ;
-    for (int i = 0; i < MAX_FRAMES; i++) {
+    buffersize = sizeof(AnimationComputeData) * Core::Scene::GetInstance()->GetAnimationIndexSize();//Core::Scene::GetInstance()->GetSkinningRQSize() Core::Scene::GetInstance()->GetSceneVertSize();;//MAX_INSTANCES ;
+
+    for (int i = 0; i < 1; i++) {
 	    BufferHelper::CreateBuffer(AnimationBuffer[i], buffersize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
         AnimationBuffer[i].tag = "animation";
     }
@@ -252,16 +433,17 @@ void Gfx::DescriptorsBase::AllocateStorageBuffers()
 	info.pObjectName = "animation buffer #1 frame";
 	Gfx::Vulkan::GetInstance()->SetDebugName(info);
 
-    for (int i = 0; i < MAX_FRAMES; i++) {
-        Core::Deletor::GetInstance()->Push(Core::Deletor::Type::NONE, [=, this]() {
+    for (int i = 0; i < 1; i++) {
+        Core::Deletor::GetInstance()->Push(Core::Deletor::Type::SKINNING_DESC, [=, this]() {
+        // vkUnmapMemory(Gfx::Device::GetInstance()->GetDevice(),AnimationBuffer[i].DeviceMemory);
 	    	vkDestroyBuffer(Gfx::Device::GetInstance()->GetDevice(), AnimationBuffer[i].Buffer, nullptr);
         	vkFreeMemory(Gfx::Device::GetInstance()->GetDevice(), AnimationBuffer[i].DeviceMemory, nullptr);
 	    });
     }
-
+        // vkMapMemory(Gfx::Device::GetInstance()->GetDevice(),AnimationBuffer[0].DeviceMemory, 0, buffersize, 0, (void**)&mappedanimationdata);
 #endif // COMPUTE_MTX
+    //
 }
-
 void Gfx::DescriptorsBase::CleanAll()
 {
 	TextureHandle = 0;
@@ -287,7 +469,7 @@ void Gfx::DescriptorsBase::Init()
 
 	VkDescriptorSetLayoutBinding bindings[MAX_BINDING];
 	VkShaderStageFlags stageflags[MAX_BINDING] = {
-		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+		VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 		VK_SHADER_STAGE_FRAGMENT_BIT,
 		VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT,

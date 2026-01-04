@@ -96,8 +96,12 @@ void Gfx::RenderTarget::CreateRenderTarget()
 
     VkImageViewCreateInfo imgviewinfo = ImageViewCreateInfo(Format, Image, aspectflags, IsCube ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D);
 	VK_ASSERT(vkCreateImageView(Gfx::Device::GetInstance()->GetDevice(), &imgviewinfo, nullptr, &ImageView), "failed to create RT image view!");
-
-    Gfx::Vulkan::GetInstance()->SetRTDebugName(Gfx::GetValue(static_cast<Gfx::RenderTargetsList>(ID)), Image);
+    if (ID == -1) {
+        Gfx::Vulkan::GetInstance()->SetRTDebugName(Name, Image);
+    }
+    else {
+        Gfx::Vulkan::GetInstance()->SetRTDebugName(Gfx::GetValue(static_cast<Gfx::RenderTargetsList>(ID)), Image);
+    }
 }
 
 void Gfx::RenderTarget::MemoryBarrier(VkCommandBuffer cmd, VkImageLayout oldlayout, VkImageLayout newlayout, int layer_count )

@@ -20,6 +20,7 @@ namespace Gfx
             void SetRenderName(VkCommandBuffer cmd, VkDebugUtilsLabelEXT* info);
             void EndRenderName(VkCommandBuffer cmd);
             
+            void SetDebugName(const std::string& name, uint64_t handle, VkObjectType type);
         private:
             VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) ;
             PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;

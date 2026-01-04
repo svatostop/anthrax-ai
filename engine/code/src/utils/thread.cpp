@@ -106,8 +106,8 @@ void Thread::Pool::Work(int id)
 
 void Thread::Pool::Init(int num)
 {
-    if (num > MAX_WORK_THREAD_NUM) {
-        num = MAX_WORK_THREAD_NUM;
+    if (num > std::thread::hardware_concurrency() || num > MAX_WORK_THREAD_NUM) {
+        num = std::thread::hardware_concurrency() / 4;// MAX_WORK_THREAD_NUM;
     }
     Threads.reserve(num);
     Queue.resize(num);
@@ -182,7 +182,7 @@ bool Thread::Pool::Push(const Task& task)
     if (Threads.empty()) {
         return false;
     }
-    if (ThreadCounter == MAX_WORK_THREAD_NUM) {
+    if (ThreadCounter ==  Threads.size()) { //std::thread::hardware_concurrency()) { //MAX_WORK_THREAD_NUM) {
         ThreadCounter = 0;
     }
     std::lock_guard<std::mutex> lock(Mutex[ThreadCounter]);

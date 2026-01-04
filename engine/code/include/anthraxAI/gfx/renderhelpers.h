@@ -9,7 +9,6 @@
 #include "glm/fwd.hpp"
 
 #define MEMCPY_TEST
-
 namespace Gfx
 {
     enum BindlessDataType {
@@ -18,6 +17,7 @@ namespace Gfx
         BINDLESS_DATA_CAM_BUFFER,
         BINDLESS_DATA_PARTICLES,
         BINDLESS_DATA_STORAGE,
+        BINDLESS_DATA_SKINNING,
         BINDLESS_DATA_SIZE
     };
     struct Material {
@@ -36,6 +36,7 @@ namespace Gfx
         std::string TextureName;
 
 	    Vector3<float> Position;
+        glm::vec3 rotation;
         
         bool HasAnimation = false;
         bool IsCompute = false;
@@ -48,12 +49,20 @@ namespace Gfx
         bool IsSelected = false;
 
         uint32_t GizmoType = 0;
+        bool Spawn = false;
+        std::string SpawnName;
+        uint32_t instance_size = 0;
 
+        uint32_t SkinningHelperBind[MAX_FRAMES];
         uint32_t BufferBind[MAX_FRAMES];
         uint32_t StorageBind[MAX_FRAMES];
         uint32_t InstanceBind[MAX_FRAMES];
         uint32_t TextureBind[MAX_FRAMES];
-
+        
+        std::string ModelName;
+        bool skinned_vertex = false;
+        bool input_vertex = false;
+        bool output_vertex = false;
         float AnimOffset = 1.0;
     };
     struct IndirectBatch{
@@ -65,7 +74,7 @@ namespace Gfx
     #define MAX_COMMANDS 5000 
     #define DEPTH_ARRAY_SCALE 1000 
     #define MAX_BONES 200
-    #define MAX_INSTANCES 9600 
+    #define MAX_INSTANCES 10500 
     #define BONE_ARRAY_SIZE (sizeof(glm::mat4) * MAX_BONES)
     
     #define NUM_PARTICLES_PER_WORKGROUP 64
@@ -83,7 +92,8 @@ namespace Gfx
         glm::mat4 bonesmatrices[MAX_BONES];
         glm::mat4 anim_transforms[MAX_BONES];
         glm::mat4 rendermatrix;
-    
+        glm::mat4 rotation;
+
         glm::vec4 position;
         glm::vec4 gizmo_dist;
         
@@ -95,44 +105,45 @@ namespace Gfx
         uint32_t selected = 0;
         uint32_t boneID = 0;
         uint32_t gizmo = 0;
+        uint32_t anim_ind = 0;
+        uint32_t pad0;
+        uint32_t pad1;
+        uint32_t pad2;
     };
     struct AnimFloats {
         float rot_factor[108];
         float pos_factor[108];
         float scale_factor[108];
     
-        int rot_comp[108];
-        int pos_comp[108];
-        int scale_comp[108]; 
-        int animisempty[108];
-        int nodesettransform[108];
+        // int rot_comp[108];
+        // int pos_comp[108];
+        // int scale_comp[108]; 
+        // int animisempty[108];
+        // int nodesettransform[108];
         int nodeIndex[108];
         int nodeAnimInd[108];
         int nodeBoneInd[108];
     };
     struct AnimMatricies {
+        // glm::mat4 bonesmatrices[MAX_BONES];
         glm::mat4 nodeOffset[108];
         glm::mat4 nodeTransform[108];
 
-        glm::mat4 rot_out[108];
+        // glm::mat4 rot_out[108];
         glm::mat4 rot_start[108];
         glm::mat4 rot_end[108];
 
     //
-       glm::vec4 pos_out[108];
+       // glm::vec4 pos_out[108];
        glm::vec4 pos_start[108];
        glm::vec4 pos_end[108];
 
-       glm::vec4 scale_out[108];
+       // glm::vec4 scale_out[108];
        glm::vec4 scale_start[108];
        glm::vec4 scale_end[108];
     };
 #ifndef MEMCPY_TEST
     struct AnimationComputeData {
-         // alignas(alignof(NodeAnimCompute)) NodeAnimCompute animnodes[MAX_BONES];
-         // alignas(alignof(NodeRootsCompute)) NodeRootsCompute noderoots[MAX_BONES];
-        
-
         glm::mat4 nodeOffset[108];
         glm::mat4 nodeTransform[108];
 
@@ -151,7 +162,6 @@ namespace Gfx
        glm::vec4 scale_end[108];
     //
 
-        glm::mat4 global_transform;
        
         float rot_factor[108];
         float pos_factor[108];
@@ -161,7 +171,7 @@ namespace Gfx
         int pos_comp[108];
         int scale_comp[108]; 
        int animisempty[108];
-       int nodesettransform[108];
+       // int nodesettransform[108];
        int nodeIndex[108];
        int nodeAnimInd[108];
        int nodeBoneInd[108];
@@ -176,14 +186,13 @@ namespace Gfx
     struct AnimationComputeData {
         
         AnimMatricies matricies;  
-        glm::mat4 global_transform;
             
         AnimFloats floats;
 
         int animsize = 0;
         int rootssize = 0;
         float timetick = 0;
-        float pad0 = 0;
+        int instance_buffer_ind = 0;
     };
 
 #endif
@@ -207,6 +216,7 @@ namespace Gfx
         glm::mat4 proj;
         glm::mat4 skybox_proj;
         glm::mat4 shadow_matrix;
+        glm::mat4 global_transform;
 
         float time;
         int point_light_size;
@@ -214,12 +224,44 @@ namespace Gfx
         int pad0;
 
         bool hasshadows;
-        int pad1;
+        int compute_skinning_size;
         bool hascubemap;   
-        int pad2;
+        int global_animation_bind;
 
     };
+    
+    struct VertexInputData {
+        glm::vec4 vposition;
+        glm::vec4 vnormal;
+        glm::vec4 vcolor;
+        glm::vec4 vuv;
+        glm::vec4 vweight;
+        glm::ivec4 vboneid;
    
+        glm::ivec4 datas;
+        // int offset;
+        // int vertex_count;
+        // int pad0;
+        // int pad1;
+};
+    struct VertexOutputHelper {
+        glm::vec4 data;
+    };
+    struct VertexOutputData {
+        glm::vec4 vposition;
+        glm::vec4 vnormal;
+        glm::vec4 vcolor;
+        glm::vec4 vuv;
+        // glm::vec4 vweight;
+        // glm::ivec4 vboneid;
+   
+    // glm::vec4 datas;
+        // int offset;
+        // int vertex_count;
+        // int pad0;
+        // int pad1;
+};
+
     struct LightsData {
         glm::vec3 GlobalDirection = glm::vec3(30, 26, 50);//glm::vec3(0.5f, -1.0f, -1.0f);
         glm::vec3 Specular = glm::vec3(1.0f);

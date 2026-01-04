@@ -11,12 +11,12 @@ void main()
     uint hasanim = GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].hasanimation;
     mat4 bonetransforms = mat4(1.0f);
 
-    if (hasanim == 1) {
-        bonetransforms = GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].bonesmatrices[vboneid[0]] * vweight[0];
-        bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].bonesmatrices[vboneid[1]] * vweight[1];
-        bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].bonesmatrices[vboneid[2]] * vweight[2];
-        bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].bonesmatrices[vboneid[3]] * vweight[3];
-    }
+    // if (hasanim == 1) {
+    //     bonetransforms = GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].bonesmatrices[vboneid[0]] * vweight[0];
+    //     bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].bonesmatrices[vboneid[1]] * vweight[1];
+    //     bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].bonesmatrices[vboneid[2]] * vweight[2];
+    //     bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].bonesmatrices[vboneid[3]] * vweight[3];
+    // }
 
     mat4 rendermatrix = GetResource(Camera, bufferbind).shadow_matrix * GetResource(Instance, GetInstanceInd()).instances[gl_BaseInstance].rendermatrix;
 

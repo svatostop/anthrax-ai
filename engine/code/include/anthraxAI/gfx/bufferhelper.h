@@ -16,7 +16,7 @@ namespace BufferHelper
 	void 	AllocateBuffer(Buffer& bufhandler, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 	void 	CreateBuffer(Buffer& bufferhandler, VkBufferUsageFlags flags[2], VkDeviceSize buffersize, const void *datasrc);
 
-	void 	CreateBuffer(Buffer& bufferhandler, VkDeviceSize buffersize, VkBufferUsageFlagBits usage);
+	void 	CreateBuffer(Buffer& bufferhandler, VkDeviceSize buffersize, VkBufferUsageFlagBits usage, bool device_only = false);
 	void  	CreateTextureBuffer(Buffer& bufferhandler, VkDeviceSize buffersize, void *pixels);
 	uint32_t FindMemoryType(VkPhysicalDevice physicaldevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 }

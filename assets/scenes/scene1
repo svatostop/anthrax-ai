@@ -81,6 +81,22 @@ Object:
 	Model:
 		name: sphere.obj
 Object:
+		ID: anim22
+	Position:
+		x: -3.076910
+		y: -0.020308
+		z: -4.379540
+	Material:
+		name: models
+		frag: model.frag
+		vert: model.vert
+	Texture:
+		name: zeroone.png
+	Model:
+		name: Defeated.dae
+	Animation:
+		name: Defeated.dae
+Object:
 		ID: cubes
 	Position:
 		x: 0.142491
@@ -294,4 +310,3 @@ Object:
 		x: 1.000000
 		y: 0.000000
 		z: 0.000000
-

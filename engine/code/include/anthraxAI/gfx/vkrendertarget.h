@@ -19,6 +19,7 @@ namespace Gfx
     X(RT_POSITION, "position") \
     X(RT_MASK, "mask") \
     X(RT_SHADOWS, "shadows") \
+    X(RT_VISIBILITY, "visibility") \
     X(RT_SIZE, "rts size") \
 
 #define X(element, name) element,
@@ -55,7 +56,7 @@ namespace Gfx
             
             RenderTarget() { Name = "please dont call this ctor"; }
             RenderTarget(const std::string& name) : Name(name) {}
-            RenderTarget(uint32_t id) { Name = Gfx::GetValue(static_cast<RenderTargetsList>(id)); }
+            RenderTarget(uint32_t id) { Name = Gfx::GetValue(static_cast<RenderTargetsList>(id)); ID = id; }
             RenderTarget(const RenderTarget& rt, uint32_t id);
 
             void CreateRenderTarget();

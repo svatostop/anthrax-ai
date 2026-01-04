@@ -34,6 +34,7 @@ namespace Core
 
             void CleanAll() {
                 for (auto it = Deletors.rbegin(); it != Deletors.rend(); it++) {
+                    printf("deletor n: %d\n", (*it).first);
                     (*it).second();
                 }
                 Deletors.clear();
@@ -44,6 +45,8 @@ namespace Core
             PIPELINE = 1,
             CMD,
             SYNC,
+            DESC,
+            SKINNING_DESC
         };
 
     };

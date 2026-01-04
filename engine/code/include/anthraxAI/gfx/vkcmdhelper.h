@@ -39,6 +39,7 @@ namespace Gfx
 
             void MemoryBarrier(VkImage image, VkImageLayout oldlayout, VkImageLayout newlayout, VkImageSubresourceRange range);
             void MemoryBarrier(VkAccessFlags srcaccess, VkAccessFlags dstaccess, VkPipelineStageFlags srcstage, VkPipelineStageFlags dststage);
+            void MemoryBarrier(VkBuffer buffer,  VkDeviceSize size,VkAccessFlags srcaccess, VkAccessFlags dstaccess, VkPipelineStageFlags srcstage, VkPipelineStageFlags dststage);
             void CopyImage(VkImage src, Vector2<int> srcsize, VkImageLayout srcoldlayout, VkImageLayout srcnewlayout, VkImage dst, Vector2<int> dstsize, VkImageLayout dstoldlayout, VkImageLayout dstnewlayout);
 
             void SetRange(VkImageSubresourceRange r) { range = r;}

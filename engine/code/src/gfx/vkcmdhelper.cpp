@@ -122,13 +122,25 @@ void Gfx::CommandBuffer::EndCmd()
 	VK_ASSERT(vkEndCommandBuffer(cmd), "failed to end command buffer");
 }
 
+void Gfx::CommandBuffer::MemoryBarrier(VkBuffer buffer, VkDeviceSize size, VkAccessFlags srcaccess, VkAccessFlags dstaccess, VkPipelineStageFlags srcstage, VkPipelineStageFlags dststage)
+{
+    VkBufferMemoryBarrier buf_barrier{};
+    buf_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    buf_barrier.srcAccessMask = srcaccess;
+    buf_barrier.dstAccessMask = dstaccess;
+    buf_barrier.buffer = buffer;
+    buf_barrier.size = size;
+    buf_barrier.offset = 0;
+
+	vkCmdPipelineBarrier(cmd, srcstage, dststage, 0, 0, nullptr, 1, &buf_barrier, 0, nullptr);
+}
 void Gfx::CommandBuffer::MemoryBarrier(VkAccessFlags srcaccess, VkAccessFlags dstaccess, VkPipelineStageFlags srcstage, VkPipelineStageFlags dststage)
 {
     VkMemoryBarrier membarrier{};
 	membarrier.sType               = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
 	membarrier.srcAccessMask       = srcaccess;
 	membarrier.dstAccessMask       = dstaccess;
-
+// TODO : DO thing for memory pointer ---!!!!! now you use instance buffer in 2 compute shaders without proper barrier !!!!!!!!!!!!!!!
 	vkCmdPipelineBarrier(cmd, srcstage, dststage, 0, 1, &membarrier, 0, nullptr, 0, nullptr);
 }
 
