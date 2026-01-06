@@ -59,14 +59,14 @@ namespace Core
         // std::vector<Core::NodeRoots> nodes;
         // Core::NodeRoots nodes[108];
         // std::vector<NodeAnim> AnimNodes;
-        NodeAnim AnimNodes[108];
+        NodeAnim AnimNodes[118];
     //     //-------------
             //glm::mat4 animrot[108];
         Gfx::AnimMatricies matricies;    
         
         Gfx::AnimFloats floats;
         
-    std::string Names[108];
+    std::string Names[118];
         int animsize;
         int rootssize = 0;
         float timeticks;

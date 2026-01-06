@@ -3,7 +3,7 @@ layout(local_size_x = 256) in;
 
 #include "defines/defines.h"
 
-#extension GL_EXT_debug_printf : enable
+// #extension GL_EXT_debug_printf : enable
 void main()
 {
     uint ind = gl_GlobalInvocationID.x;
@@ -39,7 +39,7 @@ void main()
                 }
                 fin_pos.w = 1;
                 GetResource(Skinning_Out, GetInstanceInd()).vertecies_out[ind].vposition = fin_pos;//GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_vert_compute_off].vposition * bonetransforms;
-                debugPrintfEXT("%f|%f|%f|invoke id= %d\n", fin_pos.x, fin_pos.y, fin_pos.z, ind);
+                // debugPrintfEXT("%f|%f|%f|invoke id= %d\n", fin_pos.x, fin_pos.y, fin_pos.z, ind);
             } 
         //     GetResource(Skinning_Out, GetInstanceInd()).vertecies_out[ind].vnormal = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vnormal; //vec4(vert_out_off, vert_out_off, vert_count, vert_count);
         //     GetResource(Skinning_Out, GetInstanceInd()).vertecies_out[ind].vcolor = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vcolor; //vec4(vert_out_off, vert_out_off, vert_count, vert_count);

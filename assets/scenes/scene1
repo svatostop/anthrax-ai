@@ -3,6 +3,21 @@ Scene: scene1
 	Cubemaps:
 		name: cubemaps/clear_sky
 Object:
+ID: test1
+Position:
+x: 10
+y: 10
+z: 10
+Material:
+name: models
+frag: model.frag
+vert: model.vert
+Texture:
+name: joined-texture.png
+Model:
+name: test.dae 
+
+Object:
 		ID: plane
 	Position:
 		x: 0.000000

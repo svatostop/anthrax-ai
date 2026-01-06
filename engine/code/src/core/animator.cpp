@@ -112,7 +112,7 @@ Core::aiSceneInfo Core::AnimatorBase::ConvertAi(const aiScene* scene)
     GetNodeChildren(scene->mRootNode, root);
     info.RootNode = root;
 printf("anim node channels: %d\n", scene->mAnimations[0]->mNumChannels );    
-    ASSERT(scene->mAnimations[0]->mNumChannels > 108, "Anim Nodes size is > 100!");
+    ASSERT(scene->mAnimations[0]->mNumChannels > 118, "Anim Nodes size is > 100!");
     info.animsize = scene->mAnimations[0]->mNumChannels;
     // info.AnimNodes.resize(scene->mAnimations[0]->mNumChannels);
 

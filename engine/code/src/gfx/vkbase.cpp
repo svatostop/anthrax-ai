@@ -133,15 +133,15 @@ void Gfx::Vulkan::CreateVkInstance()
 
 	ASSERT((ValidationLayersOn && !EnumerateValidationLayerSupport()), "Not supported validation layers!");
 
-	if (ValidationLayersOn) {
-		createinfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYER.size());
-		createinfo.ppEnabledLayerNames = VALIDATION_LAYER.data();
-	       createinfo.pNext = Debug.GetInfo();
-	}
-	else {
+	// if (ValidationLayersOn) {
+	// 	createinfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYER.size());
+	// 	createinfo.ppEnabledLayerNames = VALIDATION_LAYER.data();
+	//        createinfo.pNext = Debug.GetInfo();
+	// }
+	// else {
 		createinfo.enabledLayerCount = 0;
         createinfo.pNext = nullptr;
-	}
+	// }
 
 	VK_ASSERT(vkCreateInstance(&createinfo, nullptr, &Instance), "vkCreateInstance failed");
 

@@ -111,36 +111,36 @@ namespace Gfx
         uint32_t pad2;
     };
     struct AnimFloats {
-        float rot_factor[108];
-        float pos_factor[108];
-        float scale_factor[108];
+        float rot_factor[118];
+        float pos_factor[118];
+        float scale_factor[118];
     
         // int rot_comp[108];
         // int pos_comp[108];
         // int scale_comp[108]; 
         // int animisempty[108];
         // int nodesettransform[108];
-        int nodeIndex[108];
-        int nodeAnimInd[108];
-        int nodeBoneInd[108];
+        int nodeIndex[118];
+        int nodeAnimInd[118];
+        int nodeBoneInd[118];
     };
     struct AnimMatricies {
         // glm::mat4 bonesmatrices[MAX_BONES];
-        glm::mat4 nodeOffset[108];
-        glm::mat4 nodeTransform[108];
+        glm::mat4 nodeOffset[118];
+        glm::mat4 nodeTransform[118];
 
         // glm::mat4 rot_out[108];
-        glm::mat4 rot_start[108];
-        glm::mat4 rot_end[108];
+        glm::mat4 rot_start[118];
+        glm::mat4 rot_end[118];
 
     //
        // glm::vec4 pos_out[108];
-       glm::vec4 pos_start[108];
-       glm::vec4 pos_end[108];
+       glm::vec4 pos_start[118];
+       glm::vec4 pos_end[118];
 
        // glm::vec4 scale_out[108];
-       glm::vec4 scale_start[108];
-       glm::vec4 scale_end[108];
+       glm::vec4 scale_start[118];
+       glm::vec4 scale_end[118];
     };
 #ifndef MEMCPY_TEST
     struct AnimationComputeData {

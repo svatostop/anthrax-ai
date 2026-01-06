@@ -366,9 +366,9 @@ void Keeper::Base::SpawnObjects(const Keeper::Info& info)
     Keeper::Info spawn = info;
     int i = 0;
     float off = 0.1;
-    for (float x = info.Position.x; x < offsets.x; x += 1.0f ) {
-        for (float y = info.Position.y; y < offsets.y; y += 1.0f ) {
-            for (float z = info.Position.z; z < offsets.z; z += 1.0f ) {
+    for (float x = info.Position.x; x < info.Position.x + offsets.x; x += 1.0f ) {
+        for (float y = info.Position.y; y < info.Position.y + offsets.y; y += 1.0f ) {
+            for (float z = info.Position.z; z < info.Position.z + offsets.z; z += 1.0f ) {
                 spawn.Position = Vector3<float>( x, y, z );
                 if (!spawn.ParsedID.empty()) {
                     spawn.ParsedID = info.ParsedID + "_" + std::to_string(i);

@@ -136,66 +136,66 @@ struct InstanceData {
 #define MEMCPY_TEST
 struct AnimMatricies {
     // mat4 bonesmatrices[MAX_BONES];
-    mat4 nodeOffset[108];
-    mat4 nodeTransform[108];
+    mat4 nodeOffset[118];
+    mat4 nodeTransform[118];
 
-    // mat4 rot_out[108];
-    mat4 rot_start[108];
-    mat4 rot_end[108];
+    // mat4 rot_out[118];
+    mat4 rot_start[118];
+    mat4 rot_end[118];
 
-    // vec4 pos_out[108];
-    vec4 pos_start[108];
-    vec4 pos_end[108];
+    // vec4 pos_out[118];
+    vec4 pos_start[118];
+    vec4 pos_end[118];
 
-    // vec4 scale_out[108];
-    vec4 scale_start[108];
-    vec4 scale_end[108];
+    // vec4 scale_out[118];
+    vec4 scale_start[118];
+    vec4 scale_end[118];
 };
 
 struct AnimFloats {
-    float rot_factor[108];
-    float pos_factor[108];
-    float scale_factor[108];
+    float rot_factor[118];
+    float pos_factor[118];
+    float scale_factor[118];
 
-    // int rot_comp[108];
-    // int pos_comp[108];
-    // int scale_comp[108]; 
-    // int animisempty[108];
-    // int nodesettransform[108];
-    int nodeIndex[108];
-    int nodeAnimInd[108];
-    int nodeBoneInd[108];
+    // int rot_comp[118];
+    // int pos_comp[118];
+    // int scale_comp[118]; 
+    // int animisempty[118];
+    // int nodesettransform[118];
+    int nodeIndex[118];
+    int nodeAnimInd[118];
+    int nodeBoneInd[118];
 };
 struct AnimationComputeData {
 #ifndef MEMCPY_TEST
-    mat4 nodeOffset[108];
-    mat4 nodeTransform[108];
+    mat4 nodeOffset[118];
+    mat4 nodeTransform[118];
 
-    // mat4 rot_out[108];
-    mat4 rot_start[108];
-    mat4 rot_end[108];
+    // mat4 rot_out[118];
+    mat4 rot_start[118];
+    mat4 rot_end[118];
 
-    // vec4 pos_out[108];
-    vec4 pos_start[108];
-    vec4 pos_end[108];
+    // vec4 pos_out[118];
+    vec4 pos_start[118];
+    vec4 pos_end[118];
 
-    // vec4 scale_out[108];
-    vec4 scale_start[108];
-    vec4 scale_end[108];
+    // vec4 scale_out[118];
+    vec4 scale_start[118];
+    vec4 scale_end[118];
 
     
-    float rot_factor[108];
-    float pos_factor[108];
-    float scale_factor[108];
+    float rot_factor[118];
+    float pos_factor[118];
+    float scale_factor[118];
 
-    // int rot_comp[108];
-    // int pos_comp[108];
-    // int scale_comp[108]; 
-    // int animisempty[108];
-    int nodesettransform[108];
-    int nodeIndex[108];
-    int nodeAnimInd[108];
-    int nodeBoneInd[108];
+    // int rot_comp[118];
+    // int pos_comp[118];
+    // int scale_comp[118]; 
+    // int animisempty[118];
+    int nodesettransform[118];
+    int nodeIndex[118];
+    int nodeAnimInd[118];
+    int nodeBoneInd[118];
 
 #else
     AnimMatricies matricies;

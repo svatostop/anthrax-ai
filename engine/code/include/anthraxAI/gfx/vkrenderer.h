@@ -136,7 +136,7 @@ namespace Gfx
 
             void InitDrawIndirect();
             void CompactDrawIndirect(const Modules::RenderQueueMap& map);
-            void CompactIndirect(Material* mat, MeshInfo* mesh, int i);
+            void CompactIndirect(Material* mat, MeshInfo* mesh, int i, bool is_instanced);
             void ClearIndirectBatches() { indirect_batch.clear(); }
             // void RenderIndirect(const Modules::RenderQueueMap& map);
             void RenderIndirect( Modules::Module& module);

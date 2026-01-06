@@ -90,6 +90,7 @@ void Gfx::Renderer::RenderIndirect( Modules::Module& module)
     int i = 0;
     RenderObject testobj;
     skinning_iterator = 0;
+    uint32_t instances_tmp = 0;
     // for (const auto& it : map) {
         // for (const RenderObject& obj : it.second) {
         for ( RenderObject& obj : module.GetSkinningRQ()) {
@@ -103,6 +104,8 @@ void Gfx::Renderer::RenderIndirect( Modules::Module& module)
                     draw_cmds[i].firstIndex = 0;
                     if (obj.Spawn) {
                         draw_cmds[i].instanceCount = obj.instance_size;
+                        draw_cmds[i].firstInstance = instances_tmp;
+                        instances_tmp += obj.instance_size;
                     }
                     else {
                         draw_cmds[i].instanceCount = 1;
@@ -123,9 +126,9 @@ void Gfx::Renderer::RenderIndirect( Modules::Module& module)
                 draw_cmds[i].indexCount = obj.Mesh->Indices.size();
                     i++;
             }
-            if (obj.Spawn) {
-                break;
-            }
+            // if (obj.Spawn) {
+            //     break;
+            // }
         }
     // }
     vkUnmapMemory(Gfx::Device::GetInstance()->GetDevice(),DrawIndirect.DeviceMemory);
@@ -156,12 +159,12 @@ void Gfx::Renderer::InitDrawIndirect()
 	});
 }
 
-void Gfx::Renderer::CompactIndirect(Material* mat, MeshInfo* mesh, int i)
+void Gfx::Renderer::CompactIndirect(Material* mat, MeshInfo* mesh, int i, bool is_instanced)
 {
 
             bool samemesh = indirect_batch.empty() ? false : mesh == indirect_batch.back().mesh;
             bool samemat = indirect_batch.empty() ? false : mat == indirect_batch.back().material;
-            if (samemesh && samemat) {
+            if (samemesh && samemat && !is_instanced) {
 
                 indirect_batch.back().count++;
             }
@@ -181,20 +184,22 @@ void Gfx::Renderer::CompactDrawIndirect(const Modules::RenderQueueMap& map)
     ZoneScopedN("Renderer::CompactDrawIndirect");
 #endif
     int i = 0;
-    for (const auto& it : map) {
-        for (const RenderObject& obj : it.second) {
+    Modules::Module& module = Core::Scene::GetInstance()->GetModule("gbuffer");
+    // for (const auto& it : map) {
+        // for (const RenderObject& obj : it.second) {
+        for ( RenderObject& obj : module.GetSkinningRQ()) {
             if (obj.Model[0]) {
                 for (MeshInfo* info : obj.Model[0]->Meshes) {
-                    CompactIndirect(obj.Material, info, i);
+                    CompactIndirect(obj.Material, info, i, obj.Spawn);
                     i++;
                 }
             }
             else {
-                CompactIndirect(obj.Material, obj.Mesh, i);
+                CompactIndirect(obj.Material, obj.Mesh, i, false);
                 i++;
             }
         }
-    }
+    // }
 }
 
 
@@ -1218,30 +1223,30 @@ void Gfx::Renderer::PrepareInstanceBuffer()
                             animdat.instance_buffer_ind = i;//scene.animsize;
 
 #ifndef MEMCPY_TEST
-                            // memcpy(animdat.animisempty, scene.floats.animisempty, sizeof(int) * 108);
-                            memcpy(animdat.pos_factor, scene.floats.pos_factor, sizeof(float) * 108);
-                            memcpy(animdat.scale_factor, scene.floats.scale_factor, sizeof(float) * 108);
-                            memcpy(animdat.rot_factor, scene.floats.rot_factor, sizeof(float) * 108);
-                            // memcpy(animdat.pos_comp, scene.floats.pos_comp, sizeof(int) * 108);
-                            // memcpy(animdat.scale_comp, scene.floats.scale_comp, sizeof(int) * 108);
-                            // memcpy(animdat.rot_comp, scene.floats.rot_comp, sizeof(int) * 108);
-                            // memcpy(animdat.pos_out, scene.matricies.pos_out, sizeof(glm::vec4) * 108);
-                            memcpy(animdat.pos_start, scene.matricies.pos_start, sizeof(glm::vec4) * 108);
-                            memcpy(animdat.pos_end, scene.matricies.pos_end, sizeof(glm::vec4) * 108);
-                            // memcpy(animdat.scale_out, scene.matricies.scale_out, sizeof(glm::vec4) * 108);
-                            memcpy(animdat.scale_start, scene.matricies.scale_start, sizeof(glm::vec4) * 108);
-                            memcpy(animdat.scale_end, scene.matricies.scale_end, sizeof(glm::vec4) * 108);
-                            // memcpy(animdat.rot_out, scene.matricies.rot_out, sizeof(glm::mat4) * 108);
-                            memcpy(animdat.rot_start, scene.matricies.rot_start, sizeof(glm::mat4) * 108);
-                            memcpy(animdat.rot_end, scene.matricies.rot_end, sizeof(glm::mat4) * 108);
-                            // memcpy(animdat.animrot, scene.animrot, sizeof(glm::mat4) * 108);
+                            // memcpy(animdat.animisempty, scene.floats.animisempty, sizeof(int) * 118);
+                            memcpy(animdat.pos_factor, scene.floats.pos_factor, sizeof(float) * 118);
+                            memcpy(animdat.scale_factor, scene.floats.scale_factor, sizeof(float) * 118);
+                            memcpy(animdat.rot_factor, scene.floats.rot_factor, sizeof(float) * 118);
+                            // memcpy(animdat.pos_comp, scene.floats.pos_comp, sizeof(int) * 118);
+                            // memcpy(animdat.scale_comp, scene.floats.scale_comp, sizeof(int) * 118);
+                            // memcpy(animdat.rot_comp, scene.floats.rot_comp, sizeof(int) * 118);
+                            // memcpy(animdat.pos_out, scene.matricies.pos_out, sizeof(glm::vec4) * 118);
+                            memcpy(animdat.pos_start, scene.matricies.pos_start, sizeof(glm::vec4) * 118);
+                            memcpy(animdat.pos_end, scene.matricies.pos_end, sizeof(glm::vec4) * 118);
+                            // memcpy(animdat.scale_out, scene.matricies.scale_out, sizeof(glm::vec4) * 118);
+                            memcpy(animdat.scale_start, scene.matricies.scale_start, sizeof(glm::vec4) * 118);
+                            memcpy(animdat.scale_end, scene.matricies.scale_end, sizeof(glm::vec4) * 118);
+                            // memcpy(animdat.rot_out, scene.matricies.rot_out, sizeof(glm::mat4) * 118);
+                            memcpy(animdat.rot_start, scene.matricies.rot_start, sizeof(glm::mat4) * 118);
+                            memcpy(animdat.rot_end, scene.matricies.rot_end, sizeof(glm::mat4) * 118);
+                            // memcpy(animdat.animrot, scene.animrot, sizeof(glm::mat4) * 118);
 
-                            memcpy(animdat.nodeAnimInd, scene.floats.nodeAnimInd, sizeof(int) * 108);
-                            memcpy(animdat.nodeBoneInd, scene.floats.nodeBoneInd, sizeof(int) * 108);
-                            memcpy(animdat.nodeIndex, scene.floats.nodeIndex, sizeof(int) * 108);
-                            // memcpy(animdat.nodesettransform, scene.floats.nodesettransform, sizeof(int) * 108);
-                            memcpy(animdat.nodeOffset, scene.matricies.nodeOffset, sizeof(glm::mat4) * 108);
-                            memcpy(animdat.nodeTransform, scene.matricies.nodeTransform, sizeof(glm::mat4) * 108);
+                            memcpy(animdat.nodeAnimInd, scene.floats.nodeAnimInd, sizeof(int) * 118);
+                            memcpy(animdat.nodeBoneInd, scene.floats.nodeBoneInd, sizeof(int) * 118);
+                            memcpy(animdat.nodeIndex, scene.floats.nodeIndex, sizeof(int) * 118);
+                            // memcpy(animdat.nodesettransform, scene.floats.nodesettransform, sizeof(int) * 118);
+                            memcpy(animdat.nodeOffset, scene.matricies.nodeOffset, sizeof(glm::mat4) * 118);
+                            memcpy(animdat.nodeTransform, scene.matricies.nodeTransform, sizeof(glm::mat4) * 118);
 #else
 
                             {

@@ -6,7 +6,6 @@ name: group0
 x: 20 
 y: 1
 z: 20
-ID: 0
 Position:
 x: 0
 y: 0
@@ -25,21 +24,41 @@ Object:
 ID: test1
 Spawn:
 name: group1
-x: 10 
+x: 20 
 y: 1
-z: 10
-ID: 0
+z: 20
 Position:
 x: 10
-y: 0
+y: 5
 z: 10
 Material:
 name: models
 frag: model.frag
 vert: model.vert
 Texture:
-name: dummy.png
+name: joined-texture.png
 Model:
-name: Defeated.dae 
+name: test.dae 
 Animation:
-name: Excited.dae
+name: clone_defeated.dae
+Object:
+ID: test2
+Spawn:
+name: group2
+x: 5 
+y: 1
+z: 5
+Position:
+x: 10
+y: 2
+z: 10
+Material:
+name: models
+frag: model.frag
+vert: model.vert
+Texture:
+name: joined-texture.png
+Model:
+name: test.dae 
+Animation:
+name: clone_walk.dae
