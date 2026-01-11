@@ -115,6 +115,7 @@ struct InstanceData {
     mat4 anim_transforms[MAX_BONES];
     mat4 rendermatrix;
     mat4 rotation;
+    mat4 scale;
 
     vec4 position;
     vec4 gizmo_dist;

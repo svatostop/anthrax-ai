@@ -127,6 +127,11 @@ void Gfx::Model::LoadModels()
             LoadModel(path + info->GetModelName());
         }
     }
+// for skybox !!!!
+    if (!GetModel("cube.obj")) {
+        LoadModel(path + "cube.obj");
+    }
+
     //  int s = 0;
     // for (auto& v : Models) {
     //     for (MeshInfo* i : v.second.Meshes) {

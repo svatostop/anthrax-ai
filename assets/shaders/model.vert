@@ -17,7 +17,7 @@
     //     bonetransforms += GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].bonesmatrices[vboneid[3]] * vweight[3];
     // }
 
-    mat4 rendermatrix = GetResource(Camera, bufferbind).proj * GetResource(Camera, bufferbind).view * GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].rendermatrix;
+    mat4 rendermatrix = GetResource(Camera, bufferbind).proj * GetResource(Camera, bufferbind).view * GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].rendermatrix * GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].rotation* GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].scale;;
 
     vec4 position = bonetransforms * vec4(vposition.xyz, 1.0f);
     gl_Position = rendermatrix * position;

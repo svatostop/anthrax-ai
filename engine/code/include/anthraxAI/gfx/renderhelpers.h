@@ -37,6 +37,7 @@ namespace Gfx
 
 	    Vector3<float> Position;
         glm::vec3 rotation;
+        float scale;
         
         bool HasAnimation = false;
         bool IsCompute = false;
@@ -93,6 +94,7 @@ namespace Gfx
         glm::mat4 anim_transforms[MAX_BONES];
         glm::mat4 rendermatrix;
         glm::mat4 rotation;
+        glm::mat4 scale;
 
         glm::vec4 position;
         glm::vec4 gizmo_dist;

@@ -17,6 +17,8 @@ namespace Utils
     X(LEVEL_ELEMENT_SHADOWS, "Shadows") \
     X(LEVEL_ELEMENT_OBJECT, "Object") \
     X(LEVEL_ELEMENT_POSITION, "Position") \
+    X(LEVEL_ELEMENT_ROTATION, "Rotation") \
+    X(LEVEL_ELEMENT_SCALE, "Scale") \
     X(LEVEL_ELEMENT_COLOR, "Color") \
     X(LEVEL_ELEMENT_RADIUS, "Radius") \
     X(LEVEL_ELEMENT_SPAWN, "Spawn") \

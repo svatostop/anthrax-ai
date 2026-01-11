@@ -24,6 +24,8 @@ namespace Keeper
            const glm::vec3& GetRotation() const override { return rotation; }
            void SetRotation(const glm::vec3& v) override { rotation = v; }
     
+           float GetScale() const override { return scale; }
+           void SetScale(float v) override { scale = v; }
             bool HasAnimations() const override { return IsAnimated; }
             void SetGizmo(Keeper::Objects* gizmo) override { GizmoHandle = reinterpret_cast<Keeper::Gizmo*>(gizmo); }
 
@@ -51,7 +53,7 @@ namespace Keeper
             float AnimOffset = 1.0;
     bool ResetMouse = false;
             glm::vec3 rotation = glm::vec3(0);        
-
+            float scale = 1.0f;
             std::string ParsedID = "";
             std::string SpawnName = "";
             std::string Vertex;

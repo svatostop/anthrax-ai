@@ -201,6 +201,6 @@ void main()
                         0, 1.0 * gizmo_dist.y, 0, 0,
                         0, 0, 1.0 * gizmo_dist.z, 0,
                         pos.x, pos.y, pos.z, pos.w);
-        GetResource(Instance, GetStorageInd()).instances[instance_buffer_ind].rendermatrix = mp * GetResource(Instance, GetStorageInd()).instances[instance_buffer_ind].rotation;
+        GetResource(Instance, GetStorageInd()).instances[instance_buffer_ind].rendermatrix = mp; 
     }
 }

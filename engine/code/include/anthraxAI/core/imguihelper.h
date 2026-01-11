@@ -66,8 +66,8 @@ namespace UI
             : Type(type), Label(label), IsDynamic(isdyn), DefinitionBool(func), DefinitionBoolRet(funcret) { EvaluateArgs(t, args...); }
 
 
-            Element(ElementType type, const std::string& label, bool isdyn, std::function<float (float)> func, std::function<float ()>  arg)
-            : Type(type), Label(label), IsDynamic(isdyn), DefinitionFloatArg(func), DefinitionFloat(arg) {  }
+            Element(ElementType type, const std::string& label, bool isdyn, std::function<float (float)> func, std::function<float ()>  arg, float minmax[2])
+            : Type(type), Label(label), IsDynamic(isdyn), DefinitionFloatArg(func), DefinitionFloat(arg) {  SliderMinMax[0] = minmax[0]; SliderMinMax[1] = minmax[1]; }
             
             Element(ElementType type, const std::string& label, bool isdyn, std::function<void (glm::vec3)> func, std::function<glm::vec3 ()>  arg, float minmax[2])
             : Type(type), Label(label), IsDynamic(isdyn), DefinitionFloat3Arg(func), GetDefinitionFloat3Arg(arg) { SliderMinMax[0] = minmax[0]; SliderMinMax[1] = minmax[1];  }

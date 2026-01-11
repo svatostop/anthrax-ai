@@ -11,6 +11,8 @@ Keeper::Npc::Npc(const Info& info)
     : Objects(info)
 {
     Position = info.Position;
+    rotation = glm::vec3(info.Rotation.x, info.Rotation.y, info.Rotation.z);
+    scale = info.Scale;
     ModelName = info.Model;
     TextureName = info.Texture;
     MaterialName = info.Material;

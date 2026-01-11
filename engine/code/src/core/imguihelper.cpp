@@ -240,7 +240,8 @@ void Core::ImGuiHelper::InitUIElements()
         it->Add(audiotab, UI::Element(UI::TEXT, "Current Sound:", false, []() -> std::string { return Core::Audio::GetInstance()->GetCurrentSound(); } ));
         it->Add(audiotab, UI::Element(UI::SEPARATOR, "sep"));
         it->Add(audiotab, UI::Element(UI::CHECKBOX, "play", false, nullptr, [](bool visible) -> void {  Core::Audio::GetInstance()->SetState(visible); }, []() -> bool {return Core::Audio::GetInstance()->GetState(); }));
-        it->Add(audiotab, UI::Element(UI::SLIDER, "volume", false, [](float volume) -> float { Core::Audio::GetInstance()->SetVolume(volume); return 0.0f; }, []() -> float { return Core::Audio::GetInstance()->GetVolume(); } ));
+        float minmax[2] = {0.0f, 1.0f};
+        it->Add(audiotab, UI::Element(UI::SLIDER, "volume", false, [](float volume) -> float { Core::Audio::GetInstance()->SetVolume(volume); return 0.0f; }, []() -> float { return Core::Audio::GetInstance()->GetVolume(); }, minmax ));
     }
 
     {
@@ -369,6 +370,8 @@ void Core::ImGuiHelper::DisplayObjectInfo(const std::string& obj, const UI::Elem
     Editor->Add(elem, UI::Element(UI::BUTTON, "Update Object", true, [game_obj]() -> float { Core::Scene::GetInstance()->ExportObjectInfo(game_obj); return 0.0f; }));
     Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
     Editor->Add(elem, UI::Element(UI::SLIDER_3, "Rotation", true, [game_obj](glm::vec3 v) -> void { game_obj->SetRotation(v); }, [game_obj]() -> glm::vec3 { return game_obj->GetRotation(); }, minmax));
+    float minmax2[2] = {0.0f, 100.0f};
+    Editor->Add(elem, UI::Element(UI::SLIDER, "Scale", true, [game_obj](float v) -> float { game_obj->SetScale((v)); return 1.0; }, [game_obj]() -> float { return game_obj->GetScale(); }, minmax2));
     Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
     IsDisplayInReset = false;
 }
@@ -684,7 +687,7 @@ void Core::ImGuiHelper::ProcessUI(UI::Element& element)
         }
         case UI::SLIDER: {
             float arg = element.DefinitionFloat();
-            ImGui::SliderFloat(element.GetLabel().c_str(), &arg, 0.0f, 1.0f);
+            ImGui::SliderFloat(element.GetLabel().c_str(), &arg, element.SliderMinMax[0], element.SliderMinMax[1]);
             if (element.DefinitionFloatArg) {
                 element.DefinitionFloatArg(arg);
             }

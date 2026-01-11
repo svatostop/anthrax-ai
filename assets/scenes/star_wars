@@ -1,0 +1,45 @@
+Scene: star_wars 
+Cubemaps:
+		name: cubemaps/clear_sky
+Object:
+ID: test2
+Spawn:
+name: group2
+x: 5 
+y: 1
+z: 5
+Position:
+x: 10
+y: 2
+z: 10
+Material:
+name: models
+frag: model.frag
+vert: model.vert
+Texture:
+name: joined-texture-clone.png
+Model:
+name: stormtrooper-skin.dae 
+Animation:
+name: clone_walk.dae
+Object:
+ID: station 
+Position:
+x: 10
+y: 10
+z: 10
+Material:
+name: models
+frag: model.frag
+vert: model.vert
+Texture:
+name: dummy.png
+Model:
+name: sw.fbx
+Rotation:
+x: 90
+y: 180
+z: 0
+Scale:
+x: 10
+

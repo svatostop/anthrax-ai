@@ -15,6 +15,7 @@ namespace Keeper {
 
     struct Info {
         Vector3<float> Position;
+        Vector3<float> Rotation = {0,0,0};
         Vector3<float> Color;
         Vector3<float> Offset;
         std::string LightType;
@@ -33,6 +34,7 @@ namespace Keeper {
         bool IsLight = false;
         bool VertexBase = false;
 
+        float  Scale = 1.0;
         float AnimOffset = 1.0;
         // used in UI object creation only
         std::string Type;
@@ -88,6 +90,7 @@ namespace Keeper {
             virtual const std::vector<std::string>& GetAnimations() const { return EmptyAnimations; }
 
             virtual const glm::vec3& GetRotation() const { return EmptyVec3; }
+            virtual float GetScale() const { return 1.0f; }
             virtual Keeper::Objects* GetHandle() const { return nullptr; }
             virtual Keeper::Objects* GetGizmo() const { return  nullptr;}
 
@@ -114,6 +117,7 @@ namespace Keeper {
            virtual const bool GetSpawn() const { return false;}
             
            virtual void SetRotation(const glm::vec3& v) { }
+           virtual void SetScale(float v) { }
         private:
             std::string ParsedID = "";
             std::string EMPTY_STRING = "";

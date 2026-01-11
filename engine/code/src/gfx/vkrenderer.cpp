@@ -109,6 +109,8 @@ void Gfx::Renderer::RenderIndirect( Modules::Module& module)
                     }
                     else {
                         draw_cmds[i].instanceCount = 1;
+                        draw_cmds[i].firstInstance = instances_tmp;
+                        instances_tmp++;
                     }
                     draw_cmds[i].indexCount = obj.Model[0]->Meshes[k]->AIindices.size();
                     #ifdef COMPUTE_SKINNING
@@ -884,6 +886,7 @@ void Gfx::Renderer::FillSkinningBuffer()
     int buf_ind = 0;
     int model_id = 0;
     skinning_iterator = 0;
+    int instances_tmp = 0;
     // for (auto& m : module.GetRenderQueueMap()) {
         // for (RenderObject& o : m.second) {
         for (const RenderObject& o : module.GetSkinningRQ()) {
@@ -892,9 +895,15 @@ void Gfx::Renderer::FillSkinningBuffer()
             final_vert_size = 0;
             for (Vertex v : o.Model[0]->Meshes[0]->Vertices) {
                 // datas[buf_ind].datas[0] = vert_offset;
-                datas2[buf_ind].data = glm::vec4(1, final_vert_size, united_vertex_offsets[o.Model[0]->Meshes[0]->model_id], skinning_iterator);
+                datas2[buf_ind].data = glm::vec4(1, final_vert_size, united_vertex_offsets[o.Model[0]->Meshes[0]->model_id], instances_tmp);
                 final_vert_size++;
                 buf_ind++;
+            }
+            if (o.Spawn) {
+                instances_tmp += o.instance_size;
+            }
+            else {
+                instances_tmp++;
             }
             skinning_iterator++;
         }
@@ -1097,6 +1106,7 @@ void Gfx::Renderer::PrepareInstanceBuffer()
                     rot = glm::rotate(rot, glm::radians(obj.rotation.y), glm::vec3(0,1,0));
                     datas[i].rotation = glm::rotate(rot, glm::radians(obj.rotation.z), glm::vec3(0,0,1));
                         }
+                    datas[i].scale = glm::scale(glm::mat4(1), glm::vec3(obj.scale));
                     datas[i].gizmo_dist = glm::vec4(1.0);
 // #ifndef COMPUTE_MTX
                     datas[i].rendermatrix =  glm::translate(glm::mat4(1.0f), glm::vec3(obj.Position.x, obj.Position.y, obj.Position.z));
@@ -1140,6 +1150,7 @@ void Gfx::Renderer::PrepareInstanceBuffer()
                     datas[i].gizmo_dist = glm::vec4(distfin, 1.0f);
                     datas[i].position = glm::vec4(obj.Position.convert(), 1.0f);
                     datas[i].rotation = glm::mat4(1); 
+                    datas[i].scale = glm::mat4(1); 
 // #ifndef COMPUTE_MTX
                     datas[i].rendermatrix = glm::translate(glm::mat4(1.0f), glm::vec3(obj.Position.x, obj.Position.y, obj.Position.z));
                     datas[i].rendermatrix = glm::scale(datas[i].rendermatrix, distfin);

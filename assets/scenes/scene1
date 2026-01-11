@@ -13,9 +13,9 @@ name: models
 frag: model.frag
 vert: model.vert
 Texture:
-name: joined-texture.png
+name: joined-texture-clone.png
 Model:
-name: test.dae 
+name: stormtrooper-skin.dae 
 
 Object:
 		ID: plane

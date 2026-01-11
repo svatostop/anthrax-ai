@@ -846,6 +846,20 @@ void Core::Scene::LoadScene(const std::string& filename)
         id = Parse.GetElement<std::string>(node, Utils::LEVEL_ELEMENT_ID, "");
         info.ParsedID = id;
 
+        Utils::NodeIt rot = Parse.GetChild(node, Utils::LEVEL_ELEMENT_ROTATION);
+        if (Parse.IsNodeValidInRange(rot)) {
+            xpos = Parse.GetElement<float>(rot, Utils::LEVEL_ELEMENT_X, 0.0);
+            ypos = Parse.GetElement<float>(rot, Utils::LEVEL_ELEMENT_Y, 0.0);
+            zpos = Parse.GetElement<float>(rot, Utils::LEVEL_ELEMENT_Z, 0.0);
+            info.Rotation = Vector3<float>( xpos, ypos, zpos );
+        }
+        
+        Utils::NodeIt scale = Parse.GetChild(node, Utils::LEVEL_ELEMENT_SCALE);
+        if (Parse.IsNodeValidInRange(scale)) {
+            xpos = Parse.GetElement<float>(scale, Utils::LEVEL_ELEMENT_X, 0.0);
+            info.Scale =xpos;// Vector3<float>( xpos, ypos, zpos );
+        }
+
         Utils::NodeIt position = Parse.GetChild(node, Utils::LEVEL_ELEMENT_POSITION);
         if (Parse.IsNodeValid(position)) {
             xpos = Parse.GetElement<float>(position, Utils::LEVEL_ELEMENT_X, 0.0);
