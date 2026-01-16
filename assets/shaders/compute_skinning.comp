@@ -22,7 +22,6 @@ void main()
             uint hasanim = GetResource(Instance, GetTextureInd()).instances[inst_index].hasanimation;
             if (hasanim == 1) {
                 int anim_bind =  GetResource(Camera, GetUniformInd()).global_animation_bind;
-                uint anim_ind = GetResource(Instance, GetTextureInd()).instances[inst_index].anim_ind;
                 mat4 bonetransforms = mat4(1.0f);
                 vec4 fin_pos = vec4(0);//GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_vert_compute_off].vposition;
                 vec4 pos = GetResource(Skinning_In, GetStorageInd()).vertecies[vert_in_off + in_ind].vposition;

@@ -191,7 +191,7 @@ Utils::NodeIt Utils::Parser::GetChild(const NodeIt& node, const LevelElements& e
     std::string key =  Utils::GetValue(elem);
     NodeIt obj_it = Tokens.end();
 
-    if (elem == Utils::LEVEL_ELEMENT_ANIMATION || elem == Utils::LEVEL_ELEMENT_LIGHT || elem == Utils::LEVEL_ELEMENT_MODEL) {
+    if (elem == Utils::LEVEL_ELEMENT_SCALE || elem == Utils::LEVEL_ELEMENT_ROTATION || elem == Utils::LEVEL_ELEMENT_ANIMATION || elem == Utils::LEVEL_ELEMENT_LIGHT || elem == Utils::LEVEL_ELEMENT_MODEL) {
         std::string obj_key = Utils::GetValue(Utils::LEVEL_ELEMENT_OBJECT);
         NodeIt n = node;
         if (elem != Utils::LEVEL_ELEMENT_ANIMATION ) {

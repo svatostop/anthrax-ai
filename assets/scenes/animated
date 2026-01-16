@@ -42,27 +42,6 @@ name: stormtrooper-skin.dae
 Animation:
 name: clone_defeated.dae
 Object:
-ID: station 
-Position:
-x: 10
-y: 10
-z: 10
-Material:
-name: models
-frag: model.frag
-vert: model.vert
-Texture:
-name: dummy.png
-Model:
-name: sw.fbx
-Rotation:
-x: 90
-y: 180
-z: 0
-Scale:
-x: 10
-
-Object:
 ID: test2
 Spawn:
 name: group2

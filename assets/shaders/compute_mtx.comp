@@ -160,7 +160,6 @@ void Hierarchy(int inst_ind, int animind, int boneind, int aindex, int settransf
     GetResource(Instance, GetStorageInd()).instances[inst_ind].anim_transforms[aindex] = globaltransf;
 
     if (settransform == 1) {
-        uint anim_ind = GetResource(Instance, GetStorageInd()).instances[inst_ind].anim_ind;
         // GetResource(Animation, GetInstanceInd()).animations[gl_GlobalInvocationID.x].matricies.bonesmatrices[boneind] = global_inverse * globaltransf * aoffset;
         GetResource(Instance, GetStorageInd()).instances[inst_ind].bonesmatrices[boneind] = global_inverse * globaltransf * aoffset;
     }

@@ -895,7 +895,11 @@ void Gfx::Renderer::FillSkinningBuffer()
             final_vert_size = 0;
             for (Vertex v : o.Model[0]->Meshes[0]->Vertices) {
                 // datas[buf_ind].datas[0] = vert_offset;
-                datas2[buf_ind].data = glm::vec4(1, final_vert_size, united_vertex_offsets[o.Model[0]->Meshes[0]->model_id], instances_tmp);
+                if (o.Spawn)
+                    datas2[buf_ind].data = glm::vec4(1, final_vert_size, united_vertex_offsets[o.Model[0]->Meshes[0]->model_id], skinning_iterator);
+                else {
+                    datas2[buf_ind].data = glm::vec4(1, final_vert_size, united_vertex_offsets[o.Model[0]->Meshes[0]->model_id], instances_tmp);
+                }
                 final_vert_size++;
                 buf_ind++;
             }
