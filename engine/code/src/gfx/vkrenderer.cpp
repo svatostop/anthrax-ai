@@ -283,7 +283,14 @@ void Gfx::Renderer::DrawMesh(Gfx::RenderObject& object, Gfx::MeshInfo* mesh, boo
 		    vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &buffer, &offset);
         }
         else if (object.output_vertex) {
-		    VkDeviceSize    offset = sizeof(VertexOutputData) * final_mapped_united_vertex_offsets[object.Model[0]->Meshes[0]->model_id];
+            
+		    VkDeviceSize offset;
+            if (!object.SpawnName.empty()) {
+                offset = sizeof(VertexOutputData) * final_mapped_united_vertex_offsets[instanced_id_map[object.SpawnName]];
+            }
+            else {
+                offset = sizeof(VertexOutputData) * final_mapped_united_vertex_offsets[object.Model[0]->Meshes[0]->model_id];
+            }
             VkBuffer buffer = Gfx::DescriptorsBase::GetInstance()->GetBuffer(0, SKINNING_OUT);
 		    vkCmdBindVertexBuffers(Cmd.GetCmd(), 0, 1, &buffer, &offset);
         }
@@ -997,11 +1004,19 @@ void Gfx::Renderer::FillSkinningBuffer()
     final_vertex_offsets.clear();
     int vert_count = 0;
     int iter = 0;
+    int tmp_iter = 0;
     // for (auto& m : module.GetRenderQueueMap()) {
         // for (RenderObject& o : m.second) {
         for (const RenderObject& o : module.GetSkinningRQ()) {
             final_vertex_offsets.push_back(vert_count);
-            final_mapped_united_vertex_offsets[o.Model[0]->Meshes[0]->model_id] = final_vertex_offsets[iter];
+            if (!o.SpawnName.empty()) {
+                instanced_id_map[o.SpawnName] = model->GetNonConstModels().size() + tmp_iter;
+                tmp_iter++; 
+                final_mapped_united_vertex_offsets[instanced_id_map[o.SpawnName]] = final_vertex_offsets[iter];
+            }
+            else {
+                final_mapped_united_vertex_offsets[o.Model[0]->Meshes[0]->model_id] = final_vertex_offsets[iter];
+            }
             vert_count += o.Model[0]->Meshes[0]->Vertices.size();
             //if ()
             iter++;

@@ -171,6 +171,7 @@ namespace Gfx
             
             std::unordered_map<int, int> united_vertex_offsets;
             std::unordered_map<int, int> final_mapped_united_vertex_offsets;
+            std::unordered_map<std::string, int> instanced_id_map;
             std::vector<int> final_vertex_offsets;
             int skinning_iterator = 0;
             bool HasFrameCubemap = false;
