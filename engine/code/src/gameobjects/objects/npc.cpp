@@ -24,7 +24,24 @@ Keeper::Npc::Npc(const Info& info)
     Spawn = info.Spawn;
     SpawnName = info.SpawnName;
     InstanceCount = info.Offset.x * info.Offset.y * info.Offset.z;
+    
+    reflection = info.reflection;
 
+    Move = info.Move;
+    MoveDirs = info.MoveDirs;
+    max_distance = info.MoveDistance;
+    if (MoveDirs.x != 0.0f) {
+        step = MoveDirs.x;
+        axis = MoveAxis::X;
+    }
+    else if (MoveDirs.y != 0.0f) {
+        step = MoveDirs.y;
+        axis = MoveAxis::Y;
+    }
+    else if (MoveDirs.z != 0.0f) {
+        step = MoveDirs.z;
+        axis = MoveAxis::Z;
+    }
     AnimOffset = info.AnimOffset;
     PrintInfo();
 }
@@ -66,8 +83,38 @@ glm::vec3 ProjectMouse(float xpos, float ypos, glm::vec3 objpos, int width, int 
     return ray_wor;
 }
 
+void Keeper::Npc::move(float& val)
+{
+        if (cur_distance == 0.0) {
+            start_distance = val;
+        }
+        if (cur_distance < max_distance) {
+            cur_distance += step;
+            val = start_distance + cur_distance;
+        }
+        else {
+            cur_distance = min_distance;
+            val -= max_distance;
+        }
+
+}
+
 void Keeper::Npc::Update()
 {
+    if (Move) {
+        switch (axis) {
+            case MoveAxis::X:
+                move(Position.x);
+                break;
+            case MoveAxis::Y:
+                move(Position.y);
+                break;
+            default:
+            case MoveAxis::Z:
+                move(Position.z);
+                break;
+        }
+    }
     if (GizmoHandle && Core::WindowManager::GetInstance()->IsMousePressed() && Selected) {
         Vector2<int> mouse = Core::WindowManager::GetInstance()->GetMousePos();
         Vector2<int> mousebeg = Core::WindowManager::GetInstance()->GetMouseBeginPress();

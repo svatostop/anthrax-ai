@@ -270,6 +270,7 @@ Keeper::Base::Base()
     modules.Textures.push_back("position");
     modules.Textures.push_back("albedo");
     modules.Textures.push_back("shadows");
+    modules.Textures.push_back("gbuffer_helper");
     modules.Mesh = "dummy";
     DefaultObjects[Infos::INFO_LIGHTING] = modules;
 

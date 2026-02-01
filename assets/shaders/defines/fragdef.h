@@ -19,6 +19,7 @@ layout(location = 7)flat in uint objectID;
 layout(location = 8)flat in uint selected;
 layout(location = 9)flat in uint boneID;
 layout(location = 10)flat in uint gizmo;
+layout(location = 11) flat in uint ireflection;
 // #else
 // #endif
 // layout(location = 6)flat in uint texturebind;

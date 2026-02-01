@@ -38,7 +38,8 @@ namespace Gfx
 	    Vector3<float> Position;
         glm::vec3 rotation;
         float scale;
-        
+        bool reflection = false;
+
         bool HasAnimation = false;
         bool IsCompute = false;
         bool VertexBase = false;
@@ -108,7 +109,7 @@ namespace Gfx
         uint32_t boneID = 0;
         uint32_t gizmo = 0;
         uint32_t anim_ind = 0;
-        uint32_t pad0;
+        uint32_t reflection;
         uint32_t pad1;
         uint32_t pad2;
     };
@@ -304,6 +305,7 @@ namespace Gfx
             void AddA(Gfx::RenderTargetsList id) { Albedo = id;  }
             void AddP(Gfx::RenderTargetsList id) { Position = id;  }
             void AddN(Gfx::RenderTargetsList id) { Normal = id;  }
+            void AddH(Gfx::RenderTargetsList id) { GHelper = id;  }
             Gfx::RenderTargetsList GetColor() const { return Color; }
             Gfx::RenderTargetsList GetDepth() const { return Depth; }
             bool HasColor() const { return Color != Gfx::RT_SIZE; }
@@ -318,6 +320,7 @@ namespace Gfx
             Gfx::RenderTargetsList Normal = Gfx::RT_SIZE;
             Gfx::RenderTargetsList Position = Gfx::RT_SIZE;
             Gfx::RenderTargetsList Albedo = Gfx::RT_SIZE;
+            Gfx::RenderTargetsList GHelper  = Gfx::RT_SIZE;
             Gfx::RenderTargetsList Depth = Gfx::RT_SIZE;
     };
 

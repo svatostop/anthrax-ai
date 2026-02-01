@@ -2,6 +2,7 @@
 
 #include "anthraxAI/gameobjects/gameobjects.h"
 #include "anthraxAI/gameobjects/objects/gizmo.h"
+#include <algorithm>
 #include <cstdint>
 
 namespace Keeper
@@ -24,6 +25,8 @@ namespace Keeper
            const glm::vec3& GetRotation() const override { return rotation; }
            void SetRotation(const glm::vec3& v) override { rotation = v; }
     
+           bool GetReflection() const override { return reflection; }
+           void SetReflection(bool refl) override { reflection = refl; }
            float GetScale() const override { return scale; }
            void SetScale(float v) override { scale = v; }
             bool HasAnimations() const override { return IsAnimated; }
@@ -46,9 +49,17 @@ namespace Keeper
         
             float GetAnimOffset() const override { return AnimOffset; }
         private:
+            enum class MoveAxis {
+                X= 0,
+                Y,
+                Z        
+            };
+            void move(float& val);
+
             Keeper::Type ObjectType = Type::NPC;
 
             Vector3<float> Position;
+            Vector3<float> MoveDirs;
             
             float AnimOffset = 1.0;
     bool ResetMouse = false;
@@ -64,12 +75,21 @@ namespace Keeper
             bool Visible = true;
             bool Spawn = false;
             bool Selected = false;
+            bool Move = false;
             bool IsAnimated = false;
+            bool reflection = false;
             
             uint32_t InstanceCount = 1;
    bool reset = true;
             std::vector<std::string> Animations;
-
+    
             Keeper::Gizmo* GizmoHandle = nullptr;
+            
+            MoveAxis axis = MoveAxis::X;
+            float step = 0.008f;
+            float min_distance = 0.0;
+            float cur_distance = 0.0;
+            float max_distance = 2.0;
+            float start_distance = 0.0;
   };
 }

@@ -373,7 +373,10 @@ void Core::ImGuiHelper::DisplayObjectInfo(const std::string& obj, const UI::Elem
     float minmax2[2] = {0.0f, 100.0f};
     Editor->Add(elem, UI::Element(UI::SLIDER, "Scale", true, [game_obj](float v) -> float { game_obj->SetScale((v)); return 1.0; }, [game_obj]() -> float { return game_obj->GetScale(); }, minmax2));
     Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
+    Editor->Add(elem, UI::Element(UI::CHECKBOX, "Reflection", true, nullptr, [game_obj](bool refl) -> void {  game_obj->SetReflection(refl); }, [game_obj]() -> bool {  return game_obj->GetReflection(); }));
+    Editor->Add(elem, UI::Element(UI::SEPARATOR, "sep", true));
     IsDisplayInReset = false;
+
 }
 
 void Core::ImGuiHelper::UpdateObjectInfo()

@@ -71,11 +71,13 @@ void main()
     vec2 uv = incoord.xy;
     uv.y = 1.0 - uv.y;
     
-    vec4 normal = texture(textures[GetTextureInd()], uv.xy);
+    vec4 normal_with_reflection = texture(textures[GetTextureInd()], uv.xy);
+    vec3 normal = normal_with_reflection.xyz; 
     vec4 position = texture(textures[GetTextureInd() + 1], uv.xy );
     normal = normalize(normal);
     vec3 albedo = texture(textures[GetTextureInd() + 2], uv.xy).xyz;
-    
+    uint has_reflection = uint(texture(textures[GetTextureInd() + 4], uv.xy).x);
+
     float shadow = 0.0;
     // shadows
     if (has_shadows)
@@ -104,7 +106,7 @@ void main()
 
     vec3 view_dir = normalize(cam_pos - position.xyz);
     vec3 cubemap = vec3(1);
-    if (has_cube) {
+    if (has_reflection == 1) {
         vec3 I = normalize(position.xyz - cam_pos);
         vec3 R = reflect(I, normalize(normal.xyz));
 

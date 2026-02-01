@@ -18,6 +18,7 @@ namespace Keeper {
         Vector3<float> Rotation = {0,0,0};
         Vector3<float> Color;
         Vector3<float> Offset;
+        Vector3<float> MoveDirs;
         std::string LightType;
         std::string Material;
         std::string Vertex;
@@ -30,10 +31,13 @@ namespace Keeper {
         std::string ParsedID = "";
         std::string SpawnName = "";
         bool Spawn = false;
+        bool Move = false;
         bool IsModel = false;
         bool IsLight = false;
+        bool reflection = false;
         bool VertexBase = false;
-
+        
+        int MoveDistance = 0;
         float  Scale = 1.0;
         float AnimOffset = 1.0;
         // used in UI object creation only
@@ -108,6 +112,8 @@ namespace Keeper {
 
             virtual void PrintInfo() {}
 
+            virtual bool GetReflection() const { return false; }
+            virtual void SetReflection(bool refl){  }
             virtual int GetID() const { return UniqueID; }
             virtual const std::string& GetParsedID() const { return ParsedID; }
             virtual void ResetCounterID() { IDCounter = 1; }

@@ -9,7 +9,7 @@
 namespace Gfx
 {
 
-#define GBUFFER_RT_SIZE 3
+#define GBUFFER_RT_SIZE 4
 #define RT \
     X(RT_MAIN_COLOR, "main_color") \
     X(RT_MAIN_DEBUG, "main_debug") \
@@ -17,6 +17,7 @@ namespace Gfx
     X(RT_ALBEDO, "albedo") \
     X(RT_NORMAL, "normal") \
     X(RT_POSITION, "position") \
+    X(RT_GBUFFER_HELPER, "gbuffer_helper") \
     X(RT_MASK, "mask") \
     X(RT_SHADOWS, "shadows") \
     X(RT_VISIBILITY, "visibility") \

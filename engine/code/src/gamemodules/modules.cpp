@@ -397,11 +397,13 @@ void Modules::Base::ThreadedRQ(int i, Keeper::Objects* info)
     SceneModules[CurrentScene].GetRenderQueue(type)[i].IsVisible = info->IsVisible();
     SceneModules[CurrentScene].GetRenderQueue(type)[i].Position = info->GetPosition();
     SceneModules[CurrentScene].GetRenderQueue(type)[i].rotation = info->GetRotation();
+    SceneModules[CurrentScene].GetRenderQueue(type)[i].reflection = info->GetReflection();
     SceneModules[CurrentScene].GetRenderQueue(type)[i].scale = info->GetScale();
     SceneModules["gbuffer"].GetRenderQueue(type)[i].IsSelected =SceneModules[CurrentScene].GetRenderQueue(type)[i].IsSelected ; 
     SceneModules["gbuffer"].GetRenderQueue(type)[i].IsVisible = info->IsVisible();
     SceneModules["gbuffer"].GetRenderQueue(type)[i].Position = info->GetPosition();
     SceneModules["gbuffer"].GetRenderQueue(type)[i].rotation = info->GetRotation();
+    SceneModules["gbuffer"].GetRenderQueue(type)[i].reflection = info->GetReflection();
     SceneModules["gbuffer"].GetRenderQueue(type)[i].scale = info->GetScale();
 #ifndef COMPUTE_MTX
     if (SceneModules[CurrentScene].GetRenderQueue(type)[i].IsVisible && HasAnimation(SceneModules[CurrentScene].GetRenderQueue(type)[i].ID)) {

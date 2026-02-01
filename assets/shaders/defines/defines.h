@@ -129,7 +129,7 @@ struct InstanceData {
     uint boneID;
     uint gizmo;
     uint anim_ind;
-    uint pad0;
+    uint reflection;
     uint pad1;
     uint pad2;
 

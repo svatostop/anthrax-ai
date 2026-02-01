@@ -468,14 +468,14 @@ void Gfx::Pipeline::Setup(Gfx::RenderTargetsList id) {
 	VkFormat format;
     format = Gfx::Renderer::GetInstance()->GetRT(id)->GetFormat();
 
-    VkFormat formats3[3] = { VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT };
+    VkFormat formats3[4] = { VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R8G8B8A8_UNORM };
     VkFormat depthformat = VK_FORMAT_D32_SFLOAT;
     VkFormat formats[1] = { format };
 
 	VkPipelineRenderingCreateInfoKHR pipelineRenderingCreateInfo{};
     pipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     if (id == Gfx::RT_ALBEDO) {
-        pipelineRenderingCreateInfo.colorAttachmentCount = 3;
+        pipelineRenderingCreateInfo.colorAttachmentCount = GBUFFER_RT_SIZE;
         pipelineRenderingCreateInfo.pColorAttachmentFormats = formats3;
     }
     else if (id != Gfx::RT_SHADOWS) {
@@ -515,7 +515,7 @@ void Gfx::Pipeline::Setup(Gfx::RenderTargetsList id) {
 	colorblending.pNext = nullptr;
 	colorblending.logicOpEnable = VK_FALSE;
 	colorblending.logicOp = VK_LOGIC_OP_COPY;
-	colorblending.attachmentCount = id == Gfx::RT_ALBEDO ? 3 : 1;
+	colorblending.attachmentCount = id == Gfx::RT_ALBEDO ? GBUFFER_RT_SIZE : 1;
     if (id == Gfx::RT_SHADOWS) {
         colorblending.attachmentCount = 0;
     }

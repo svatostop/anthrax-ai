@@ -22,6 +22,9 @@ namespace Utils
     X(LEVEL_ELEMENT_COLOR, "Color") \
     X(LEVEL_ELEMENT_RADIUS, "Radius") \
     X(LEVEL_ELEMENT_SPAWN, "Spawn") \
+    X(LEVEL_ELEMENT_MOVE, "Move") \
+    X(LEVEL_ELEMENT_REFLECTION, "Reflection") \
+    X(LEVEL_ELEMENT_DISTANCE, "distance") \
     X(LEVEL_ELEMENT_AMOUNT, "Amount") \
     X(LEVEL_ELEMENT_ID, "ID") \
     X(LEVEL_ELEMENT_MATERIAL, "Material") \

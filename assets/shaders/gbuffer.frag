@@ -4,6 +4,7 @@
 #include "defines/fragdef.h"
 layout (location = 1) out vec4 outnormal;
 layout (location = 2) out vec4 outposition;
+layout (location = 3) out vec4 outhelper;
 
 void main()
 {
@@ -41,5 +42,5 @@ void main()
     outfragcolor = vec4(color);
     outnormal = vec4(innormal.xyz, 1);
     outposition = vec4(inpos.xyz, 1.0f);
-
+    outhelper = vec4(ireflection, 0,0,1);
 }

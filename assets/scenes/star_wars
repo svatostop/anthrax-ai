@@ -6,6 +6,9 @@ name: group1
 x: 5 
 y: 1
 z: 5
+Move:
+x: 0.008
+distance: 10
 Position:
 x: 0
 y: 0
@@ -41,6 +44,9 @@ Model:
 name: stormtrooper-skin.dae 
 Animation:
 name: clone_walk.dae
+Move:
+z: 0.008
+distance: 10
 Object:
 ID: station 
 Position:

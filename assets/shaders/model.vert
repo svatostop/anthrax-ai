@@ -1,6 +1,7 @@
 #version 460
 
 #include "defines/vertdef.h"
+layout(location = 11) out uint ireflection;
 #include "defines/defines.h"
 #include "defines/instance.h"
 //#extension GL_EXT_debug_printf : enable
@@ -8,6 +9,7 @@
  void main()
 {
     DefineInstanceResources();
+    ireflection = GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].reflection;
     uint hasanim = GetResource(Instance, GetInstanceInd()).instances[gl_InstanceIndex].hasanimation;
     mat4 bonetransforms = mat4(1.0f);
     // if (hasanim == 1) {

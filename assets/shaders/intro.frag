@@ -118,7 +118,7 @@ float GetWord(float num, vec2 coord, vec2 resolution)
 {
     float colorr;
     if (num - 2 * (floor(num / 2)) != 0) {
-        int arr2[20] = int[](N_2, N_0, N_2, N_5,R, A, X, A, I, BLNK, E, N, G, I, N, E, COMM, COMM, COMM, COMM);
+        int arr2[20] = int[](N_2, N_0, N_2, N_6,R, A, X, A, I, BLNK, E, N, G, I, N, E, COMM, COMM, COMM, COMM);
         colorr = float(DrawText(coord, resolution, 22.2 , vec2(0.45, 0.35 ), arr2, 4));
     }
     else {

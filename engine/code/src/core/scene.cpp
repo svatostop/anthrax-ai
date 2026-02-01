@@ -356,9 +356,9 @@ void Core::Scene::RenderScene(bool playmode)
                 Render(GameModules->Get("sprite"));
                 Gfx::Renderer::GetInstance()->EndRender();
             }
-            #ifndef COMPUTE_SKINNING
+            // #ifndef COMPUTE_SKINNING
             Gfx::Renderer::GetInstance()->CopyImage(Gfx::RT_MAIN_COLOR, Gfx::RT_MAIN_DEBUG);
-            #endif
+            // #endif
             // gizmo, outline
             if (playmode && HasFrameGizmo) {
                 
@@ -577,6 +577,7 @@ void Core::Scene::PopulateModules()
             info.IAttachments.AddA(Gfx::RT_ALBEDO);
             info.IAttachments.AddP(Gfx::RT_POSITION);
             info.IAttachments.AddN(Gfx::RT_NORMAL);
+            info.IAttachments.AddH(Gfx::RT_GBUFFER_HELPER);
             info.IAttachments.Add(Gfx::RT_DEPTH, true);
             GameModules->Populate("gbuffer", info,
                 GameObjects->GetInfo(Keeper::Infos::INFO_GBUFFER)
@@ -811,7 +812,28 @@ void Core::Scene::ExportObjectInfo(const Keeper::Objects* obj)
         Utils::NodeIt z = Parse.GetChild(obj_position, Utils::LEVEL_ELEMENT_Z);
         Parse.UpdateElement(z, std::to_string(obj->GetPosition().z));
     }
+    
+    Utils::NodeIt obj_rot = Parse.GetChild(obj_node, Utils::LEVEL_ELEMENT_ROTATION);
+    if (Parse.IsNodeValid(obj_rot)) {
+        Utils::NodeIt x = Parse.GetChild(obj_rot, Utils::LEVEL_ELEMENT_X);
+        Parse.UpdateElement(x, std::to_string(obj->GetRotation().x));
+        Utils::NodeIt y = Parse.GetChild(obj_rot, Utils::LEVEL_ELEMENT_Y);
+        Parse.UpdateElement(y, std::to_string(obj->GetRotation().y));
+        Utils::NodeIt z = Parse.GetChild(obj_rot, Utils::LEVEL_ELEMENT_Z);
+        Parse.UpdateElement(z, std::to_string(obj->GetRotation().z));
+    }
 
+    Utils::NodeIt obj_scale = Parse.GetChild(obj_node, Utils::LEVEL_ELEMENT_SCALE);
+    if (Parse.IsNodeValid(obj_scale)) {
+        Utils::NodeIt x = Parse.GetChild(obj_scale, Utils::LEVEL_ELEMENT_X);
+        Parse.UpdateElement(x, std::to_string(obj->GetScale()));
+    }
+
+    Utils::NodeIt obj_refl = Parse.GetChild(obj_node, Utils::LEVEL_ELEMENT_REFLECTION);
+    if (Parse.IsNodeValid(obj_refl)) {
+        std::string h = obj->GetReflection() ? "true" : "false"; 
+        Parse.UpdateElement(obj_refl, h);
+    }
     Parse.Write(CurrentSceneForUpdate);
 }
 
@@ -877,6 +899,21 @@ void Core::Scene::LoadScene(const std::string& filename)
             info.Color = Vector3<float>( xpos, ypos, zpos );
         }
 
+        Utils::NodeIt move = Parse.GetChild(node, Utils::LEVEL_ELEMENT_MOVE);
+        if (Parse.IsNodeValidInRange(move)) {
+            xpos = Parse.GetElement<float>(move, Utils::LEVEL_ELEMENT_X, 0.0);
+            ypos = Parse.GetElement<float>(move, Utils::LEVEL_ELEMENT_Y, 0.0);
+            zpos = Parse.GetElement<float>(move, Utils::LEVEL_ELEMENT_Z, 0.0);
+            int dist = Parse.GetElement<int>(move, Utils::LEVEL_ELEMENT_DISTANCE, 0);
+            info.Move = true;
+            info.MoveDirs = Vector3<float>(xpos, ypos, zpos);
+            info.MoveDistance = dist;
+        }
+        
+        Utils::NodeIt reflect = Parse.GetChild(node, Utils::LEVEL_ELEMENT_REFLECTION);
+        if (Parse.IsNodeValidInRange(reflect)) {
+            info.reflection = reflect->second == "true" ? true : false;    
+        }
 
         Utils::NodeIt spawn = Parse.GetChild(node, Utils::LEVEL_ELEMENT_SPAWN);
         if (Parse.IsNodeValid(spawn)) {

@@ -3,20 +3,26 @@ Scene: scene1
 	Cubemaps:
 		name: cubemaps/clear_sky
 Object:
-ID: test1
-Position:
-x: 10
-y: 10
-z: 10
-Material:
-name: models
-frag: model.frag
-vert: model.vert
-Texture:
-name: joined-texture-clone.png
-Model:
-name: stormtrooper-skin.dae 
-
+		ID: test1
+	Position:
+		x: 10.000000
+		y: 10.000000
+		z: 10.000000
+	Material:
+		name: models
+		frag: model.frag
+		vert: model.vert
+	Texture:
+		name: joined-texture-clone.png
+	Model:
+		name: stormtrooper-skin.dae
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: plane
 	Position:
@@ -31,6 +37,13 @@ Object:
 		name: dummy.png
 	Model:
 		name: sphere.obj
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: anim
 	Position:
@@ -51,6 +64,13 @@ Object:
 		name: Excited.dae
 	Animation:
 		name: Catwalk.dae
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 6.085000
+		Reflection: false
 Object:
 		ID: anim-dancing
 	Position:
@@ -67,6 +87,13 @@ Object:
 		name: DancingTwerk.dae
 	Animation:
 		name: DancingTwerk.dae
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: mod
 	Position:
@@ -81,6 +108,13 @@ Object:
 		name: dummy.png
 	Model:
 		name: plane.obj
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: true
 Object:
 		ID: press
 	Position:
@@ -95,6 +129,13 @@ Object:
 		name: dummy.png
 	Model:
 		name: sphere.obj
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: anim22
 	Position:
@@ -111,6 +152,13 @@ Object:
 		name: Defeated.dae
 	Animation:
 		name: Defeated.dae
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: cubes
 	Position:
@@ -125,6 +173,13 @@ Object:
 		name: dummy.png
 	Model:
 		name: cube.obj
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: cubes_1
 	Position:
@@ -139,6 +194,13 @@ Object:
 		name: dummy.png
 	Model:
 		name: cube.obj
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: monrkeke
 	Position:
@@ -153,6 +215,13 @@ Object:
 		name: dummy.png
 	Model:
 		name: monkeytextured.obj
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: monrkeke_1
 	Position:
@@ -167,6 +236,13 @@ Object:
 		name: dummy.png
 	Model:
 		name: monkeytextured.obj
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: mo
 	Position:
@@ -181,6 +257,13 @@ Object:
 		name: dummy.png
 	Model:
 		name: cube.obj
+	Rotation:
+		x: 0.000000
+		y: 0.000000
+		z: 0.000000
+	Scale:
+		x: 1.000000
+		Reflection: false
 Object:
 		ID: light11
 	Position:
@@ -325,3 +408,4 @@ Object:
 		x: 1.000000
 		y: 0.000000
 		z: 0.000000
+

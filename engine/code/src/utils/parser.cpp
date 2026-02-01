@@ -161,6 +161,15 @@ void Utils::Parser::UpdateTokens(const Keeper::Objects* obj)
                 AddToken(LEVEL_ELEMENT_NAME, str);
             }
         }
+        AddToken(LEVEL_ELEMENT_ROTATION, "");
+        AddToken(LEVEL_ELEMENT_X, std::to_string(obj->GetRotation().x));
+        AddToken(LEVEL_ELEMENT_Y, std::to_string(obj->GetRotation().y));
+        AddToken(LEVEL_ELEMENT_Z, std::to_string(obj->GetRotation().z));
+
+        AddToken(LEVEL_ELEMENT_SCALE, "");
+        AddToken(LEVEL_ELEMENT_X, std::to_string(obj->GetScale()));
+
+        AddToken(LEVEL_ELEMENT_REFLECTION, obj->GetReflection() ? "true" : "false");
     }
     else if (type == Keeper::LIGHT) {
         AddToken(LEVEL_ELEMENT_LIGHT, "");
@@ -191,7 +200,7 @@ Utils::NodeIt Utils::Parser::GetChild(const NodeIt& node, const LevelElements& e
     std::string key =  Utils::GetValue(elem);
     NodeIt obj_it = Tokens.end();
 
-    if (elem == Utils::LEVEL_ELEMENT_SCALE || elem == Utils::LEVEL_ELEMENT_ROTATION || elem == Utils::LEVEL_ELEMENT_ANIMATION || elem == Utils::LEVEL_ELEMENT_LIGHT || elem == Utils::LEVEL_ELEMENT_MODEL) {
+    if (elem == Utils::LEVEL_ELEMENT_REFLECTION || elem == Utils::LEVEL_ELEMENT_MOVE || elem == Utils::LEVEL_ELEMENT_SCALE || elem == Utils::LEVEL_ELEMENT_ROTATION || elem == Utils::LEVEL_ELEMENT_ANIMATION || elem == Utils::LEVEL_ELEMENT_LIGHT || elem == Utils::LEVEL_ELEMENT_MODEL) {
         std::string obj_key = Utils::GetValue(Utils::LEVEL_ELEMENT_OBJECT);
         NodeIt n = node;
         if (elem != Utils::LEVEL_ELEMENT_ANIMATION ) {
