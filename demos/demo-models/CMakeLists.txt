@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.30)
 
 project(anthraxAI-demo-models)
 
@@ -16,7 +16,7 @@ file(GLOB_RECURSE _platform_sources CONFIGURE_DEPENDS
 )
 
 add_executable(${_target} ${_sources} ${_platform_sources})
-target_link_libraries(${_target} PUBLIC anthraxAI::engine)
+target_link_libraries(${_target} PUBLIC engine)
 
 unset(_target)
 unset(_code_dir)

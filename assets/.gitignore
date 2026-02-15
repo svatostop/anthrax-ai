@@ -1,7 +1,0 @@
-*.exe
-*.lib
-*.pdb
-*.spv
-**/.vscode/
-
-imgui.ini

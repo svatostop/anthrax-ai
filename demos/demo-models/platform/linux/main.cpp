@@ -1,9 +1,8 @@
-#include <anthraxAI/engine.h>
+import aai;
+int main()
+{
+    aai::core c;
+    c.init();
 
-int main(int argc, char **argv) {
-
-	Engine::GetInstance()->Init();
-	Engine::GetInstance()->Run();
-
-	return 0;
+    return 0;
 }
