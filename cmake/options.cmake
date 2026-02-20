@@ -26,6 +26,10 @@ list(APPEND CMAKE_MODULE_PATH
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+
+
+
+
 add_compile_definitions(
 	AAI_${aai_upper_platform}
 	AAI_$<UPPER_CASE:$<CONFIG>>

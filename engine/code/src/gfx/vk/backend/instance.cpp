@@ -1,6 +1,16 @@
 import aai.gfx.vk.instance;
 #include "aai/gfx/vk/backend/vk_defines.h" 
 
+VkResult setup_debug_layer(VkInstance inst, VkDebugUtilsMessengerEXT* messanger, VkDebugUtilsMessengerCreateInfoEXT* info)
+{
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(inst, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(inst, info, nullptr, messanger);
+    } else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
 void vk::instance::init(bool validate)
 {
     VkApplicationInfo appinfo{};
@@ -22,10 +32,18 @@ void vk::instance::init(bool validate)
     }
     
 	ASSERT((validate && !enum_validation_layer_support()), "Not supported validation layers!");
+    
+    VkDebugUtilsMessengerCreateInfoEXT info;
     if (validate) {
+        info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        info.pfnUserCallback = vk_debug_callback;
+        info.pUserData = nullptr;
+
         createinfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
         createinfo.ppEnabledLayerNames = layers.data();
-        // createinfo.pNext = Debug.GetInfo();
+        createinfo.pNext = &info;
     }
     else {
         createinfo.enabledLayerCount = 0;
@@ -33,6 +51,12 @@ void vk::instance::init(bool validate)
     }
 	
     VK_ASSERT(vkCreateInstance(&createinfo, nullptr, &vk_instance), "vkCreateInstance failed");
+
+    if (validate) {
+        VK_ASSERT(setup_debug_layer(vk_instance, &debug_messenger, &info), "vk debug setup failed");
+
+        // soething-push-destroy
+    }
 }
 
 bool vk::instance::enum_validation_layer_support()

@@ -112,20 +112,16 @@ GIT_PROGRESS TRUE
 FetchContent_MakeAvailable(tracy)
 #=================================== assimp ===================================#
 
-set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE)
-set(ASSIMP_BUILD_TESTS OFF CACHE INTERNAL "" FORCE)
-set(ASSIMP_NO_EXPORT ON CACHE INTERNAL "" FORCE)
-set(ASSIMP_BUILD_TESTS OFF CACHE INTERNAL "" FORCE)
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE INTERNAL "" FORCE)
-configure_file("${PROJECT_SOURCE_DIR}/libs/assimp/include/assimp/config.h.in" "${PROJECT_SOURCE_DIR}/libs/assimp/include/assimp/config.h")
-configure_file("${PROJECT_SOURCE_DIR}/libs/assimp/contrib/zlib/zconf.h.cmakein" "libs/assimp/contrib/zlib/zconf.h")
-add_subdirectory(${_path}/assimp)
-list(APPEND _libraries assimp::assimp)
-#target_include_directories(PUBLIC ${_path}/assimp/include)
-
-#list(APPEND _libraries assimp::assimp)
-
+# set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE)
+# set(ASSIMP_BUILD_TESTS OFF CACHE INTERNAL "" FORCE)
+# set(ASSIMP_NO_EXPORT ON CACHE INTERNAL "" FORCE)
+# set(ASSIMP_BUILD_TESTS OFF CACHE INTERNAL "" FORCE)
+# set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE INTERNAL "" FORCE)
+# configure_file("${PROJECT_SOURCE_DIR}/libs/assimp/include/assimp/config.h.in" "${PROJECT_SOURCE_DIR}/libs/assimp/include/assimp/config.h")
+# configure_file("${PROJECT_SOURCE_DIR}/libs/assimp/contrib/zlib/zconf.h.cmakein" "libs/assimp/contrib/zlib/zconf.h")
 # add_subdirectory(${_path}/assimp)
+# list(APPEND _libraries assimp::assimp)
+
 
 #=====================================================================================#
 #=================================== openAL-soft ===================================#

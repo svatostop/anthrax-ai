@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <vector>
+#define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.h>
 #ifdef AAI_WINDOWS
 #include <windows.h>
@@ -21,6 +22,18 @@ const std::vector<const char*> INSTANCE_EXT =
 #include <vulkan/vk_enum_string_helper.h>
 const std::vector<const char*> layers = { "VK_LAYER_KHRONOS_validation" };
 const std::vector<const char*> device_ext = { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME };
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData)
+{
+    if (pCallbackData->messageIdNumber != 3357201678) {
+        std::cerr << "validation layer: " << pCallbackData->pMessage << "\n----------------------------------\n" << std::endl;
+    }
+    return VK_FALSE;
+}
 
 #define ASSERT(x, s)	                                        \
 do                                                              \
