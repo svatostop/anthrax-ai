@@ -1,9 +1,6 @@
 import aai.utils.mem;
-
-// #include <iostream>
-// #include <deque>
-// #include <type_traits>
-// void utils::mem::push(utils::mem::event e, utils::mem::type t, std::function<void()>&& function)
-// {
-    // events[e].push_back(utils::pair_event(t, function));
-// }
+import std;
+void utils::mem::push(utils::mem::event e, utils::mem::type t, std::function<void()>&& function)
+{
+    events[static_cast<int>(e)].push_back(pair_event(static_cast<int>(t), function));
+}
