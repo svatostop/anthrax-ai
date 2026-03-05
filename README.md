@@ -2,6 +2,7 @@
 <img alt="Preview" src="readme/cover.png" width=100% />
 </div>
 
+
 ![language](https://img.shields.io/badge/language-C%2FC%2B%2B-green)
 ![OS](https://img.shields.io/badge/OS-linux%2C%20windows-green)
 [![getting started](https://img.shields.io/badge/available-features-green)](#-features)
