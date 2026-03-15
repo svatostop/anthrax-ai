@@ -19,6 +19,7 @@ export {
                     VK,
                 };
                 void push(event e, type t, std::function<void()>&& function); 
+                void flush(event e, type t); 
             private:
                 std::deque<event_pair> events[static_cast<uint32_t>(event::SIZE)];
         };

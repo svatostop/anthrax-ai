@@ -1,56 +1,35 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include "aai/io/win_defines.h"
 
 export module aai.gfx.vk.device;
+import aai.gfx.vk.device.helper;
+import aai.gfx.vk.device.swapchain;
 import std;
 export {
    namespace vk {
-        namespace swapchain {
-            struct details {
-                VkSurfaceCapabilitiesKHR		capabilities;
-                std::vector<VkSurfaceFormatKHR>	formats;
-                std::vector<VkPresentModeKHR>	present_modes;
-            };
-        };
-        namespace queues {
-            struct handles {
-                VkQueue graphics;
-                VkQueue present;
-            };
-            enum type {
-                GRAPHICS = 0,
-                PRESENT
-            };
-            struct families {
-                std::optional<uint32_t> graphics;
-                std::optional<uint32_t> present;
-
-                bool is_done() {
-                    return graphics.has_value()
-                    && present.has_value();
-                }
-            };
-        }
        class device {
             public:
-                void init(VkInstance vk_inst, bool validate, const std::vector<const char*>& layers);
-            private:
+                void init(bool validate, const std::vector<const char*>& layers);
 #ifdef AAI_LINUX
-                void init_linux_surface() {}
+                void init_linux_surface(VkInstance vk_inst, Display* di, Window w);
 #else
                 void init_windows_surface() {}
 #endif  
+            private:
                 void init_physical_dev();
                 void init_logical_dev(bool validate, const std::vector<const char*>& layers);
-                void init_swapchain() {}
+                void init_swapchain();
 
                 VkInstance inst;
                 VkSurfaceKHR surface;
                 VkPhysicalDevice physical_dev;
                 VkDevice dev;
+                swapchain::info sw; 
                 queues::handles queue;
 
     	        size_t min_uniform_buffer_alignment;
+                const std::vector<const char*> device_extenstions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME };
        };
    }
 };

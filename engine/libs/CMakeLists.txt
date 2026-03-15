@@ -57,6 +57,10 @@ message(STATUS "Vulkan libraries: ${Vulkan_LIBRARIES}")
 #   INTERFACE cxx_std_20)
 # target_link_libraries( VulkanHppModule PUBLIC Vulkan::Vulkan )
 #find_package(Vulkan REQUIRED COMPONENTS shaderc_combined)
+
+#======================================= glfw  =======================================#
+find_package(glfw3 3.4 REQUIRED)
+list(APPEND _libraries glfw)
 #======================================= imgui =======================================#
 
 file(GLOB imgui_sources CONFIGURE_DEPENDS

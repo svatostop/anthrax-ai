@@ -6,9 +6,7 @@
 #include <vulkan/vulkan_win32.h>
 #endif
 #ifdef AAI_LINUX
-#include <xcb/xcb.h>
-#include <vulkan/vulkan_xcb.h>
-
+// #include <vulkan/vulkan_xlib.h>
 #else
 #endif
 

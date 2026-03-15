@@ -1,97 +1,103 @@
 #include "aai/gfx/vk/backend/vk_defines.h"
-#include <vulkan/vulkan_core.h>
+#include "aai/io/win_defines.h"
 
 import aai.gfx.vk.device;
+import aai.gfx.vk.device.helper;
+import aai.gfx.vk.device.swapchain;
 import aai.utils;
 import aai.utils.mem;
 import std;
 
-const std::vector<const char*> device_extenstions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME };
-void vk::device::init(VkInstance vk_inst, bool validate, const std::vector<const char*>& layers)
+void vk::device::init(bool validate, const std::vector<const char*>& layers)
 {
-    inst = vk_inst;
-#ifdef AAI_LINUX
-    init_linux_surface();
-#else
-    init_windows_surface();
-#endif
-
     init_physical_dev();
     init_logical_dev(validate, layers);
     
     init_swapchain();
 }
 
-vk::queues::families find_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface)
+void vk::device::init_linux_surface(VkInstance vk_inst, Display* di, Window w)
 {
-    vk::queues::families index;
-	uint32_t queuefamilycount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &queuefamilycount, nullptr);
+    inst = vk_inst;
+    VkXlibSurfaceCreateInfoKHR surface_info{};
+    surface_info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+    surface_info.pNext = nullptr;
+    surface_info.dpy = di;
+    surface_info.window = w;
 
-	std::vector<VkQueueFamilyProperties> queuefamilies(queuefamilycount);
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &queuefamilycount, queuefamilies.data());
-	int ind = 0;
-	for (const auto& queuefam : queuefamilies) {
-		if (index.is_done()) {
-			break ;
-		}
-		if (queuefam.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			index.graphics = ind;
-		}
-		VkBool32 presentsupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, ind, surface, &presentsupport);
-		if (presentsupport) {
-			index.present = ind;
-		}
-		ind++;
-	}
-	return index;
+    utils::VK_ASSERT(vkCreateXlibSurfaceKHR(inst, &surface_info, nullptr, &surface), "vkCreateXlibSurfaceKHR failed!");
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroySurfaceKHR(inst, surface, nullptr); });
 }
 
-bool query_device_extenstions(VkPhysicalDevice device) {
-        uint32_t extensioncount;
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensioncount, nullptr);
-        std::vector<VkExtensionProperties> availableextensions(extensioncount);
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensioncount, availableextensions.data());
-
-        std::set<std::string> requiredextensions(device_extenstions.begin(), device_extenstions.end());
-        for (const auto& extension : availableextensions) {
-            requiredextensions.erase(extension.extensionName);
-        }
-        return requiredextensions.empty();
-}
-
-vk::swapchain::details query_swapchain_support(VkPhysicalDevice device, VkSurfaceKHR surface)
+void vk::device::init_swapchain()
 {
-    vk::swapchain::details  detail;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &detail.capabilities);
-    uint32_t formatcount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatcount, nullptr);
-    if (formatcount != 0) {
-        detail.formats.resize(formatcount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatcount, detail.formats.data());
+    vk::queues::families indices = find_queue_family(physical_dev, surface);
+    uint32_t image_count = 0;
+    vk::swapchain::details swapchainsupport = vk::swapchain::query_swapchain_support(physical_dev, surface);
+    VkSurfaceFormatKHR surfaceFormat = vk::swapchain::get_format(swapchainsupport.formats);
+    VkPresentModeKHR presentMode = vk::swapchain::get_present_mode(swapchainsupport.present_modes);
+    VkExtent2D extent =  vk::swapchain::get_extents(swapchainsupport.capabilities, {800, 800});
+
+    image_count = swapchainsupport.capabilities.minImageCount + 1;
+    if (swapchainsupport.capabilities.maxImageCount > 0 && image_count > swapchainsupport.capabilities.maxImageCount)
+        image_count = swapchainsupport.capabilities.maxImageCount;
+
+    VkSwapchainCreateInfoKHR createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.surface = surface;
+    createInfo.minImageCount = image_count;
+    createInfo.imageFormat = surfaceFormat.format;
+    createInfo.imageColorSpace = surfaceFormat.colorSpace;
+    createInfo.imageExtent = extent;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    uint32_t queueFamilyIndices[] = {indices.graphics.value(), indices.present.value()};
+    if (indices.graphics != indices.present) {
+        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        createInfo.queueFamilyIndexCount = queues::type::SIZE;
+        createInfo.pQueueFamilyIndices = queueFamilyIndices;
     }
-    uint32_t presentmodecount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentmodecount, nullptr);
-    if (presentmodecount != 0) {
-        detail.present_modes.resize(presentmodecount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentmodecount, detail.present_modes.data());
+    else {
+        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        createInfo.queueFamilyIndexCount = 0;
+        createInfo.pQueueFamilyIndices = nullptr;
     }
-    return detail;
+    createInfo.preTransform = swapchainsupport.capabilities.currentTransform;
+    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    createInfo.presentMode = presentMode;
+    createInfo.clipped = VK_TRUE;
+    createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+    utils::VK_ASSERT(vkCreateSwapchainKHR(dev, &createInfo, nullptr, &sw.swapchain), "failed to create swap chain!");
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroySwapchainKHR(dev, sw.swapchain, nullptr);; });
+	
+    vkGetSwapchainImagesKHR(dev, sw.swapchain, &image_count, nullptr);
+	sw.images.resize(image_count);
+	vkGetSwapchainImagesKHR(dev, sw.swapchain, &image_count, sw.images.data());
+	sw.format = surfaceFormat.format;
+	sw.extent = extent;
+
+    sw.image_views.resize(sw.images.size());
+	for (size_t i = 0; i < sw.images.size(); i++) {
+		VkImageViewCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		createInfo.image = sw.images[i];
+		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.format = sw.format;
+		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.levelCount = 1;
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.layerCount = 1;
+        utils::VK_ASSERT(vkCreateImageView(dev, &createInfo, nullptr, &sw.image_views[i]), "failed to create image view!");
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyImageView(dev, sw.image_views[i], nullptr); });
+	}
 }
 
-bool is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR surface)
-{
-    vk::queues::families index;
-	index = find_queue_family(device, surface);
-	bool extensionsupported = query_device_extenstions(device);
-	bool swapchainsupport = false;
-	if (extensionsupported) {
-        vk::swapchain::details details = query_swapchain_support(device, surface);
-		swapchainsupport = !details.formats.empty() && !details.present_modes.empty();
-	}
-	return index.is_done() && extensionsupported && swapchainsupport;
-}
 void vk::device::init_physical_dev()
 {
     uint32_t devicecount = 0;
@@ -102,7 +108,7 @@ void vk::device::init_physical_dev()
 	vkEnumeratePhysicalDevices(inst, &devicecount, devices.data());
 
 	for (const auto &dev : devices) {
-		if (is_device_suitable(dev, surface)) {
+		if (is_device_suitable(device_extenstions, dev, surface)) {
 			physical_dev = dev;
 			break;
 		}
@@ -191,6 +197,7 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
     }
 
     utils::VK_ASSERT(vkCreateDevice(physical_dev, &createInfo, nullptr, &dev), "failed to create logical device!");
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDevice(dev, nullptr); });
 
 	vkGetDeviceQueue(dev, indices.graphics.value(), 0, &queue.graphics);
 	vkGetDeviceQueue(dev, indices.present.value(), 0, &queue.present);
