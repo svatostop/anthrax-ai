@@ -11,7 +11,7 @@ export {
                 std::vector<VkSurfaceFormatKHR>	formats;
                 std::vector<VkPresentModeKHR>	present_modes;
             };
-            struct info {
+            struct handlers {
                 VkSwapchainKHR				swapchain;
 	            VkFormat 					format;
 	            std::vector<VkImage>		images;

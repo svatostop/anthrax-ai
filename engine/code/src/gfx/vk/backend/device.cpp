@@ -29,11 +29,16 @@ void vk::device::init_linux_surface(VkInstance vk_inst, Display* di, Window w)
     utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroySurfaceKHR(inst, surface, nullptr); });
 }
 
+const uint32_t vk::device::get_graphics_index() const 
+{ 
+    vk::queues::families indices = find_queue_family(devices.physical_dev, surface); 
+    return indices.graphics.value();
+} 
 void vk::device::init_swapchain()
 {
-    vk::queues::families indices = find_queue_family(physical_dev, surface);
+    vk::queues::families indices = find_queue_family(devices.physical_dev, surface);
     uint32_t image_count = 0;
-    vk::swapchain::details swapchainsupport = vk::swapchain::query_swapchain_support(physical_dev, surface);
+    vk::swapchain::details swapchainsupport = vk::swapchain::query_swapchain_support(devices.physical_dev, surface);
     VkSurfaceFormatKHR surfaceFormat = vk::swapchain::get_format(swapchainsupport.formats);
     VkPresentModeKHR presentMode = vk::swapchain::get_present_mode(swapchainsupport.present_modes);
     VkExtent2D extent =  vk::swapchain::get_extents(swapchainsupport.capabilities, {800, 800});
@@ -68,12 +73,12 @@ void vk::device::init_swapchain()
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    utils::VK_ASSERT(vkCreateSwapchainKHR(dev, &createInfo, nullptr, &sw.swapchain), "failed to create swap chain!");
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroySwapchainKHR(dev, sw.swapchain, nullptr);; });
+    utils::VK_ASSERT(vkCreateSwapchainKHR(devices.dev, &createInfo, nullptr, &sw.swapchain), "failed to create swap chain!");
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroySwapchainKHR(devices.dev, sw.swapchain, nullptr);; });
 	
-    vkGetSwapchainImagesKHR(dev, sw.swapchain, &image_count, nullptr);
+    vkGetSwapchainImagesKHR(devices.dev, sw.swapchain, &image_count, nullptr);
 	sw.images.resize(image_count);
-	vkGetSwapchainImagesKHR(dev, sw.swapchain, &image_count, sw.images.data());
+	vkGetSwapchainImagesKHR(devices.dev, sw.swapchain, &image_count, sw.images.data());
 	sw.format = surfaceFormat.format;
 	sw.extent = extent;
 
@@ -93,8 +98,8 @@ void vk::device::init_swapchain()
 		createInfo.subresourceRange.levelCount = 1;
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
-        utils::VK_ASSERT(vkCreateImageView(dev, &createInfo, nullptr, &sw.image_views[i]), "failed to create image view!");
-        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyImageView(dev, sw.image_views[i], nullptr); });
+        utils::VK_ASSERT(vkCreateImageView(devices.dev, &createInfo, nullptr, &sw.image_views[i]), "failed to create image view!");
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyImageView(devices.dev, sw.image_views[i], nullptr); });
 	}
 }
 
@@ -104,28 +109,28 @@ void vk::device::init_physical_dev()
 	vkEnumeratePhysicalDevices(inst, &devicecount, nullptr);
 
     utils::ASSERT((devicecount == 0), "failed to find GPUs with Vulkan support!");
-	std::vector<VkPhysicalDevice> devices(devicecount);
-	vkEnumeratePhysicalDevices(inst, &devicecount, devices.data());
+	std::vector<VkPhysicalDevice> ddevices(devicecount);
+	vkEnumeratePhysicalDevices(inst, &devicecount, ddevices.data());
 
-	for (const auto &dev : devices) {
+	for (const auto &dev : ddevices) {
 		if (is_device_suitable(device_extenstions, dev, surface)) {
-			physical_dev = dev;
+			devices.physical_dev = dev;
 			break;
 		}
 	}
 	VkPhysicalDeviceProperties2 props{};
     props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
-	vkGetPhysicalDeviceProperties2(physical_dev, &props);
+	vkGetPhysicalDeviceProperties2(devices.physical_dev, &props);
 	std::cout << "\nDevice: " << props.properties.deviceName << '\n';
 	std::cout << "The GPU has a minimum buffer alignment of " << props.properties.limits.minUniformBufferOffsetAlignment << std::endl;
 	std::cout << "The GPU has group size " << props.properties.limits.maxComputeWorkGroupCount[0] << std::endl;
 	min_uniform_buffer_alignment = props.properties.limits.minUniformBufferOffsetAlignment;
-	utils::ASSERT(physical_dev == VK_NULL_HANDLE, "failed to find a suitable GPU");
+	utils::ASSERT(devices.physical_dev == VK_NULL_HANDLE, "failed to find a suitable GPU");
 }
 
 void vk::device::init_logical_dev(bool validate, const std::vector<const char*>& layers)
 {
-    vk::queues::families indices = find_queue_family(physical_dev, surface);
+    vk::queues::families indices = find_queue_family(devices.physical_dev, surface);
 
     std::vector<VkDeviceQueueCreateInfo> queueinfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphics.value(), indices.present.value()};
@@ -169,7 +174,7 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
 	devfeatures2.pNext = &shaderdrawparams;
 	devfeatures2.features = devicefeatures;
 
-	vkGetPhysicalDeviceFeatures2(physical_dev, &devfeatures2);
+	vkGetPhysicalDeviceFeatures2(devices.physical_dev, &devfeatures2);
    
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -196,9 +201,9 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
         createInfo.enabledLayerCount = 0;
     }
 
-    utils::VK_ASSERT(vkCreateDevice(physical_dev, &createInfo, nullptr, &dev), "failed to create logical device!");
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDevice(dev, nullptr); });
+    utils::VK_ASSERT(vkCreateDevice(devices.physical_dev, &createInfo, nullptr, &devices.dev), "failed to create logical device!");
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDevice(devices.dev, nullptr); });
 
-	vkGetDeviceQueue(dev, indices.graphics.value(), 0, &queue.graphics);
-	vkGetDeviceQueue(dev, indices.present.value(), 0, &queue.present);
+	vkGetDeviceQueue(devices.dev, indices.graphics.value(), 0, &queue.graphics);
+	vkGetDeviceQueue(devices.dev, indices.present.value(), 0, &queue.present);
 }

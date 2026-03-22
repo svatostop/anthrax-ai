@@ -91,7 +91,7 @@ list(APPEND _libraries lib::imgui)
 
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_SHARED_LIBS OFF)
-option(GLM_ENABLE_CXX_20 "" ON)
+option(GLM_ENABLE_CXX_23 "" ON)
 add_subdirectory(${_path}/glm)
 
 list(APPEND _libraries glm::glm)

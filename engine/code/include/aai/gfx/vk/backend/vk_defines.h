@@ -10,3 +10,5 @@
 #else
 #endif
 
+#define MAX_FRAMES 3
+

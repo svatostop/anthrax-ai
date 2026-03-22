@@ -7,7 +7,7 @@ import std;
 export {
    namespace vk {
         namespace queues {
-            struct handles {
+            struct handlers {
                 VkQueue graphics;
                 VkQueue present;
             };
