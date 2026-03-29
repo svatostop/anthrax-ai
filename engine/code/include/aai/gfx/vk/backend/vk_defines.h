@@ -11,4 +11,4 @@
 #endif
 
 #define MAX_FRAMES 3
-
+#define MAX_BINDING 3

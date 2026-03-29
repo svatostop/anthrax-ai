@@ -1,8 +1,8 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
-// #include <glm/glm.hpp>
 
 export module aai.gfx.vk.rt;
+import aai.gfx.vk.device;
 import aai.utils;
 import std;
 import glm;
@@ -15,8 +15,12 @@ export {
                 //render_target(uint32_t id) { name = Gfx::GetValue(static_cast<RenderTargetsList>(id)); ID = id; }
                 //render_target(const RenderTarget& rt, uint32_t id);
 
+                void create(const vk::device::handlers& dev);
+                void memory_barrier(VkCommandBuffer cmd, VkImageLayout oldlayout, VkImageLayout newlayout, int layer_count = 1);
+	            void copy(VkCommandBuffer cmd, VkBuffer buffer,  uint32_t width, uint32_t height, int layer_count = 1);
+
                 void set_format(VkFormat form) { format = form; }
-                // void set_dimensions(const glm::vec2& dim) { dimensions = dim; }
+                void set_dimensions(const glm::vec2& dim) { dimensions = dim; }
                 void set_device_size(VkDeviceSize dim) { device_size = dim; }
                 void set_depth(bool depth) { is_depth = depth; }
                 void set_sampler(bool samp) { is_sampler = samp; }
@@ -28,20 +32,22 @@ export {
                 VkImage get_image() { return image; }
                 VkImageView get_image_view() { return image_view; }
                 VkDeviceMemory get_device_memory() { return memory; }
-                // glm::vec2 get_size() const { return dimensions; }
+                glm::vec2 get_size() const { return dimensions; }
                 bool is_sampler_set() const { return is_sampler; }
                 bool is_depth_set() const { return is_depth; }
                 
-                void clean();
-
+                void clean(const vk::device::handlers& dev);
             private:
+                void create_sampler(const vk::device::handlers& dev);
+                void allocate(const vk::device::handlers& dev);
+
                 VkImage image;
                 VkImageView image_view;
                 VkDeviceMemory memory;
 
                 VkSampler sampler;
                 VkFormat format;
-                // glm::vec2 dimensions;
+                glm::vec2 dimensions;
                 VkDeviceSize device_size;
 
                 // VkDescriptorSet ImGuiDescriptor;

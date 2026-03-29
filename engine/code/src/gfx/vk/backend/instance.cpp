@@ -70,6 +70,10 @@ void vk::instance::init(bool validate)
         utils::VK_ASSERT(setup_debug_layer(vk_instance, &debug_messenger, &info), "vk debug setup failed");
         utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { destroy_debug_layer(vk_instance, debug_messenger); });
     }
+
+    SetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(vk_instance, "vkSetDebugUtilsObjectNameEXT");
+    SetBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdBeginDebugUtilsLabelEXT" );
+    SetEndDebugUtilsLabelEXT = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdEndDebugUtilsLabelEXT" );
 }
 
 bool vk::instance::enum_validation_layer_support()

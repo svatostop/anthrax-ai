@@ -204,6 +204,6 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
     utils::VK_ASSERT(vkCreateDevice(devices.physical_dev, &createInfo, nullptr, &devices.dev), "failed to create logical device!");
     utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDevice(devices.dev, nullptr); });
 
-	vkGetDeviceQueue(devices.dev, indices.graphics.value(), 0, &queue.graphics);
-	vkGetDeviceQueue(devices.dev, indices.present.value(), 0, &queue.present);
+	vkGetDeviceQueue(devices.dev, indices.graphics.value(), 0, &queue.q[queues::type::GRAPHICS]);
+	vkGetDeviceQueue(devices.dev, indices.present.value(), 0, &queue.q[queues::type::PRESENT]);
 }

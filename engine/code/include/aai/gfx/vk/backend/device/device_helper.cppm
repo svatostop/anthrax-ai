@@ -7,14 +7,13 @@ import std;
 export {
    namespace vk {
         namespace queues {
-            struct handlers {
-                VkQueue graphics;
-                VkQueue present;
-            };
             enum type {
                 GRAPHICS = 0,
                 PRESENT,
                 SIZE
+            };
+            struct handlers {
+                VkQueue q[vk::queues::type::SIZE];
             };
             struct families {
                 std::optional<uint32_t> graphics;

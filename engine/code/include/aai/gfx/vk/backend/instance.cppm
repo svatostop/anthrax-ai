@@ -11,7 +11,10 @@ export {
 
                 VkInstance get_instance() { return vk_instance; }
                 const std::vector<const char*>& get_layers() { return layers; }
-
+                
+                PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
+                PFN_vkCmdBeginDebugUtilsLabelEXT SetBeginDebugUtilsLabelEXT;
+                PFN_vkCmdEndDebugUtilsLabelEXT SetEndDebugUtilsLabelEXT;
             private:
                 bool enum_validation_layer_support();
                 bool enum_instance_ext_support();

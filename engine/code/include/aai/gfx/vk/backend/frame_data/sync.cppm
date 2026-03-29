@@ -9,6 +9,8 @@ export {
        class synchronization {
            public:
                 void init(VkDevice dev);
+
+                VkFence* get_upload_fence() { return &upload_fence; }
            private:
                 VkSemaphore present_sema[MAX_FRAMES + 1];
                 VkSemaphore render_sema[MAX_FRAMES + 1];

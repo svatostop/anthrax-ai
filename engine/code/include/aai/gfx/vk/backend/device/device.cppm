@@ -24,6 +24,8 @@ export {
                 handlers get_devices() const { return devices; }
                 VkDevice get_device() const { return devices.dev; }
                 const uint32_t get_graphics_index() const ;
+
+                VkQueue get_queue(vk::queues::type type) { return queue.q[type]; }
             private:
                 void init_physical_dev();
                 void init_logical_dev(bool validate, const std::vector<const char*>& layers);

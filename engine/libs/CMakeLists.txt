@@ -88,13 +88,13 @@ endif()
 list(APPEND _libraries lib::imgui)
 
 #======================================== GLM ========================================#
-
-set(BUILD_STATIC_LIBS ON)
-set(BUILD_SHARED_LIBS OFF)
-option(GLM_ENABLE_CXX_23 "" ON)
-add_subdirectory(${_path}/glm)
-
-list(APPEND _libraries glm::glm)
+#
+# set(BUILD_STATIC_LIBS ON)
+# set(BUILD_SHARED_LIBS OFF)
+# option(GLM_ENABLE_CXX_23 "" ON)
+# add_subdirectory(${_path}/glm)
+#
+# list(APPEND _libraries glm::glm)
 
 #======================================== stb ========================================#
 
@@ -155,6 +155,26 @@ list(REMOVE_DUPLICATES _includes)
 add_library(libraries INTERFACE)
 add_library(anthrax::libraries ALIAS libraries)
 target_link_libraries(libraries INTERFACE ${_libraries})
+
+add_library(glm-module STATIC)
+target_sources(glm-module
+	PUBLIC
+	FILE_SET CXX_MODULES
+	BASE_DIRS ${_path}/glm/glm
+	FILES ${_path}/glm/glm/glm.cppm
+)
+target_link_libraries(libraries INTERFACE glm-module)
+# target_sources(libraries
+#     PUBLIC
+#     FILE_SET CXX_MODULES
+#     BASE_DIRS ${_path}/glm
+#     FILES ${_path}/glm/glm.cppm
+# )
+# target_link_libraries(libraries
+#     PUBLIC
+#     #glm::glm-header-only # One or the other
+#     glm::glm # One or the other
+# )
 
 if (WIN32)
 	target_link_directories(libraries INTERFACE "$ENV{VULKAN_SDK}/Lib/")

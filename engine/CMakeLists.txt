@@ -33,7 +33,6 @@ set_target_properties(engine PROPERTIES
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
     CXX_MODULE_STD 1 )
-target_compile_options(engine PRIVATE -fmodules-ts)
 target_compile_features(engine
   PRIVATE   cxx_std_23
   INTERFACE cxx_std_20)
