@@ -16,6 +16,8 @@ namespace vk {
             VkDeviceMemory device_memory;
             void* uniform_mapped_memory;
             std::string tag;
+
+            VkDeviceAddress gpu_address = 0; 
         };
         
         void copy(VkBuffer& srcbuffer, VkBuffer& dstbuffer,VkDeviceSize size)
@@ -27,6 +29,12 @@ namespace vk {
             // copyRegion.size = size;
             // vkCmdCopyBuffer(cmd, srcbuffer, dstbuffer, 1, &copyRegion);
             // });
+        }
+        void get_gpu_address(handlers& handle, VkDevice dev)
+        {
+            VkBufferDeviceAddressInfoKHR address_info{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR};
+	        address_info.buffer = handle.buffer;
+	        handle.gpu_address  = vkGetBufferDeviceAddress(dev, &address_info);
         }
         uint32_t find_memory_type(VkPhysicalDevice physicaldevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
         {
@@ -67,7 +75,12 @@ namespace vk {
             allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = find_memory_type(devices.physical_dev, memRequirements.memoryTypeBits, properties);
-
+            
+            if (usage == VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
+                VkMemoryAllocateFlagsInfoKHR flags_info{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO_KHR};
+	            flags_info.flags  = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
+	            allocInfo.pNext = &flags_info;
+            }
             utils::VK_ASSERT(vkAllocateMemory(devices.dev, &allocInfo, nullptr, &bufhandler.device_memory), "failed to allocate buffer memory!");
             vkBindBufferMemory(devices.dev, bufhandler.buffer, bufhandler.device_memory, 0);
         }

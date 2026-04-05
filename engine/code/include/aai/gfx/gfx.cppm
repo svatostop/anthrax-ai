@@ -4,6 +4,9 @@ module;
 export module aai.gfx;
 
 export import aai.gfx.vk;
+export import aai.gfx.assets;
+export import aai.gfx.vk.rt;
+export import aai.gfx.materials;
 import std;
 export {
     namespace gfx {
@@ -14,6 +17,8 @@ export {
                 void create_texture(const char* path);
             private:
                 vk::base vk;
+                assets::base<rt::render_target> asset_mng;
+                assets::base<mat::materials> material_pallet;
         };
     }
 };

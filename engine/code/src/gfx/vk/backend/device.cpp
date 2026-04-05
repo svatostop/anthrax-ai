@@ -153,7 +153,7 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
     VkPhysicalDeviceVulkan12Features features12{};
     features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     features12.descriptorIndexing = true;
-    
+    features12.bufferDeviceAddress = true; 
 #ifdef TRACY
     features12.hostQueryReset = true;
 #endif
@@ -162,12 +162,16 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
 	dynfeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
     dynfeature.dynamicRendering = VK_TRUE;
     dynfeature.pNext = &features12;
-
+    
+    VkPhysicalDeviceBufferDeviceAddressFeatures buffer_device_addrs_feature{};
+    buffer_device_addrs_feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+    buffer_device_addrs_feature.bufferDeviceAddress = true;
+    buffer_device_addrs_feature.pNext = &dynfeature;
+    
     VkPhysicalDeviceShaderDrawParametersFeatures shaderdrawparams{};
     shaderdrawparams.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
-    shaderdrawparams.pNext = &dynfeature;
+    shaderdrawparams.pNext = &buffer_device_addrs_feature;
     shaderdrawparams.shaderDrawParameters = VK_TRUE;
-
      
 	VkPhysicalDeviceFeatures2 devfeatures2{};
 	devfeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
