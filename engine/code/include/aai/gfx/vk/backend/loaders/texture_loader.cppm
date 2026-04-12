@@ -2,7 +2,7 @@ module;
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-export module aai.gfx.vk.loader;
+export module aai.gfx.vk.loader.texture;
 
 export {
     namespace loader {

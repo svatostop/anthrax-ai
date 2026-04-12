@@ -42,5 +42,21 @@ export {
             		throw std::runtime_error(errstr);						
                 }
         }
+
+    void read_file(const std::string& filename, std::vector<char>& buffer)
+    {
+        std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+        if (!file.is_open()) {
+            ASSERT(true, "Can't open a file: " + filename);
+        }
+
+        size_t filesize = (size_t) file.tellg();
+        buffer.resize(filesize);
+        file.seekg(0);
+        file.read(buffer.data(), filesize);
+        file.close();
+    }
+
     }
 };

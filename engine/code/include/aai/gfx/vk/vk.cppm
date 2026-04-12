@@ -5,6 +5,9 @@ export module aai.gfx.vk;
 export import aai.gfx.vk.instance;
 export import aai.gfx.vk.device;
 export import aai.gfx.vk.frames;
+export import aai.gfx.vk.gpu_memory;
+export import aai.gfx.vk.pipeline;
+
 import std;
 
 export {
@@ -24,6 +27,8 @@ export {
                 instance inst;
                 device dev;
                 frames frame;
+                gpu_memory gpu_mem;
+                pipeline pipe;
         };
    }
 };

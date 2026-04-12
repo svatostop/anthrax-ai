@@ -39,6 +39,15 @@ export {
             DEPTH_OP_LESS_OR_EQUAL =0,
             DEPTH_OP_SIZE
         };
+        enum shader_type {
+            SHADER_FRAG = 0,
+            SHADER_VERT,
+            SHADER_COMPUTE
+        };
+        struct shader_module {
+            shader_type t;
+            std::string path;
+        };
         struct color_blend_helper {
             color_blend_val src_color_val = BLEND_SIZE;
             color_blend_val dst_color_val = BLEND_SIZE;
@@ -65,6 +74,7 @@ export {
             rasterizer_helper rasterizer;            
             color_blend_helper color_blend;
             depth_helper depth_stencil;
+            shader_module shaders;
             bool multisampling = false;
         };
  
@@ -72,7 +82,7 @@ export {
             public:
                 void add_material(info_helper d) {}
                 
-                void set_data(VkPipeline pipe, VkPipelineLayout pipe_layout) { }
+                void set_data(VkPipeline pipe, VkPipelineLayout pipe_layout) { m.pipeline = pipe; m.pipeline_layout = pipe_layout; }
                 const info_helper& get_info() const { return info; }
             private:
                 info_helper info;

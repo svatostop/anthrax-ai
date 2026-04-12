@@ -1,5 +1,6 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include <shaderc/shaderc.h>
 
 export module aai.gfx.vk.pipeline.helper;
 import aai.gfx.materials;
@@ -77,6 +78,29 @@ export {
                         utils::ASSERT(true, "depth_op not set!");
                         return VK_COMPARE_OP_LESS_OR_EQUAL;
                 }
+            }
+            VkShaderStageFlagBits shader_type_vk(mat::shader_type t) {
+                switch (t) {
+                    case mat::SHADER_FRAG:
+                        return VK_SHADER_STAGE_FRAGMENT_BIT;
+                    case mat::SHADER_VERT:
+                        return VK_SHADER_STAGE_VERTEX_BIT;
+                    default:
+                    case mat::SHADER_COMPUTE:
+                        return VK_SHADER_STAGE_COMPUTE_BIT;
+                }
+            }
+            shaderc_shader_kind shader_type_sc(mat::shader_type t) {
+                switch (t) {
+                    case mat::SHADER_FRAG:
+                        return shaderc_glsl_fragment_shader;
+                    case mat::SHADER_VERT:
+                        return shaderc_glsl_vertex_shader;
+                    default:
+                    case mat::SHADER_COMPUTE:
+                        return shaderc_glsl_compute_shader;
+                }
+
             }
         }
     }

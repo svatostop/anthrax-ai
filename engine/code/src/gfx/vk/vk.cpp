@@ -8,7 +8,7 @@ import aai.gfx.vk.buffer;
 import aai.gfx.vk.device.helper;
 import aai.gfx.vk.frames;
 import aai.gfx.vk.rt;
-import aai.gfx.vk.loader;
+import aai.gfx.vk.loader.texture;
 import aai.utils;
 import std;
 
@@ -23,6 +23,9 @@ void vk::base::init(bool validate, Display* di, Window w)
     dev.init(validate, inst.get_layers());
 
     frame.init(dev.get_device(), dev.get_graphics_index());
+
+    gpu_mem.init(dev.get_devices());
+    pipe.set_layout(gpu_mem.get_bindless_layout());
 }
 
 void vk::base::submit(std::function<void(VkCommandBuffer cmd)>&& func)
