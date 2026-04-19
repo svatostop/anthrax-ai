@@ -7,12 +7,19 @@ import aai.gfx.vk.loader.shader;
 import aai.utils;
 import glm;
 import std;
-VkPipelineVertexInputStateCreateInfo vertex_input_create_info()
+VkPipelineVertexInputStateCreateInfo vertex_input_create_info(bool no_vertex)
 {
     VkPipelineVertexInputStateCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	info.pNext = nullptr;
-   
+    if (no_vertex) {
+        info.pVertexAttributeDescriptions = nullptr;
+	    info.vertexAttributeDescriptionCount = 0;
+
+    	info.pVertexBindingDescriptions = nullptr;
+        info.vertexBindingDescriptionCount =0;
+    	return info;
+    }   
     vk::pipeline::vertex_desc desc;
 
 	VkVertexInputBindingDescription mainBinding = {};
@@ -43,18 +50,18 @@ VkPipelineVertexInputStateCreateInfo vertex_input_create_info()
     VkVertexInputAttributeDescription uvattr = {};
     uvattr.binding = 0;
     uvattr.location = 3;
-uvattr.format = VK_FORMAT_R32G32_SFLOAT;
+    uvattr.format = VK_FORMAT_R32G32_SFLOAT;
     uvattr.offset = offsetof(vk::pipeline::vertex, uv);
     VkVertexInputAttributeDescription weightattr = {};
-    uvattr.binding = 0;
-    uvattr.location = 4;
-    uvattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    uvattr.offset = offsetof(vk::pipeline::vertex, weights );
+    weightattr.binding = 0;
+    weightattr.location = 4;
+    weightattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    weightattr.offset = offsetof(vk::pipeline::vertex, weights );
     VkVertexInputAttributeDescription boneattr = {};
-    uvattr.binding = 0;
-    uvattr.location = 5;
-    uvattr.format = VK_FORMAT_R32G32B32A32_UINT;
-    uvattr.offset = offsetof(vk::pipeline::vertex, boneID);
+    weightattr.binding = 0;
+    weightattr.location = 5;
+    weightattr.format = VK_FORMAT_R32G32B32A32_UINT;
+    weightattr.offset = offsetof(vk::pipeline::vertex, boneID);
 
     desc.attributes.push_back(positionAttribute);
     desc.attributes.push_back(normalAttribute);
@@ -255,20 +262,22 @@ VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::attachment_ref::in
     VkPipelineRenderingCreateInfoKHR pipelineRenderingCreateInfo{};
     pipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR; 
     pipelineRenderingCreateInfo.colorAttachmentCount = attachments.color_count;
+    std::vector<VkFormat> color_formats;
+    for (auto& att : attachments.color_types) {
+        color_formats.push_back(att.format); 
+    }
     if (attachments.color_count > 0) {
-        //todo
-        // pipelineRenderingCreateInfo.pColorAttachmentFormats = attachments.formats;
+        pipelineRenderingCreateInfo.pColorAttachmentFormats = color_formats.data();
     }
     if (attachments.depth_count > 0) {
-        // todo
-     //   pipelineRenderingCreateInfo.depthAttachmentFormat = depthformat;
+       pipelineRenderingCreateInfo.depthAttachmentFormat = attachments.depth_types.format;
     }
     return pipelineRenderingCreateInfo;
 }
 
 void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::attachment_ref::info& attachments)
 {
-    VkPipelineVertexInputStateCreateInfo 	vertex_input_info = vertex_input_create_info();
+    VkPipelineVertexInputStateCreateInfo 	vertex_input_info = vertex_input_create_info(m.get_info().vertex_attributes);
     VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
     VkViewport 								viewport = convert_and_apply_viewport(m.get_info().viewport);
     VkRect2D 								scissor = convert_and_apply_scissor(m.get_info().scissor);
@@ -285,7 +294,8 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::at
     //     return nullptr;
     // });
     std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
-    build_shader(dev, m.get_info().shaders, shader_stages);
+    for (auto& shader : m.get_info().shaders)
+        build_shader(dev, shader, shader_stages);
 
     VkPipelineViewportStateCreateInfo viewport_state = get_viewport_state(viewport, scissor);
     VkPipelineColorBlendStateCreateInfo color_blend_state = get_color_blend_state(color_blend, attachments);
@@ -309,6 +319,6 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::at
 
     utils::VK_ASSERT(vkCreateGraphicsPipelines(dev, VK_NULL_HANDLE, 1, &pipelineinfo, nullptr, &pipe), "failed to create write pipeline\n");
 
-    m.set_data(pipe, pipe_layout);
+    m.set_data(m.get_info().name, pipe, pipe_layout);
 }
 

@@ -9,6 +9,7 @@ import aai.gfx.vk.device.helper;
 import aai.gfx.vk.frames;
 import aai.gfx.vk.rt;
 import aai.gfx.vk.loader.texture;
+import aai.gfx.attachment_ref;
 import aai.utils;
 import std;
 
@@ -26,6 +27,26 @@ void vk::base::init(bool validate, Display* di, Window w)
 
     gpu_mem.init(dev.get_devices());
     pipe.set_layout(gpu_mem.get_bindless_layout());
+    rt::attachment_ref::fill();
+
+    main_rt = new rt::render_target;
+}
+
+bool vk::base::begin_frame()
+{
+    frame.sync_frames(dev.get_device(), dev.get_swapchain());
+    return frame.is_swapchain_index_valid();
+}
+
+void vk::base::end_frame()
+{
+    frame.prepare_for_present(
+        main_rt->get_image(),
+        main_rt->get_size(),
+        dev.get_swapchain_image(frame.get_swapchain_index()),
+        { dev.get_swapchain_size().width ,  dev.get_swapchain_size().height }
+    );
+    // frame.submit_and_present();
 }
 
 void vk::base::submit(std::function<void(VkCommandBuffer cmd)>&& func)

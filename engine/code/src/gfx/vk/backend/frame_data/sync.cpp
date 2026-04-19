@@ -21,6 +21,18 @@ VkSemaphoreCreateInfo semaphore_create_info(VkSemaphoreCreateFlags flags)
     semCreateInfo.flags = flags;
     return semCreateInfo;
 }
+
+void vk::synchronization::sync_frames(VkDevice dev, VkSwapchainKHR swapchain)
+{
+    utils::VK_ASSERT(vkWaitForFences(dev, 1, &render_fence[swapchain_index], true, 1000000000), "vkWaitForFences failed !");
+	VkResult e = vkAcquireNextImageKHR(dev, swapchain, 1000000000, present_sema[swapchain_index], VK_NULL_HANDLE, &swapchain_index);
+	if (e == VK_ERROR_OUT_OF_DATE_KHR) {
+		// return -1;
+	}
+  
+    utils::VK_ASSERT(vkResetFences(dev, 1, &render_fence[swapchain_index]), "vkResetFences failed !");
+}
+
 void vk::synchronization::init(VkDevice dev)
 {
     swapchain_index = 0;
@@ -32,7 +44,7 @@ void vk::synchronization::init(VkDevice dev)
 	utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() {
         vkDestroyFence(dev, upload_fence, nullptr);
 	});
-	for (int i = 0; i < MAX_FRAMES + 1; i++) {
+	for (int i = 0; i < MAX_FRAMES; i++) {
 	    utils::VK_ASSERT(vkCreateFence(dev, &fencecreateinfo, nullptr, &render_fence[i]), "failed to create fence !");
 
 	    utils::VK_ASSERT(vkCreateSemaphore(dev, &semcreateinfo, nullptr, &present_sema[i]), "failed to create present semaphore!");

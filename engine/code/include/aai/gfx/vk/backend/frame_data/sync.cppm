@@ -9,12 +9,15 @@ export {
        class synchronization {
            public:
                 void init(VkDevice dev);
-
+                
+                void sync_frames(VkDevice dev, VkSwapchainKHR swapchain);
+                bool is_swapchain_index_valid() const { return swapchain_index > -1 && swapchain_index < MAX_FRAMES; }
+                uint32_t  get_swapchain_index() const { return swapchain_index; }
                 VkFence* get_upload_fence() { return &upload_fence; }
            private:
-                VkSemaphore present_sema[MAX_FRAMES + 1];
-                VkSemaphore render_sema[MAX_FRAMES + 1];
-                VkFence render_fence[MAX_FRAMES + 1];
+                VkSemaphore present_sema[MAX_FRAMES];
+                VkSemaphore render_sema[MAX_FRAMES];
+                VkFence render_fence[MAX_FRAMES];
 
                 VkFence upload_fence;
 

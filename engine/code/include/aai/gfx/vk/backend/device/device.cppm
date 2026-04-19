@@ -24,7 +24,10 @@ export {
                 handlers get_devices() const { return devices; }
                 VkDevice get_device() const { return devices.dev; }
                 const uint32_t get_graphics_index() const ;
-
+                
+                VkImage get_swapchain_image(uint32_t image) { return sw.images[image]; }
+                VkExtent2D get_swapchain_size() { return sw.extent; } 
+                VkSwapchainKHR get_swapchain() { return sw.swapchain; }
                 VkQueue get_queue(vk::queues::type type) { return queue.q[type]; }
             private:
                 void init_physical_dev();

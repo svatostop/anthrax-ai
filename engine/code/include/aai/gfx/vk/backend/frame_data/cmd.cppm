@@ -9,7 +9,11 @@ export {
        class command_buffer {
            public:
                 void init(VkDevice dev, const uint32_t graphics_index);
-
+                
+                VkCommandBuffer get(uint32_t index) { return main_cmd[index]; }
+                void begin(uint32_t index);
+                void end(uint32_t index);
+                void sync_frames(uint32_t index) const;
                 VkCommandBuffer get_upload_cmd() { return upload_cmd; }
                 VkCommandPool get_upload_cmd_pool() { return upload_cmd_pool; }
            private:

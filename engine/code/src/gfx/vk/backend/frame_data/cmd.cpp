@@ -24,6 +24,34 @@ VkCommandBufferAllocateInfo cmd_create_info(VkCommandPool pool, uint32_t count, 
 	info.level = level;
 	return info;
 }
+
+VkCommandBufferBeginInfo begin_cmd_info(VkCommandBufferUsageFlags flags)
+{
+    VkCommandBufferBeginInfo cmdbegininfo = {};
+	cmdbegininfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	cmdbegininfo.pNext = nullptr;
+
+	cmdbegininfo.pInheritanceInfo = nullptr;
+	cmdbegininfo.flags = flags;
+    return cmdbegininfo;
+}
+
+void vk::command_buffer::end(uint32_t index)
+{
+    utils::VK_ASSERT(vkEndCommandBuffer(main_cmd[index]), "failed to end command buffer");
+}
+
+void vk::command_buffer::begin(uint32_t index)
+{
+    VkCommandBufferBeginInfo info = begin_cmd_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    utils::VK_ASSERT(vkBeginCommandBuffer(main_cmd[index], &info), "failed to begin a command buffer!");
+}
+
+void vk::command_buffer::sync_frames(uint32_t index) const
+{
+    utils::VK_ASSERT(vkResetCommandBuffer(main_cmd[index], 0), "vkResetCommandBuffer failed!");
+}
+
 void vk::command_buffer::init(VkDevice dev, const uint32_t graphics_index)
 {
     VkCommandPoolCreateInfo poolinfo = cmd_pool_create_info(graphics_index, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);

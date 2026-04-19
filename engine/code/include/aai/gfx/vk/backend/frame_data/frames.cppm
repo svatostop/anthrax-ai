@@ -6,6 +6,7 @@ export module aai.gfx.vk.frames;
 
 export import aai.gfx.vk.frames.cmd;
 export import aai.gfx.vk.frames.sync;
+export import glm;
 export {
    namespace vk {
 
@@ -17,6 +18,8 @@ export {
            public:
                 void init(VkDevice dev, const uint32_t graphics_index);
                 
+                void sync_frames(VkDevice dev, VkSwapchainKHR swapchain);
+                void prepare_for_present(VkImage src_image, const glm::vec2& src_size, VkImage sw_image, const glm::vec2& sw_size);            
                 VkCommandBuffer get_upload_cmd() { return cmd.get_upload_cmd(); }
                 VkFence* get_upload_fence() { return sync.get_upload_fence(); }
                 VkCommandPool get_upload_cmd_pool() { return cmd.get_upload_cmd_pool(); }
@@ -24,9 +27,12 @@ export {
                 VkCommandBufferBeginInfo cmd_begin_info(VkCommandBufferUsageFlags flags);
                 VkSubmitInfo submit_info(VkCommandBuffer* cmd);
                 
+                uint32_t get_swapchain_index() const { return sync.get_swapchain_index(); }
+                bool is_swapchain_index_valid() const { return sync.is_swapchain_index_valid(); }
                 private:
                 command_buffer cmd;
                 synchronization sync;
+                uint32_t frame_index = 0;
         };
    }
 };

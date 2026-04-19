@@ -19,6 +19,7 @@ export {
         enum cull_val {
             CULL_FRONT = 0,
             CULL_BACK,
+            CULL_NONE,
             CULL_SIZE
         };
         enum face_val {
@@ -74,19 +75,31 @@ export {
             rasterizer_helper rasterizer;            
             color_blend_helper color_blend;
             depth_helper depth_stencil;
-            shader_module shaders;
+            std::vector<shader_module> shaders;
             bool multisampling = false;
+            bool vertex_attributes = false;
         };
  
         class materials {
             public:
-                void add_material(info_helper d) {}
-                
-                void set_data(VkPipeline pipe, VkPipelineLayout pipe_layout) { m.pipeline = pipe; m.pipeline_layout = pipe_layout; }
-                const info_helper& get_info() const { return info; }
+                void add_material_info(info_helper d) { infos = d; } 
+                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout) { 
+                    mat_map[n].pipeline = pipe; 
+                    mat_map[n].pipeline_layout = pipe_layout; 
+                }
+                const info_helper& get_info() { return infos; }
+                data* get(const std::string& n) { 
+                	auto it = mat_map.find(n);
+                	if (it == mat_map.end()) {
+                		return nullptr;
+                	}
+                	else {
+                		return &(*it).second;
+                	}
+                }
             private:
-                info_helper info;
-                data m; 
+                info_helper infos;
+                std::map<std::string, data> mat_map; 
         };
     }
 };

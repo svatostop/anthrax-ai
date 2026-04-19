@@ -5,7 +5,8 @@ set(aai_root ${CMAKE_CURRENT_SOURCE_DIR}) # aai - Anthrax AI
 
 include(${aai_root}/cmake/options.cmake)
 project(aai)
-
+message(STATUS "Using ${CMAKE_GENERATOR}")  
+message(STATUS "Current build type: ${CMAKE_BUILD_TYPE}")
 add_subdirectory(${aai_engine_dir})
 
 if(AAI_BUILD_DEMOS)

@@ -13,12 +13,14 @@ export {
         class base {
             public:
                 void init(Display* di, Window w);
-
+                
+                void run();
+                void populate();
                 void create_texture(const char* path);
             private:
                 vk::base vk;
                 assets::base<rt::render_target> asset_mng;
-                assets::base<mat::materials> material_pallet;
+                mat::materials material_pallet;
         };
     }
 };

@@ -4,7 +4,8 @@ module;
 export module aai.gfx.vk.pipeline;
 import glm;
 export import aai.gfx.materials;
-export import aai.gfx.vk.attachment_ref;
+export import aai.gfx.attachment_ref;
+export import aai.gfx.assets;
 import std;
 export {
     namespace vk {
@@ -37,6 +38,7 @@ export {
                 VkPipeline pipe;
                 VkPipelineLayout pipe_layout;
                 VkDescriptorSetLayout bindless_texture_layout;
+                assets::base<std::string> shader_mng;
         };
     }
 };

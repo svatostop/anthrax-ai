@@ -29,6 +29,8 @@ export {
                         return VK_CULL_MODE_FRONT_BIT;
                     case mat::CULL_BACK:
                         return VK_CULL_MODE_BACK_BIT;
+                    case mat::CULL_NONE:
+                        return VK_CULL_MODE_NONE;
                     default:
                     case mat::CULL_SIZE:
                         utils::ASSERT(true, "cull_val not set!");
