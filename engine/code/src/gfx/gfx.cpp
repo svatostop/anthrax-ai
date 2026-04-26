@@ -1,6 +1,6 @@
 #include "aai/io/win_defines.h"
 
-import aai.gfx.attachment_ref;
+import aai.gfx.attachments;
 import aai.gfx;
 import glm;
 import std;
@@ -48,12 +48,14 @@ void gfx::base::populate()
             .depth_test = false
         },
         .shaders = shaders,
+        .multisampling = false,
+        .vertex_attributes = false
     });
-    vk.create_material(material_pallet, rt::attachment_ref::get(rt::attachment_ref::def::ONE_QUAD));
+    vk.create_material(material_pallet, rt::attachments::get_ref(rt::attachments::name::ONE_QUAD));
 
     vk.set_rq({
             .tag = "test",
-            .attachments = rt::attachment_ref::get(rt::attachment_ref::def::ONE_QUAD),
+            .attachments = rt::attachments::get_ref(rt::attachments::name::ONE_QUAD),
             .material_handle = material_pallet.get("test"),
     });
 }

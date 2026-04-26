@@ -12,7 +12,7 @@ export {
            public:
                 render_target() { name = "please dont call this ctor"; }
                 render_target(const std::string& n) : name(n) {}
-                //render_target(uint32_t id) { name = Gfx::GetValue(static_cast<RenderTargetsList>(id)); ID = id; }
+                render_target(uint32_t ind) { name = "test_name"; id = ind; }
                 //render_target(const RenderTarget& rt, uint32_t id);
 
                 void create(const vk::device::handlers& dev);
@@ -51,7 +51,7 @@ export {
                 VkDeviceSize device_size;
 
                 // VkDescriptorSet ImGuiDescriptor;
-                uint32_t ID = -1;
+                uint32_t id = -1;
                 bool is_sampler = false;
                 bool is_depth = false;
                 bool is_storage = false;

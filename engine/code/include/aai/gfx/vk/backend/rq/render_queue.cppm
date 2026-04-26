@@ -1,5 +1,5 @@
 export module aai.gfx.vk.rq;
-import aai.gfx.attachment_ref;
+import aai.gfx.attachments;
 import aai.gfx.materials;
 import std;
 export {
@@ -7,7 +7,7 @@ export {
         namespace rq {
             struct data {
                 std::string tag;
-                rt::attachment_ref::info attachments;
+                rt::attachments::ref attachments;
                 mat::data* material_handle = nullptr;
             };
         }

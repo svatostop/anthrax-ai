@@ -1,5 +1,6 @@
 #version 450
-#include "defines/frag_def.h"
+// #include "defines/frag_def.h"
+layout (location = 0) out vec4 out_frag_color;
 
 void main()
 {

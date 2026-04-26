@@ -58,15 +58,12 @@ void rt::render_target::allocate(const vk::device::handlers& dev)
     utils::VK_ASSERT(vkAllocateMemory(dev.dev, &allocinfo, nullptr, &memory),"failed to allocate image memory!");
 	vkBindImageMemory(dev.dev, image, memory, 0);
 
-    utils::mem::get()->track_allocation(utils::mem::resource::TEXTURE, name, memrequirements.size);
-
-	//    VkDebugUtilsObjectNameInfoEXT info;
-	// info.pNext = nullptr;
-	// info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-	// info.objectHandle = reinterpret_cast<uint64_t>(Memory);
-	// info.objectType = VK_OBJECT_TYPE_DEVICE_MEMORY;
-	// info.pObjectName = "rt buffer";
-	// Gfx::Vulkan::GetInstance()->SetDebugName(info);
+    if (id >= 0) {
+        utils::mem::get()->track_allocation(utils::mem::resource::RENDER_TARGET, name, memrequirements.size);
+    }
+    else {
+        utils::mem::get()->track_allocation(utils::mem::resource::TEXTURE, name, memrequirements.size);
+    }
 }
 
 void rt::render_target::clean(const vk::device::handlers& dev)
@@ -106,12 +103,6 @@ void rt::render_target::create(const vk::device::handlers& dev)
     if (is_sampler) {
         create_sampler(dev);
     }
-    // if (ID == -1) {
-    //     Gfx::Vulkan::GetInstance()->SetRTDebugName(Name, Image);
-    // }
-    // else {
-    //     Gfx::Vulkan::GetInstance()->SetRTDebugName(Gfx::GetValue(static_cast<Gfx::RenderTargetsList>(ID)), Image);
-    // }
 }
 
 void rt::render_target::create_sampler(const vk::device::handlers& dev)

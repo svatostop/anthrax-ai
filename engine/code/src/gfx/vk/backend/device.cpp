@@ -163,14 +163,14 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
     dynfeature.dynamicRendering = VK_TRUE;
     dynfeature.pNext = &features12;
     
-    VkPhysicalDeviceBufferDeviceAddressFeatures buffer_device_addrs_feature{};
-    buffer_device_addrs_feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
-    buffer_device_addrs_feature.bufferDeviceAddress = true;
-    buffer_device_addrs_feature.pNext = &dynfeature;
-    
+    // VkPhysicalDeviceBufferDeviceAddressFeatures buffer_device_addrs_feature{};
+    // buffer_device_addrs_feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+    // buffer_device_addrs_feature.bufferDeviceAddress = true;
+    // buffer_device_addrs_feature.pNext = &dynfeature;
+    //
     VkPhysicalDeviceShaderDrawParametersFeatures shaderdrawparams{};
     shaderdrawparams.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
-    shaderdrawparams.pNext = &buffer_device_addrs_feature;
+    shaderdrawparams.pNext = &dynfeature;
     shaderdrawparams.shaderDrawParameters = VK_TRUE;
      
 	VkPhysicalDeviceFeatures2 devfeatures2{};

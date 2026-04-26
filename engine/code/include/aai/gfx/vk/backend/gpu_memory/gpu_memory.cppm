@@ -13,6 +13,7 @@ export {
                 void init(vk::device::handlers dev);
 
                 VkDescriptorSetLayout get_bindless_layout() { return bindless_texture_layout; }
+                VkDescriptorSet get_bindless_set() { return bindless_texture_descriptor; }
             private:
                 void init_descriptor_set(vk::device::handlers dev);
                 void init_buffers(vk::device::handlers dev);

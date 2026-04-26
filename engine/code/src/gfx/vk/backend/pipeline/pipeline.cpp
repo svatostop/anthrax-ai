@@ -1,5 +1,6 @@
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <shaderc/shaderc.h>
+#include <vulkan/vulkan_core.h>
 
 import aai.gfx.vk.pipeline;
 import aai.gfx.vk.pipeline.helper;
@@ -7,18 +8,17 @@ import aai.gfx.vk.loader.shader;
 import aai.utils;
 import glm;
 import std;
-VkPipelineVertexInputStateCreateInfo vertex_input_create_info(bool no_vertex)
+void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, bool no_vertex)
 {
-    VkPipelineVertexInputStateCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	info.pNext = nullptr;
-    if (no_vertex) {
+    if (!no_vertex) {
         info.pVertexAttributeDescriptions = nullptr;
 	    info.vertexAttributeDescriptionCount = 0;
 
     	info.pVertexBindingDescriptions = nullptr;
         info.vertexBindingDescriptionCount =0;
-    	return info;
+        return;
     }   
     vk::pipeline::vertex_desc desc;
 
@@ -75,7 +75,6 @@ VkPipelineVertexInputStateCreateInfo vertex_input_create_info(bool no_vertex)
 
 	info.pVertexBindingDescriptions = desc.bindings.data();
 	info.vertexBindingDescriptionCount = desc.bindings.size();
-	return info;
 }
 VkPipelineInputAssemblyStateCreateInfo input_assembly_create_info()
 {
@@ -87,25 +86,21 @@ VkPipelineInputAssemblyStateCreateInfo input_assembly_create_info()
 	info.primitiveRestartEnable = VK_FALSE;
 	return info;
 }
-VkViewport convert_and_apply_viewport(const glm::vec4& viewport)
+void convert_and_apply_viewport(VkViewport& v, const glm::vec4& viewport)
 {
-    VkViewport v = {};
     v.x = viewport.z;
 	v.y = viewport.w;
 	v.width = viewport.x;
 	v.height = viewport.y;
 	v.minDepth = 0.0f;
 	v.maxDepth = 1.0f;
-    return v;
 }
-VkRect2D convert_and_apply_scissor(const glm::vec4& scissor)
+void convert_and_apply_scissor(VkRect2D& s, const glm::vec4& scissor)
 {
-    VkRect2D s = {};
     s.offset.x = static_cast<uint32_t>(scissor.z);
     s.offset.y = static_cast<uint32_t>(scissor.w);
 	s.extent.width = static_cast<uint32_t>(scissor.x);
     s.extent.height = static_cast<uint32_t>(scissor.y );
-    return s;
 }
 VkPipelineRasterizationStateCreateInfo convert_and_apply_rasterizer(const mat::rasterizer_helper raster_info)
 {
@@ -174,25 +169,6 @@ VkPipelineDepthStencilStateCreateInfo convert_and_apply_depth_stencil(const mat:
     return info;
 }
 
-VkPipelineLayoutCreateInfo vk::pipeline::pipeline_layout_create_info()
-{
-	VkPipelineLayoutCreateInfo info{};
-	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	info.pNext = nullptr;
-
-    VkPushConstantRange push_constant;
-	push_constant.offset = 0;
-	push_constant.size = sizeof(vk::pipeline::push_range);
-	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	info.pPushConstantRanges = &push_constant;
-	info.pushConstantRangeCount = 1;
-
-    VkDescriptorSetLayout setLayouts[] = {  bindless_texture_layout };
-	info.setLayoutCount = 1;
-	info.pSetLayouts = setLayouts;
-
-	return info;
-}
 VkShaderModule set_shader(VkDevice dev, const std::string& buffer)
 {
 	VkShaderModuleCreateInfo createInfo = {};
@@ -225,20 +201,7 @@ void build_shader(VkDevice dev, mat::shader_module module, std::vector<VkPipelin
     shader_stages.push_back(shader_create_info(vk::convert::shader_type_vk(module.t), set_shader(dev, shaderbuf)));
 }
 
-VkPipelineViewportStateCreateInfo get_viewport_state(VkViewport viewport, VkRect2D scissor)
-{
-	VkPipelineViewportStateCreateInfo viewportstate = {};
-	viewportstate.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	viewportstate.pNext = nullptr;
-
-	viewportstate.viewportCount = 1;
-	viewportstate.pViewports = &viewport;
-	viewportstate.scissorCount = 1;
-	viewportstate.pScissors = &scissor;
-
-    return viewportstate;
-}
-VkPipelineColorBlendStateCreateInfo get_color_blend_state(VkPipelineColorBlendAttachmentState blend, const rt::attachment_ref::info& attachments)
+VkPipelineColorBlendStateCreateInfo get_color_blend_state(VkPipelineColorBlendAttachmentState blend, const rt::attachments::ref& attachments)
 {
     std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentStates;
     VkPipelineColorBlendStateCreateInfo colorblending = {};
@@ -257,36 +220,37 @@ VkPipelineColorBlendStateCreateInfo get_color_blend_state(VkPipelineColorBlendAt
     return colorblending;
 }
 
-VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::attachment_ref::info& attachments)
+VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::attachments::ref& attachments)
 {
     VkPipelineRenderingCreateInfoKHR pipelineRenderingCreateInfo{};
     pipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR; 
     pipelineRenderingCreateInfo.colorAttachmentCount = attachments.color_count;
-    std::vector<VkFormat> color_formats;
-    for (auto& att : attachments.color_types) {
-        color_formats.push_back(att.format); 
-    }
-    if (attachments.color_count > 0) {
-        pipelineRenderingCreateInfo.pColorAttachmentFormats = color_formats.data();
-    }
-    if (attachments.depth_count > 0) {
-       pipelineRenderingCreateInfo.depthAttachmentFormat = attachments.depth_types.format;
-    }
     return pipelineRenderingCreateInfo;
 }
 
-void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::attachment_ref::info& attachments)
+void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::attachments::ref& attachments)
 {
-    VkPipelineVertexInputStateCreateInfo 	vertex_input_info = vertex_input_create_info(m.get_info().vertex_attributes);
+    vertex_input_create_info(vertex_input_info, m.get_info().vertex_attributes);
     VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
-    VkViewport 								viewport = convert_and_apply_viewport(m.get_info().viewport);
-    VkRect2D 								scissor = convert_and_apply_scissor(m.get_info().scissor);
+    convert_and_apply_viewport(viewport, m.get_info().viewport);
+    convert_and_apply_scissor(scissor, m.get_info().scissor);
     VkPipelineRasterizationStateCreateInfo 	rasterizer = convert_and_apply_rasterizer(m.get_info().rasterizer);
     VkPipelineColorBlendAttachmentState 	color_blend = convert_and_apply_color_blend(m.get_info().color_blend);
     VkPipelineMultisampleStateCreateInfo 	multisampling = multisampling_create_info(m.get_info().multisampling);
     VkPipelineDepthStencilStateCreateInfo 	depth_stencil = convert_and_apply_depth_stencil(m.get_info().depth_stencil);
 
-	VkPipelineLayoutCreateInfo pipelinelayoutinfo = pipeline_layout_create_info();
+    VkPipelineLayoutCreateInfo pipelinelayoutinfo{}; 
+    pipelinelayoutinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelinelayoutinfo.pNext = nullptr;
+    VkPushConstantRange push_constant;
+	push_constant.offset = 0;
+	push_constant.size = sizeof(vk::pipeline::push_range);
+	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pipelinelayoutinfo.pPushConstantRanges = &push_constant;
+	pipelinelayoutinfo.pushConstantRangeCount = 1;
+    VkDescriptorSetLayout setLayouts[] = {  bindless_texture_layout };
+	pipelinelayoutinfo.setLayoutCount = 1;
+	pipelinelayoutinfo.pSetLayouts = setLayouts;
 
     utils::VK_ASSERT(vkCreatePipelineLayout(dev, &pipelinelayoutinfo, nullptr, &pipe_layout), "failed to create pipeline layout!");
     // auto future = asset_mng.load_async(path, [&](const std::string&) {  
@@ -297,9 +261,26 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::at
     for (auto& shader : m.get_info().shaders)
         build_shader(dev, shader, shader_stages);
 
-    VkPipelineViewportStateCreateInfo viewport_state = get_viewport_state(viewport, scissor);
+    viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewport_state.pNext = nullptr;
+
+	viewport_state.viewportCount = 1;
+	viewport_state.pViewports = &viewport;
+	viewport_state.scissorCount = 1;
+	viewport_state.pScissors = &scissor;
+
     VkPipelineColorBlendStateCreateInfo color_blend_state = get_color_blend_state(color_blend, attachments);
 	VkPipelineRenderingCreateInfoKHR rendering_info = get_rendering_info(attachments); 
+    std::vector<VkFormat> color_formats;
+    for (auto& att : attachments.color_types) {
+        color_formats.push_back(att.format); 
+    }
+    if (attachments.color_count > 0) {
+        rendering_info.pColorAttachmentFormats = color_formats.data();
+    }
+    if (attachments.depth_count > 0) {
+        rendering_info.depthAttachmentFormat = attachments.depth_types.format;
+    }
 
     VkGraphicsPipelineCreateInfo pipelineinfo = {};
 	pipelineinfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
