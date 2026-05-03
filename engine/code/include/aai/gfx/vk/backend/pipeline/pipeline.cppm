@@ -4,14 +4,14 @@ module;
 export module aai.gfx.vk.pipeline;
 import glm;
 export import aai.gfx.materials;
-export import aai.gfx.attachments;
+export import aai.gfx.vk.rt;
 export import aai.gfx.assets;
 import std;
 export {
     namespace vk {
         class pipeline {
             public:
-                void create_material(VkDevice dev, mat::materials& m, const rt::attachments::ref& attachments);
+                void create_material(VkDevice dev, mat::materials& m);
                 
                 void set_layout(VkDescriptorSetLayout l) { bindless_texture_layout = l; }
                 
@@ -39,6 +39,7 @@ export {
                 VkDescriptorSetLayout bindless_texture_layout;
                 VkPipelineVertexInputStateCreateInfo vertex_input_info;
                 VkPipelineViewportStateCreateInfo viewport_state;
+                VkPipelineColorBlendStateCreateInfo color_blend_state; 
                 VkViewport viewport;
                 VkRect2D scissor;
                 assets::base<std::string> shader_mng;

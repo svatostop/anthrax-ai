@@ -1,12 +1,12 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
 
-export module aai.gfx.vk.rt.helper;
+export module aai.gfx.vk.rt.cmd;
 import aai.utils;
 import glm;
 export {
     namespace rt {
-        namespace helper {
+        namespace cmd {
             VkAccessFlags get_access_flags(VkImageLayout layout)
             {
             	switch (layout)
@@ -102,7 +102,7 @@ export {
             	range.layerCount     = VK_REMAINING_ARRAY_LAYERS;
 
                 memory_barrier(cmd, src_image, src_old_layout, src_new_layout);
-            	memory_barrier(cmd, dst_image, dst_old_layout, src_old_layout);
+            	memory_barrier(cmd, dst_image, dst_old_layout, dst_new_layout);
             
             	VkImageBlit blit;
             	blit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;

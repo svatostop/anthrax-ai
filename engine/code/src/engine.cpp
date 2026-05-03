@@ -14,7 +14,8 @@ void aai::core::run()
         win.poll_events();
 
         renderer.run();
-    } 
+    }
+    win.clean();
 }
 
 void aai::core::clean()

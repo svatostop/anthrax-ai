@@ -3,6 +3,7 @@ module;
 
 export module aai.gfx.vk.rt;
 import aai.gfx.vk.device;
+import aai.gfx.vk.rt.helper;
 import aai.utils;
 import std;
 import glm;
@@ -57,7 +58,43 @@ export {
                 bool is_storage = false;
                 bool is_cube = false;
                 std::string name;
-        };
+       };
+
+       class base {
+           public: 
+               struct type {
+                   rt::helper::val v;
+                   VkFormat format;
+               };
+               enum class name {
+                   ONE_QUAD = 0,
+               };
+               struct ref {
+                   uint32_t color_count = 0;
+                   uint32_t depth_count = 0;
+                   std::vector<type> color_types;
+                   type depth_types;
+               };
+               void fill_refs() {
+                   ref r;
+                   r.color_types.push_back({ rt::helper::val::MAIN_COLOR, VK_FORMAT_R8G8B8A8_UNORM });
+                   r.color_count = r.color_types.size();
+                   refs[name::ONE_QUAD] = r;
+               }           
+               const ref& get_ref(name d)  { return refs[d]; }
+
+               void create(const vk::device::handlers& dev) {
+                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)] = new render_target(static_cast<int>(rt::helper::val::MAIN_COLOR));
+                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_format(VK_FORMAT_R8G8B8A8_UNORM);
+                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_dimensions({800, 600});
+                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_sampler(true);
+                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->create(dev);
+               }
+               rt::render_target* get_rt(rt::helper::val v)  { return rts[static_cast<int>(v)]; }
+           private:
+               std::map<name, ref> refs;
+               rt::render_target* rts[static_cast<int>(rt::helper::val::SIZE)];
+       };
    }
 };
 

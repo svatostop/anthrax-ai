@@ -2,6 +2,7 @@ module;
 #include "aai/gfx/vk/backend/vk_defines.h"
 
 export module aai.gfx.materials;
+import aai.gfx.vk.rt;
 import glm;
 import std;
 export {
@@ -9,6 +10,7 @@ export {
         struct data {               
             VkPipelineLayout pipeline_layout;
             VkPipeline pipeline;
+            rt::base::ref attachment_ref;
         };
         enum polygon_val {
             MODE_LINE = 0,
@@ -70,6 +72,7 @@ export {
         };
         struct info_helper {
             std::string name;
+            rt::base::ref rt_ref;
             glm::vec4 viewport = glm::vec4(0);
             glm::vec4 scissor = glm::vec4(0);
             rasterizer_helper rasterizer;            
@@ -83,9 +86,10 @@ export {
         class materials {
             public:
                 void add_material_info(info_helper d) { infos = d; } 
-                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout) { 
+                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r) { 
                     mat_map[n].pipeline = pipe; 
                     mat_map[n].pipeline_layout = pipe_layout; 
+                    mat_map[n].attachment_ref = r;
                 }
                 const info_helper& get_info() { return infos; }
                 data* get(const std::string& n) { 

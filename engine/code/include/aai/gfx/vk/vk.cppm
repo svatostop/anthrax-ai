@@ -8,7 +8,7 @@ export import aai.gfx.vk.frames;
 export import aai.gfx.vk.gpu_memory;
 export import aai.gfx.vk.pipeline;
 export import aai.gfx.vk.rq;
-export import aai.gfx.attachments;
+import aai.gfx.vk.rt.helper;
 import aai.gfx.vk.rt;
 import std;
 
@@ -23,11 +23,13 @@ export {
                 void render();
 
                 void create_texture(const char* path);
-                void create_material(mat::materials& m, const rt::attachments::ref& attachments) { pipe.create_material(dev.get_device(), m, attachments); } 
+                void create_material(mat::materials& m) { pipe.create_material(dev.get_device(), m); } 
                 void set_rq(const rq::data& r) { rq = r; }
+
+                const rt::base::ref& get_attachment_ref(const rt::base::name r) { return rts.get_ref(r); }
            private:
                 void render_block();
-                void start_render(rt::render_target* target);
+                void start_render(const rt::base::ref& attachment_ref);
                 void end_render();
                 void draw();
 
@@ -41,6 +43,8 @@ export {
         	    PFN_vkCmdEndRenderingKHR   vkCmdEndRenderingKHR{VK_NULL_HANDLE};
 
                 rq::data rq;
+                rt::base rts; 
+                    
                 instance inst;
                 device dev;
                 frames frame;

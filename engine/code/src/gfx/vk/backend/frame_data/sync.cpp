@@ -1,4 +1,5 @@
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include <stdio.h>
 import aai.gfx.vk.frames.sync;
 import aai.utils;
 import aai.utils.mem;
@@ -22,15 +23,16 @@ VkSemaphoreCreateInfo semaphore_create_info(VkSemaphoreCreateFlags flags)
     return semCreateInfo;
 }
 
-void vk::synchronization::sync_frames(VkDevice dev, VkSwapchainKHR swapchain)
+void vk::synchronization::sync_frames(VkDevice dev, VkSwapchainKHR swapchain, uint32_t frame_index)
 {
-    utils::VK_ASSERT(vkWaitForFences(dev, 1, &render_fence[swapchain_index], true, 1000000000), "vkWaitForFences failed !");
-	VkResult e = vkAcquireNextImageKHR(dev, swapchain, 1000000000, present_sema[swapchain_index], VK_NULL_HANDLE, &swapchain_index);
+    utils::VK_ASSERT(vkWaitForFences(dev, 1, &render_fence[frame_index], true, 1000000000), "vkWaitForFences failed !");
+	VkResult e = vkAcquireNextImageKHR(dev, swapchain, 1000000000, present_sema[frame_index], VK_NULL_HANDLE, &swapchain_index);
+    // printf("swapchain index=%d, frame=%d\n", swapchain_index, frame_index);
 	if (e == VK_ERROR_OUT_OF_DATE_KHR) {
 		// return -1;
 	}
   
-    utils::VK_ASSERT(vkResetFences(dev, 1, &render_fence[swapchain_index]), "vkResetFences failed !");
+    utils::VK_ASSERT(vkResetFences(dev, 1, &render_fence[frame_index]), "vkResetFences failed !");
 }
 
 void vk::synchronization::init(VkDevice dev)

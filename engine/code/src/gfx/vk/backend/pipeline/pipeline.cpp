@@ -201,26 +201,15 @@ void build_shader(VkDevice dev, mat::shader_module module, std::vector<VkPipelin
     shader_stages.push_back(shader_create_info(vk::convert::shader_type_vk(module.t), set_shader(dev, shaderbuf)));
 }
 
-VkPipelineColorBlendStateCreateInfo get_color_blend_state(VkPipelineColorBlendAttachmentState blend, const rt::attachments::ref& attachments)
+void get_color_blend_state(VkPipelineColorBlendStateCreateInfo& color_blend_state, VkPipelineColorBlendAttachmentState blend, const rt::base::ref& attachments)
 {
-    std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentStates;
-    VkPipelineColorBlendStateCreateInfo colorblending = {};
-	colorblending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	colorblending.pNext = nullptr;
-	colorblending.logicOpEnable = VK_FALSE;
-	colorblending.logicOp = VK_LOGIC_OP_COPY;
-	colorblending.attachmentCount = attachments.color_count;
-    for (uint32_t i = 0; i  < attachments.color_count; i++) {
-        blendAttachmentStates.reserve(colorblending.attachmentCount);
-        for (int i = 0; i < colorblending.attachmentCount; i++) {
-            blendAttachmentStates.push_back(blend);
-        }
-        colorblending.pAttachments = blendAttachmentStates.data();
-    }
-    return colorblending;
+	color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	color_blend_state.pNext = nullptr;
+	color_blend_state.logicOpEnable = VK_FALSE;
+	color_blend_state.logicOp = VK_LOGIC_OP_COPY;
 }
 
-VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::attachments::ref& attachments)
+VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::base::ref& attachments)
 {
     VkPipelineRenderingCreateInfoKHR pipelineRenderingCreateInfo{};
     pipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR; 
@@ -228,7 +217,7 @@ VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::attachments::ref& 
     return pipelineRenderingCreateInfo;
 }
 
-void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::attachments::ref& attachments)
+void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 {
     vertex_input_create_info(vertex_input_info, m.get_info().vertex_attributes);
     VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
@@ -249,8 +238,8 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::at
 	pipelinelayoutinfo.pPushConstantRanges = &push_constant;
 	pipelinelayoutinfo.pushConstantRangeCount = 1;
     VkDescriptorSetLayout setLayouts[] = {  bindless_texture_layout };
-	pipelinelayoutinfo.setLayoutCount = 1;
-	pipelinelayoutinfo.pSetLayouts = setLayouts;
+	pipelinelayoutinfo.setLayoutCount = 0;
+	pipelinelayoutinfo.pSetLayouts = nullptr;//setLayouts;
 
     utils::VK_ASSERT(vkCreatePipelineLayout(dev, &pipelinelayoutinfo, nullptr, &pipe_layout), "failed to create pipeline layout!");
     // auto future = asset_mng.load_async(path, [&](const std::string&) {  
@@ -269,7 +258,18 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::at
 	viewport_state.scissorCount = 1;
 	viewport_state.pScissors = &scissor;
 
-    VkPipelineColorBlendStateCreateInfo color_blend_state = get_color_blend_state(color_blend, attachments);
+    rt::base::ref attachments = m.get_info().rt_ref;
+    get_color_blend_state(color_blend_state, color_blend, attachments);
+    std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentStates;
+    color_blend_state.attachmentCount = attachments.color_count;
+    for (uint32_t i = 0; i  < attachments.color_count; i++) {
+        blendAttachmentStates.reserve(color_blend_state.attachmentCount);
+        for (int i = 0; i < color_blend_state.attachmentCount; i++) {
+            blendAttachmentStates.push_back(color_blend);
+        }
+        color_blend_state.pAttachments = blendAttachmentStates.data();
+    }
+
 	VkPipelineRenderingCreateInfoKHR rendering_info = get_rendering_info(attachments); 
     std::vector<VkFormat> color_formats;
     for (auto& att : attachments.color_types) {
@@ -300,6 +300,6 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m, const rt::at
 
     utils::VK_ASSERT(vkCreateGraphicsPipelines(dev, VK_NULL_HANDLE, 1, &pipelineinfo, nullptr, &pipe), "failed to create write pipeline\n");
 
-    m.set_data(m.get_info().name, pipe, pipe_layout);
+    m.set_data(m.get_info().name, pipe, pipe_layout, m.get_info().rt_ref);
 }
 

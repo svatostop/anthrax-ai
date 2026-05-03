@@ -3,7 +3,7 @@
 #include <vulkan/vulkan_core.h>
 
 import aai.gfx.vk.frames;
-import aai.gfx.vk.rt.helper;
+import aai.gfx.vk.rt.cmd;
 import aai.utils;
 
 void vk::frames::init(VkDevice dev, const uint32_t graphics_index)
@@ -13,20 +13,20 @@ void vk::frames::init(VkDevice dev, const uint32_t graphics_index)
 }
 void vk::frames::sync_frames(VkDevice dev, VkSwapchainKHR swapchain)
 {
-    sync.sync_frames(dev, swapchain);
+    sync.sync_frames(dev, swapchain, frame_index);
     cmd.sync_frames(frame_index);
     cmd.begin(frame_index);
 }
 
 void vk::frames::prepare_for_present(VkImage src_image, const glm::vec2& src_size, VkImage sw_image, const glm::vec2& sw_size)
 {
-    rt::helper::copy_image(cmd.get(frame_index),
+    rt::cmd::copy_image(cmd.get(frame_index),
         src_image, src_size, 
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         sw_image, sw_size,
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    rt::helper::memory_barrier(cmd.get(frame_index), src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    rt::helper::memory_barrier(cmd.get(frame_index), sw_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    rt::cmd::memory_barrier(cmd.get(frame_index), src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    rt::cmd::memory_barrier(cmd.get(frame_index), sw_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     cmd.end(frame_index);
 }
@@ -50,24 +50,24 @@ void vk::frames::submit_and_present(VkQueue queue, VkSwapchainKHR swapchain)
     VkSubmitInfo submit = {};
 	submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit.pNext = nullptr;
-	VkPipelineStageFlags waitstage2 = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;//VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	VkPipelineStageFlags waitstage2 =VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;// VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;//VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	submit.pWaitDstStageMask = &waitstage2;
 	submit.waitSemaphoreCount = 1;
-    VkSemaphore wait_sema = sync.get_wait_sema();
+    VkSemaphore wait_sema = sync.get_wait_sema(frame_index);
 	submit.pWaitSemaphores = &wait_sema;
 	submit.signalSemaphoreCount = 1;
-    VkSemaphore render_sema = sync.get_render_sema();
+    VkSemaphore render_sema = sync.get_render_sema(frame_index);
 	submit.pSignalSemaphores = &render_sema;
 	submit.commandBufferCount = 1;
     VkCommandBuffer cmd_submit = cmd.get(frame_index);
 	submit.pCommandBuffers = &cmd_submit;
-    utils::VK_ASSERT(vkQueueSubmit(queue, 1, &submit, sync.get_render_fence()), "failed to submit queue!");
+    utils::VK_ASSERT(vkQueueSubmit(queue, 1, &submit, sync.get_render_fence(frame_index)), "failed to submit queue!");
     
     uint32_t swap_ind = sync.get_swapchain_index();
     VkPresentInfoKHR prinfo = present_info(
 		&swapchain,
 		&render_sema,
-		&swap_ind
+		sync.get_swapchain_index_ptr()
 	);
 	VkResult presentresult = vkQueuePresentKHR(queue, &prinfo);
 

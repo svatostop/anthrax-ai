@@ -1,6 +1,6 @@
 #include "aai/io/win_defines.h"
 
-import aai.gfx.attachments;
+import aai.gfx.vk.rt.helper;
 import aai.gfx;
 import glm;
 import std;
@@ -13,7 +13,7 @@ void gfx::base::init(Display* di, Window w)
 void gfx::base::run()
 {
     if (vk.begin_frame()) {
-       //vk.render(); 
+        vk.render(); 
         vk.end_frame();
     } 
 }
@@ -27,6 +27,7 @@ void gfx::base::populate()
     shaders.push_back({mat::SHADER_FRAG, "./shaders/quad.frag"}),
     material_pallet.add_material_info({
         .name = "test",
+        .rt_ref = vk.get_attachment_ref(rt::base::name::ONE_QUAD),
         .viewport = viewport,
         .scissor = viewport,
         .rasterizer = {
@@ -51,11 +52,10 @@ void gfx::base::populate()
         .multisampling = false,
         .vertex_attributes = false
     });
-    vk.create_material(material_pallet, rt::attachments::get_ref(rt::attachments::name::ONE_QUAD));
+    vk.create_material(material_pallet);
 
     vk.set_rq({
             .tag = "test",
-            .attachments = rt::attachments::get_ref(rt::attachments::name::ONE_QUAD),
             .material_handle = material_pallet.get("test"),
     });
 }

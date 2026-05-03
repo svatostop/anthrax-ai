@@ -2,6 +2,7 @@
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <cstdint>
 #include <string.h>
+#include <stdio.h>
 #include <vulkan/vulkan_core.h>
 
 import aai.gfx.vk;
@@ -10,7 +11,8 @@ import aai.gfx.vk.device.helper;
 import aai.gfx.vk.frames;
 import aai.gfx.vk.rt;
 import aai.gfx.vk.loader.texture;
-import aai.gfx.attachments;
+import aai.gfx.vk.rt.helper;
+import aai.gfx.vk.rt.cmd;
 import aai.utils;
 import std;
 
@@ -28,13 +30,16 @@ void vk::base::init(bool validate, Display* di, Window w)
 
     gpu_mem.init(dev.get_devices());
     pipe.set_layout(gpu_mem.get_bindless_layout());
-    rt::attachments::create(dev.get_devices());
-    rt::attachments::fill();
+    
+    rts.create(dev.get_devices());
+    rts.fill_refs();
 
     submit([&](VkCommandBuffer cmd) {
-        rt::attachments::get_rt(rt::attachments::val::MAIN_COLOR)->memory_barrier(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        rts.get_rt(rt::helper::val::MAIN_COLOR)->memory_barrier(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     });
-
+    set_debug_name("test", reinterpret_cast<uint64_t>(rts.get_rt(rt::helper::val::MAIN_COLOR)->get_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
+    set_debug_name("test", reinterpret_cast<uint64_t>(rts.get_rt(rt::helper::val::MAIN_COLOR)->get_image()), VK_OBJECT_TYPE_IMAGE);
+    
   	vkCmdBeginRenderingKHR = (PFN_vkCmdBeginRenderingKHR) vkGetInstanceProcAddr(inst.get_instance(), "vkCmdBeginRenderingKHR");
 	vkCmdEndRenderingKHR = (PFN_vkCmdEndRenderingKHR) vkGetInstanceProcAddr(inst.get_instance(), "vkCmdEndRenderingKHR");
 }
@@ -48,8 +53,8 @@ bool vk::base::begin_frame()
 void vk::base::end_frame()
 {
     frame.prepare_for_present(
-        rt::attachments::get_rt(rt::attachments::val::MAIN_COLOR)->get_image(),
-        rt::attachments::get_rt(rt::attachments::val::MAIN_COLOR)->get_size(),
+        rts.get_rt(rt::helper::val::MAIN_COLOR)->get_image(),
+        rts.get_rt(rt::helper::val::MAIN_COLOR)->get_size(),
         dev.get_swapchain_image(frame.get_swapchain_index()),
         { dev.get_swapchain_size().width ,  dev.get_swapchain_size().height }
     );
@@ -63,12 +68,12 @@ void vk::base::render()
 
 void vk::base::render_block()
 {
-    start_render(rt::attachments::get_rt(rt::attachments::val::MAIN_COLOR));
+    start_render(rq.material_handle->attachment_ref);
     draw();
     end_render();
 }
 
-VkRenderingAttachmentInfoKHR get_attachment_info(VkImageView imageview, bool iscolor, rt::attachments::rule loadop)
+VkRenderingAttachmentInfoKHR get_attachment_info(VkImageView imageview, bool iscolor, rt::helper::rule loadop)
 {
     VkRenderingAttachmentInfoKHR info = {};
 	VkClearValue clearvalue;
@@ -79,7 +84,7 @@ VkRenderingAttachmentInfoKHR get_attachment_info(VkImageView imageview, bool isc
         info.imageView = imageview;
         info.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         info.resolveMode = VK_RESOLVE_MODE_NONE;
-        info.loadOp = ((loadop & rt::attachments::rule::ATTACHMENT_RULE_LOAD) == rt::attachments::rule::ATTACHMENT_RULE_LOAD) ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
+        info.loadOp = ((loadop & rt::helper::rule::ATTACHMENT_RULE_LOAD) == rt::helper::rule::ATTACHMENT_RULE_LOAD) ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
         info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         info.clearValue = clearvalue;
 	}
@@ -90,14 +95,14 @@ VkRenderingAttachmentInfoKHR get_attachment_info(VkImageView imageview, bool isc
 		info.imageView = imageview;
 		info.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 		info.resolveMode = VK_RESOLVE_MODE_NONE;
-		info.loadOp = ((loadop & rt::attachments::rule::ATTACHMENT_RULE_LOAD) == rt::attachments::rule::ATTACHMENT_RULE_LOAD) ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
+		info.loadOp = ((loadop & rt::helper::rule::ATTACHMENT_RULE_LOAD) == rt::helper::rule::ATTACHMENT_RULE_LOAD) ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
 		info.storeOp = VK_ATTACHMENT_STORE_OP_STORE ;
 		info.clearValue = clearvalue;
 	}
 	return info;
 }
 
-void vk::base::start_render(rt::render_target* target)
+void vk::base::start_render(const rt::base::ref& attachment_ref)
 {
     VkImageSubresourceRange range{};
     range.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -108,8 +113,6 @@ void vk::base::start_render(rt::render_target* target)
 
 	VkImageSubresourceRange depthrange{range};
 	depthrange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        
-    VkRenderingAttachmentInfoKHR depth_info{};
 	
     VkRect2D renderarea = VkRect2D{VkOffset2D{}, { 800, 600 } };
 	VkRenderingInfoKHR renderinfo {
@@ -118,17 +121,20 @@ void vk::base::start_render(rt::render_target* target)
 		.layerCount = 1,
 	};
     
-    //for ()
-    //if if_depth()
-    //    renderinfo.pDepthAttachment = &depthinfo;
-    std::vector<VkRenderingAttachmentInfoKHR> colors;
-    colors.reserve(1);
-    colors.push_back(get_attachment_info(target->get_image_view(), true, rt::attachments::rule::ATTACHMENT_RULE_CLEAR));
-    if (!colors.empty()) {
-        renderinfo.colorAttachmentCount = colors.size();
-	    renderinfo.pColorAttachments = (colors.data());
+    VkRenderingAttachmentInfoKHR depth_info{};
+    if (attachment_ref.depth_count > 0) {
+        depth_info = get_attachment_info(rts.get_rt(attachment_ref.depth_types.v)->get_image_view(), false, rt::helper::rule::ATTACHMENT_RULE_CLEAR);
+        renderinfo.pDepthAttachment = &depth_info;
     }
-    
+    std::vector<VkRenderingAttachmentInfoKHR> colors;
+    if (attachment_ref.color_count > 0) {
+        colors.reserve(attachment_ref.color_count);
+        for (const rt::base::type& t : attachment_ref.color_types) {
+            colors.push_back(get_attachment_info(rts.get_rt(t.v)->get_image_view(), true, rt::helper::rule::ATTACHMENT_RULE_CLEAR));
+        }
+        renderinfo.colorAttachmentCount = colors.size();
+        renderinfo.pColorAttachments = (colors.data());
+    }
     vkCmdBeginRenderingKHR(frame.get_cmd(), &renderinfo);
 }
 void vk::base::end_render()
@@ -144,8 +150,8 @@ void vk::base::draw()
 
     //if (bindpipe) 
     {
-        VkDescriptorSet d_set = gpu_mem.get_bindless_set();
-        vkCmdBindDescriptorSets(frame.get_cmd(), VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline_layout , 0, 1, &d_set, 0, nullptr);
+        // VkDescriptorSet d_set = gpu_mem.get_bindless_set();
+        // vkCmdBindDescriptorSets(frame.get_cmd(), VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline_layout , 0, 1, &d_set, 0, nullptr);
 		vkCmdBindPipeline(frame.get_cmd(), VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline);
     }
 
