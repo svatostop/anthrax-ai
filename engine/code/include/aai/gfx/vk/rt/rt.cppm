@@ -26,6 +26,7 @@ export {
                 void set_depth(bool depth) { is_depth = depth; }
                 void set_sampler(bool samp) { is_sampler = samp; }
                 void set_cube(bool cube) { is_cube = cube; }
+                void set_name(const std::string& n) { name = n; }
 
                 const std::string& get_name() const { utils::ASSERT(name.empty(), "RenderTarget::GetName() Name is empty!"); return name; }
                 VkFormat get_format() { return format; }

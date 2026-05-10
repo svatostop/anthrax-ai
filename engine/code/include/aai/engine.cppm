@@ -17,7 +17,7 @@ export {
                 void clean();
 
                 aai::window win;
-                gfx::base renderer;
+                gfx::base gfx;
         };
     }
 };

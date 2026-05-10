@@ -1,4 +1,6 @@
 #include "aai/io/win_defines.h"
+#include <cstdint>
+#include <stdio.h>
 
 import aai.gfx.vk.rt.helper;
 import aai.gfx;
@@ -13,13 +15,15 @@ void gfx::base::init(Display* di, Window w)
 void gfx::base::run()
 {
     if (vk.begin_frame()) {
-        vk.render(); 
+        vk.execute(); 
         vk.end_frame();
     } 
 }
 
 void gfx::base::populate()
 {
+    uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
+
     glm::vec4 viewport = glm::vec4(800,600,0,0); 
 
     std::vector<mat::shader_module> shaders;
@@ -50,27 +54,28 @@ void gfx::base::populate()
         },
         .shaders = shaders,
         .multisampling = false,
-        .vertex_attributes = false
+        .vertex_attributes = false,
+        .bind_texture = texture_id > 0
     });
     vk.create_material(material_pallet);
 
     vk.set_rq({
             .tag = "test",
             .material_handle = material_pallet.get("test"),
+            .texture_id = texture_id,
     });
 }
 
-void gfx::base::create_texture(const char* path)
+uint32_t gfx::base::create_texture(const char* path)
 {
-    auto future = asset_mng.load_async(path, [&](const std::string&) {  
-        //vk.create_texture(path);
-        return nullptr;
+    auto future = asset_mng.load_async(path, [&](std::shared_ptr<rt::render_target> r, const char*){
+        vk.create_texture(path, r);
     });
-
-    // material_mng.load_async(shaders);
-    // rq r = {
-    //     .add_resource(handle_id),
-    //     .add_material(material_mng.get(TETS)),
-    //
-    // }
+    uint32_t id = future.get();
+    printf("texture value !!! %d\n", id);
+    return id;
+    // auto future = asset_mng.load_async(path, [&](const std::string&) {  
+    //     //vk.create_texture(path);
+    //     return nullptr;
+    // });
 }

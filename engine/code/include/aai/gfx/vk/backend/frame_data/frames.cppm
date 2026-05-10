@@ -1,5 +1,5 @@
 module;
-#include <cstdint>
+// #include <cstdint>
 #include "aai/gfx/vk/backend/vk_defines.h"
 
 export module aai.gfx.vk.frames;
@@ -7,6 +7,7 @@ export module aai.gfx.vk.frames;
 export import aai.gfx.vk.frames.cmd;
 export import aai.gfx.vk.frames.sync;
 export import glm;
+export import std;
 export {
    namespace vk {
 
@@ -18,6 +19,8 @@ export {
            public:
                 void init(VkDevice dev, const uint32_t graphics_index);
                 
+                void submit(VkDevice dev, VkQueue queue, std::function<void(VkCommandBuffer cmd)>&& f);
+
                 void sync_frames(VkDevice dev, VkSwapchainKHR swapchain);
                 void prepare_for_present(VkImage src_image, const glm::vec2& src_size, VkImage sw_image, const glm::vec2& sw_size);
                 void submit_and_present(VkQueue queue, VkSwapchainKHR swapchain);

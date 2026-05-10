@@ -16,7 +16,7 @@ export {
                 
                 void run();
                 void populate();
-                void create_texture(const char* path);
+                uint32_t create_texture(const char* path);
             private:
                 vk::base vk;
                 assets::base<rt::render_target> asset_mng;

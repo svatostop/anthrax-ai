@@ -12,6 +12,7 @@ void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, bool n
 {
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	info.pNext = nullptr;
+    info.flags = 0;
     if (!no_vertex) {
         info.pVertexAttributeDescriptions = nullptr;
 	    info.vertexAttributeDescriptionCount = 0;
@@ -205,6 +206,7 @@ void get_color_blend_state(VkPipelineColorBlendStateCreateInfo& color_blend_stat
 {
 	color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	color_blend_state.pNext = nullptr;
+    color_blend_state.flags = 0;
 	color_blend_state.logicOpEnable = VK_FALSE;
 	color_blend_state.logicOp = VK_LOGIC_OP_COPY;
 }
@@ -238,8 +240,14 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 	pipelinelayoutinfo.pPushConstantRanges = &push_constant;
 	pipelinelayoutinfo.pushConstantRangeCount = 1;
     VkDescriptorSetLayout setLayouts[] = {  bindless_texture_layout };
-	pipelinelayoutinfo.setLayoutCount = 0;
-	pipelinelayoutinfo.pSetLayouts = nullptr;//setLayouts;
+    if (m.get_info().bind_texture) {
+        pipelinelayoutinfo.setLayoutCount = 1;
+        pipelinelayoutinfo.pSetLayouts = setLayouts;
+    }
+    else {
+        pipelinelayoutinfo.setLayoutCount = 0;
+        pipelinelayoutinfo.pSetLayouts = nullptr;
+    }
 
     utils::VK_ASSERT(vkCreatePipelineLayout(dev, &pipelinelayoutinfo, nullptr, &pipe_layout), "failed to create pipeline layout!");
     // auto future = asset_mng.load_async(path, [&](const std::string&) {  
@@ -252,7 +260,7 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 
     viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewport_state.pNext = nullptr;
-
+    viewport_state.flags = 0;
 	viewport_state.viewportCount = 1;
 	viewport_state.pViewports = &viewport;
 	viewport_state.scissorCount = 1;

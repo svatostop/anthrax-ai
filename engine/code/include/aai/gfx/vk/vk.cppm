@@ -8,8 +8,7 @@ export import aai.gfx.vk.frames;
 export import aai.gfx.vk.gpu_memory;
 export import aai.gfx.vk.pipeline;
 export import aai.gfx.vk.rq;
-import aai.gfx.vk.rt.helper;
-import aai.gfx.vk.rt;
+export import aai.gfx.vk.renderer;
 import std;
 
 export {
@@ -20,36 +19,28 @@ export {
                 
                 bool begin_frame();
                 void end_frame();
-                void render();
+                void execute();
 
-                void create_texture(const char* path);
+                void create_texture(const char* path, std::shared_ptr<rt::render_target> target);
                 void create_material(mat::materials& m) { pipe.create_material(dev.get_device(), m); } 
                 void set_rq(const rq::data& r) { rq = r; }
 
-                const rt::base::ref& get_attachment_ref(const rt::base::name r) { return rts.get_ref(r); }
+                rt::render_target* get_last_target() { return render.get_last_target(); } 
+                const rt::base::ref& get_attachment_ref(const rt::base::name r) { return render.get_attachment_ref(r); }
            private:
-                void render_block();
-                void start_render(const rt::base::ref& attachment_ref);
-                void end_render();
-                void draw();
-
-                void submit(std::function<void(VkCommandBuffer cmd)>&& func);
-
                 void set_debug_name(const std::string& name, uint64_t handle, VkObjectType type);
                 void set_debug_render_pass_name(VkCommandBuffer cmd, const std::string& name);
                 void unset_debug_render_pass_name(VkCommandBuffer cmd);
             
-                PFN_vkCmdBeginRenderingKHR vkCmdBeginRenderingKHR{VK_NULL_HANDLE};
-        	    PFN_vkCmdEndRenderingKHR   vkCmdEndRenderingKHR{VK_NULL_HANDLE};
-
                 rq::data rq;
-                rt::base rts; 
-                    
+                
                 instance inst;
                 device dev;
                 frames frame;
                 gpu_memory gpu_mem;
                 pipeline pipe;
+
+                renderer render;
         };
    }
 };

@@ -81,6 +81,7 @@ export {
             std::vector<shader_module> shaders;
             bool multisampling = false;
             bool vertex_attributes = false;
+            bool bind_texture = false;
         };
  
         class materials {

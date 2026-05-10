@@ -7,6 +7,33 @@ void vk::gpu_memory::init(vk::device::handlers dev)
     init_buffers(dev);
 }
 
+void vk::gpu_memory::update_texture(VkDevice dev, const std::string& name, VkImageView view, VkSampler sampler)
+{
+	texture_handle++;
+    auto it = std::find_if(texture_bindings.begin(), texture_bindings.end(), [&, name](const auto& n) { return n.first == name; });
+	if (it != texture_bindings.end()) {
+        return ;
+    }
+
+    VkDescriptorImageInfo imageinfo{};
+	imageinfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imageinfo.imageView = view;
+	imageinfo.sampler = sampler;
+
+	VkWriteDescriptorSet write{};
+	write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	write.dstBinding = 0;
+	write.dstSet = bindless_texture_descriptor;
+	write.descriptorCount = 1;
+	write.pImageInfo = &imageinfo;
+    
+	write.dstArrayElement = texture_handle;
+
+	vkUpdateDescriptorSets(dev, 1, &write, 0, nullptr);
+    texture_bindings[name] = texture_handle;
+}
+
 VkDescriptorSetLayoutBinding descriptor_layout_binding(VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t binding)
 {
 	VkDescriptorSetLayoutBinding setbind = {};

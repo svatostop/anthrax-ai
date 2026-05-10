@@ -4,8 +4,8 @@ import aai.utils.mem;
 void aai::core::init()
 {
     win.init();
-    renderer.init(win.get_display(), win.get_x11_win());
-    renderer.populate();
+    gfx.init(win.get_display(), win.get_x11_win());
+    gfx.populate();
 }
 
 void aai::core::run()
@@ -13,7 +13,7 @@ void aai::core::run()
     while (!win.closed()) {
         win.poll_events();
 
-        renderer.run();
+        gfx.run();
     }
     win.clean();
 }

@@ -5,12 +5,14 @@ export module aai.gfx.vk.gpu_memory;
 export import aai.gfx.vk.gpu_data;
 export import aai.gfx.vk.buffer;
 export import aai.gfx.vk.device;
-
+export import std;
 export {
     namespace vk {
         class gpu_memory {
             public:
                 void init(vk::device::handlers dev);
+                
+                void update_texture(VkDevice dev, const std::string& name, VkImageView view, VkSampler sampler);
 
                 VkDescriptorSetLayout get_bindless_layout() { return bindless_texture_layout; }
                 VkDescriptorSet get_bindless_set() { return bindless_texture_descriptor; }
@@ -22,7 +24,9 @@ export {
 	            VkDescriptorSetLayout bindless_texture_layout = VK_NULL_HANDLE;
                 VkDescriptorSet bindless_texture_descriptor;
 
-                vk::buffer::handlers camera;
+                vk::buffer::handlers camera;            
+                std::map<std::string, uint32_t> texture_bindings;
+                uint32_t texture_handle = 0;
         };
     }
 };

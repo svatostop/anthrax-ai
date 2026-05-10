@@ -11,6 +11,7 @@ void vk::frames::init(VkDevice dev, const uint32_t graphics_index)
     cmd.init(dev, graphics_index); 
     sync.init(dev);
 }
+
 void vk::frames::sync_frames(VkDevice dev, VkSwapchainKHR swapchain)
 {
     sync.sync_frames(dev, swapchain, frame_index);
@@ -104,5 +105,22 @@ VkSubmitInfo vk::frames::submit_info(VkCommandBuffer* cmd)
     info.pSignalSemaphores = nullptr;
 
     return info;
+}
+
+void vk::frames::submit(VkDevice dev, VkQueue queue, std::function<void(VkCommandBuffer cmd)>&& f)
+{
+	VkCommandBuffer cmd = get_upload_cmd();
+	VkCommandBufferBeginInfo cmdBeginInfo = cmd_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+    utils::VK_ASSERT(vkBeginCommandBuffer(cmd, &cmdBeginInfo), "failed to begin command buffer!");
+	f(cmd);
+    utils::VK_ASSERT(vkEndCommandBuffer(cmd), "failed to end command buffer!");
+
+	VkSubmitInfo submitinfo = submit_info(&cmd);
+    utils::VK_ASSERT(vkQueueSubmit(queue, 1, &submitinfo, *(get_upload_fence())), "failed to submit upload queue!");
+
+	vkWaitForFences(dev, 1, get_upload_fence(), true, 9999999999);
+	vkResetFences(dev, 1, get_upload_fence());
+	vkResetCommandPool(dev, get_upload_cmd_pool(), 0);
 }
 

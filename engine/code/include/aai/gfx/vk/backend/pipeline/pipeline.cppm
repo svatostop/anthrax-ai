@@ -32,6 +32,7 @@ export {
                 
                 struct push_range {
                     uint32_t gpu_address = 0;
+                    uint32_t texture_id = 0;
                 };
             private:
                 VkPipeline pipe;
