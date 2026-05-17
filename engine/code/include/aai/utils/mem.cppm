@@ -32,6 +32,7 @@ export {
                 };
                 void push(event e, type t, std::function<void()>&& function); 
                 void flush(event e, type t);
+                void flush_all(event e);
 
                 void track_allocation(resource t, const std::string& tag, size_t bytes) {
                     utils::ASSERT(tag.empty(), "tag of resource can't be empty");                    

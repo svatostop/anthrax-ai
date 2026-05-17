@@ -27,6 +27,7 @@ export {
                 
                 VkImage get_swapchain_image(uint32_t image) { return sw.images[image]; }
                 VkExtent2D get_swapchain_size() { return sw.extent; } 
+                uint32_t get_swapchains_amount() { return sw.images.size(); } 
                 VkSwapchainKHR get_swapchain() { return sw.swapchain; }
                 VkQueue get_queue(vk::queues::type type) { return queue.q[type]; }
             private:

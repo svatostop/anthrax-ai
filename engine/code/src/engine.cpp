@@ -15,11 +15,10 @@ void aai::core::run()
 
         gfx.run();
     }
-    win.clean();
 }
 
 void aai::core::clean()
 {
-    utils::mem::get()->flush(utils::mem::event::DELETE, utils::mem::type::VK);       
+    utils::mem::get()->flush_all(utils::mem::event::DELETE);//, utils::mem::type::VK);       
     win.clean();
 }

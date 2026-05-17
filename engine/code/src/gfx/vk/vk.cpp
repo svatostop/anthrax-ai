@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <string.h>
 #include <stdio.h>
-#include <vulkan/vulkan_core.h>
 
 import aai.gfx.vk;
 import aai.gfx.vk.buffer;
@@ -26,7 +25,7 @@ void vk::base::init(bool validate, Display* di, Window w)
 #endif
     dev.init(validate, inst.get_layers());
 
-    frame.init(dev.get_device(), dev.get_graphics_index());
+    frame.init(dev.get_device(), dev.get_graphics_index(), dev.get_swapchains_amount());
 
     gpu_mem.init(dev.get_devices());
     pipe.set_layout(gpu_mem.get_bindless_layout());

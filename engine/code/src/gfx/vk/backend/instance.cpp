@@ -32,7 +32,7 @@ void vk::instance::init(bool validate)
     appinfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appinfo.pEngineName = "anthaxAI";
     appinfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appinfo.apiVersion = VK_API_VERSION_1_3;
+    appinfo.apiVersion = VK_API_VERSION_1_4;
  
     VkInstanceCreateInfo createinfo{};
 	createinfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

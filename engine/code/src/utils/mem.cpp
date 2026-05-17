@@ -19,3 +19,11 @@ void utils::mem::flush(utils::mem::event e, utils::mem::type t)
             }});
     events[static_cast<int>(e)].resize(std::distance(events[static_cast<int>(e)].begin(), it));
 }
+
+void utils::mem::flush_all(utils::mem::event e)
+{
+    for (auto it = events[static_cast<int>(e)].rbegin(); it != events[static_cast<int>(e)].rend(); it++) {
+        (*it).second();
+   }
+   events[static_cast<int>(e)].clear();
+}

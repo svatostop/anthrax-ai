@@ -8,7 +8,7 @@ export {
         class core {
             public:
                 core() {}
-                ~core() { clean(); }
+                ~core() { gfx.wait_timeline(); clean(); }
 
                 void init();
 
