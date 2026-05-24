@@ -16,6 +16,8 @@ export {
 
                 VkDescriptorSetLayout get_bindless_layout() { return bindless_texture_layout; }
                 VkDescriptorSet get_bindless_set() { return bindless_texture_descriptor; }
+
+                VkDeviceAddress get_buffer_address() { return camera.gpu_address; }
             private:
                 void init_descriptor_set(vk::device::handlers dev);
                 void init_buffers(vk::device::handlers dev);

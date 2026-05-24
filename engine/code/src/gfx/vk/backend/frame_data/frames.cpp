@@ -52,7 +52,7 @@ void vk::frames::submit_and_present(VkQueue queue, VkSwapchainKHR swapchain)
 
     VkCommandBuffer cmd_submit = cmd.get(frame_index);
     VkSemaphore render_sema = sync.get_render_sema();
-    VkSemaphore wait_sema = sync.get_wait_sema();
+    VkSemaphore wait_sema = sync.get_wait_sema(frame_index);
     VkPipelineStageFlags graphics_wait_masks[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     VkSemaphore graphics_wait_sema[] = { sync.get_timeline(), wait_sema };
     VkSemaphore graphics_signal_sema[] = { sync.get_timeline(), render_sema };

@@ -25,9 +25,6 @@ export {
 
                 void sync_frames(VkDevice dev, VkSwapchainKHR swapchain);
                 void wait_timeline(VkDevice dev, VkSwapchainKHR swapchain, VkQueue queue) {
-                    // uint64_t v;
-                    // vkGetSemaphoreCounterValue(dev, sync.get_timeline(), &v);
-                    // printf("!!!!-----current sema val: %d | %d | %p\n", v, sync.get_timeline_value(), sync.get_timeline()); 
                     sync.wait_timeline(dev);
                 }
 

@@ -12,13 +12,14 @@ export {
     namespace vk {
         class renderer {
             public:
-                void init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless);
+                void init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless, VkDeviceAddress buffer_addr);
                 
                 void block(VkCommandBuffer cmd, const rq::data& rq);
 
                 rt::render_target* get_rt(rt::helper::val v)  { return rts.get_rt(v); }
                 rt::render_target* get_last_target() { return rts.get_rt(rt::helper::val::MAIN_COLOR); } 
                 const rt::base::ref& get_attachment_ref(const rt::base::name r) { return rts.get_ref(r); }
+                void clean_rts(const vk::device::handlers& dev) { rts.clean(dev); }
             private:
                 void start_render(VkCommandBuffer cmd, const rt::base::ref& attachment_ref);
                 void end_render(VkCommandBuffer cmd);
@@ -28,6 +29,7 @@ export {
         	    PFN_vkCmdEndRenderingKHR   vkCmdEndRenderingKHR{VK_NULL_HANDLE};
 
                 VkDescriptorSet bindless_set;
+                VkDeviceAddress buffer_address;
 
                 rt::base rts; 
         };

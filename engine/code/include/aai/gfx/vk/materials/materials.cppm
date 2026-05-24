@@ -1,8 +1,10 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include <vulkan/vulkan_core.h>
 
 export module aai.gfx.materials;
 import aai.gfx.vk.rt;
+import aai.gfx.vk.device;
 import glm;
 import std;
 export {
@@ -11,6 +13,11 @@ export {
             VkPipelineLayout pipeline_layout;
             VkPipeline pipeline;
             rt::base::ref attachment_ref;
+
+            void clean(VkDevice dev) {
+                vkDestroyPipelineLayout(dev, pipeline_layout, nullptr);
+                vkDestroyPipeline(dev, pipeline, nullptr);
+            }
         };
         enum polygon_val {
             MODE_LINE = 0,
@@ -101,6 +108,12 @@ export {
                 	else {
                 		return &(*it).second;
                 	}
+                }
+
+                void clean(const vk::device::handlers& dev) {
+                    for (auto& m : mat_map) {
+                        m.second.clean(dev.dev);
+                    }
                 }
             private:
                 info_helper infos;

@@ -4,9 +4,10 @@
 import aai.gfx.vk.renderer;
 import aai.gfx.vk.pipeline;
 import std;
-void vk::renderer::init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless)
+void vk::renderer::init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless, VkDeviceAddress buffer_addr)
 {
     bindless_set = bindless;
+    buffer_address = buffer_addr;
 
     vkCmdBeginRenderingKHR = (PFN_vkCmdBeginRenderingKHR) vkGetInstanceProcAddr(inst, "vkCmdBeginRenderingKHR");
 	vkCmdEndRenderingKHR = (PFN_vkCmdEndRenderingKHR) vkGetInstanceProcAddr(inst, "vkCmdEndRenderingKHR");
@@ -105,6 +106,7 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq)
     }
 
 	vk::pipeline::push_range constants;
+    // constants.gpu_address = buffer_address;
     constants.texture_id = rq.texture_id;
 	vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
 	

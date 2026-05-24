@@ -1,5 +1,6 @@
 #include "aai/gfx/vk/backend/vk_defines.h" 
 import aai.gfx.vk.gpu_memory;
+import aai.utils.mem;
 
 void vk::gpu_memory::init(vk::device::handlers dev)
 {
@@ -89,13 +90,16 @@ void vk::gpu_memory::init_descriptor_set(vk::device::handlers dev)
         allocinfo.descriptorSetCount = 1;
         vkAllocateDescriptorSets(dev.dev, &allocinfo, &bindless_texture_descriptor);
     }
-
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDescriptorSetLayout(dev.dev, bindless_texture_layout, nullptr); });
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDescriptorPool(dev.dev, texture_pool, nullptr); });
 }
 void vk::gpu_memory::init_buffers(vk::device::handlers dev)
 {
     size_t buffer_size = sizeof(camera_data);
     vk::buffer::allocate(camera, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     vk::buffer::get_gpu_address(camera, dev.dev);
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, camera.buffer, nullptr); });
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, camera.device_memory, nullptr); });
 }
 
 

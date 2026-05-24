@@ -308,6 +308,10 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 
     utils::VK_ASSERT(vkCreateGraphicsPipelines(dev, VK_NULL_HANDLE, 1, &pipelineinfo, nullptr, &pipe), "failed to create write pipeline\n");
 
+    for (VkPipelineShaderStageCreateInfo& shader_stage : shader_stages) {
+        vkDestroyShaderModule(dev, shader_stage.module, nullptr);
+    }
+
     m.set_data(m.get_info().name, pipe, pipe_layout, m.get_info().rt_ref);
 }
 

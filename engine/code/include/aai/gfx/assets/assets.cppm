@@ -1,6 +1,7 @@
 module;
 #include <cstdint>
 
+import aai.gfx.vk.device;
 export module aai.gfx.assets;
 import std;
 export {
@@ -33,19 +34,19 @@ export {
                     delete cache[path];
                     cache.erase(path);
                 }
-                void unload_if_unused() {
+                void unload_all(const vk::device::handlers& dev) {
                     std::lock_guard<std::mutex> lock(cache_mutex);
                     auto it = cache.begin();
                     while (it != cache.end()) {
-                    if (it->second.use_count() == 1) {
-                        delete it->second;
-                        it = cache.erase(it);
-                    } 
-                    else {
-                        ++it;
+                        if (it->second.use_count() == 1) {
+                            it->second.get()->clean(dev);
+                            it = cache.erase(it);
+                        } 
+                        else {
+                            ++it;
+                        }
                     }
-        }
-    }
+                }
             private:
                 uint32_t counter = 0;
                 std::map<std::string, std::shared_ptr<T>> cache;

@@ -18,8 +18,9 @@ export {
                 void populate();
                 uint32_t create_texture(const char* path);
 
-                void wait_timeline() { vk.wait_timeline(); }
+                void clean() { vk.wait_timeline(); clean_resources(); }
             private:
+                void clean_resources();
                 vk::base vk;
                 assets::base<rt::render_target> asset_mng;
                 mat::materials material_pallet;

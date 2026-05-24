@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <string.h>
 #include <stdio.h>
+#include <string>
+#include <vulkan/vulkan_core.h>
 
 import aai.gfx.vk;
 import aai.gfx.vk.buffer;
@@ -30,13 +32,16 @@ void vk::base::init(bool validate, Display* di, Window w)
     gpu_mem.init(dev.get_devices());
     pipe.set_layout(gpu_mem.get_bindless_layout());
 
-    render.init(inst.get_instance(), dev.get_devices(), gpu_mem.get_bindless_set());
+    render.init(inst.get_instance(), dev.get_devices(), gpu_mem.get_bindless_set(), gpu_mem.get_buffer_address());
 
     frame.submit(dev.get_device(), dev.get_queue(vk::queues::type::GRAPHICS), [&](VkCommandBuffer cmd) {
         render.get_rt(rt::helper::val::MAIN_COLOR)->memory_barrier(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     });
     set_debug_name("test", reinterpret_cast<uint64_t>(render.get_rt(rt::helper::val::MAIN_COLOR)->get_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
     set_debug_name("test", reinterpret_cast<uint64_t>(render.get_rt(rt::helper::val::MAIN_COLOR)->get_image()), VK_OBJECT_TYPE_IMAGE);
+
+    auto f = std::bind(&vk::frames::submit, &frame, std::placeholders::_1, std::placeholders::_2,std::placeholders::_3);
+    vk::buffer::set_submit_callback(f, dev.get_queue(vk::queues::type::GRAPHICS));
 }
 
 bool vk::base::begin_frame()

@@ -17,8 +17,9 @@ export {
                 uint32_t*  get_swapchain_index_ptr() { return &swapchain_index; }
                 VkFence* get_upload_fence() { return &upload_fence; }
 
-                VkSemaphore get_wait_sema() { return present_sema[prev_swapchain_index]; }
+                VkSemaphore get_wait_sema(int frame_index) { return present_sema[frame_index]; }
                 VkSemaphore get_render_sema() { return render_sema[swapchain_index]; }
+                
                 struct timeline_sema {
                     VkSemaphore handle = VK_NULL_HANDLE;
                     uint64_t value = 0;
@@ -38,7 +39,6 @@ export {
             
                 uint32_t swapchain_size = 0;
                 uint32_t swapchain_index = 0;
-                uint32_t prev_swapchain_index = 0;
                 bool first_run = true;
                 PFN_vkWaitSemaphoresKHR vkWaitSemaphoresKHR{ VK_NULL_HANDLE };
         };

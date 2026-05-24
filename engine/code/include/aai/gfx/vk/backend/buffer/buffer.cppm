@@ -11,6 +11,9 @@ export {
 namespace vk {
     namespace buffer 
     {
+        std::function<void(VkDevice dev, VkQueue queue, std::function<void(VkCommandBuffer cmd)>&& f)> submit_callback;
+        VkQueue callback_queue;
+        
         struct handlers {
             VkBuffer buffer;
             VkDeviceMemory device_memory;
@@ -20,15 +23,17 @@ namespace vk {
             VkDeviceAddress gpu_address = 0; 
         };
         
-        void copy(VkBuffer& srcbuffer, VkBuffer& dstbuffer,VkDeviceSize size)
+        void copy(VkDevice dev, VkBuffer& srcbuffer, VkBuffer& dstbuffer,VkDeviceSize size)
         {
-            // Gfx::Renderer::GetInstance()->Submit([=](VkCommandBuffer cmd) {
-            // VkBufferCopy copyRegion{};
-            // copyRegion.srcOffset = 0;
-            // copyRegion.dstOffset = 0;
-            // copyRegion.size = size;
-            // vkCmdCopyBuffer(cmd, srcbuffer, dstbuffer, 1, &copyRegion);
-            // });
+            utils::ASSERT(!submit_callback, "submit callback was null");
+
+            submit_callback(dev, callback_queue, [=](VkCommandBuffer cmd) {
+                VkBufferCopy copyRegion{};
+                copyRegion.srcOffset = 0;
+                copyRegion.dstOffset = 0;
+                copyRegion.size = size;
+                vkCmdCopyBuffer(cmd, srcbuffer, dstbuffer, 1, &copyRegion);
+            });
         }
         void get_gpu_address(handlers& handle, VkDevice dev)
         {
@@ -94,7 +99,7 @@ namespace vk {
 
             allocate(bufferhandler, devices, buffersize, flags[1], VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         // todo: doesn't submit
-            copy(stagingbuffer.buffer, bufferhandler.buffer, buffersize);
+            copy(devices.dev, stagingbuffer.buffer, bufferhandler.buffer, buffersize);
 
             vkDestroyBuffer(devices.dev, stagingbuffer.buffer, nullptr);
             vkFreeMemory(devices.dev, stagingbuffer.device_memory, nullptr);
@@ -115,6 +120,7 @@ namespace vk {
                 }
             }
         }
+        void set_submit_callback(std::function<void(VkDevice dev, VkQueue queue, std::function<void(VkCommandBuffer cmd)>&& f)>&& callback, VkQueue queue) { submit_callback = callback; callback_queue = queue; }
     }
 }
 };

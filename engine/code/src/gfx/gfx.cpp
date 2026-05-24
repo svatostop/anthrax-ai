@@ -66,6 +66,13 @@ void gfx::base::populate()
     });
 }
 
+void gfx::base::clean_resources()
+{
+    vk.clean_rts();
+    asset_mng.unload_all(vk.get_devices());
+    material_pallet.clean(vk.get_devices());
+}
+
 uint32_t gfx::base::create_texture(const char* path)
 {
     auto future = asset_mng.load_async(path, [&](std::shared_ptr<rt::render_target> r, const char*){

@@ -163,16 +163,7 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
 	dynfeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
     dynfeature.dynamicRendering = VK_TRUE;
     dynfeature.pNext = &features12;
-    
-    // VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeatures{};
-    // timelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES;
-    // timelineFeatures.timelineSemaphore = VK_TRUE;
-    // timelineFeatures.pNext = &dynfeature;
-    // VkPhysicalDeviceBufferDeviceAddressFeatures buffer_device_addrs_feature{};
-    // buffer_device_addrs_feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
-    // buffer_device_addrs_feature.bufferDeviceAddress = true;
-    // buffer_device_addrs_feature.pNext = &dynfeature;
-    //
+   
     VkPhysicalDeviceShaderDrawParametersFeatures shaderdrawparams{};
     shaderdrawparams.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES;
     shaderdrawparams.pNext = &dynfeature;
@@ -190,7 +181,6 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
     createInfo.pNext = &devfeatures2;// &DynamicRenderingFeature,
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueinfos.size());
     createInfo.pQueueCreateInfos = queueinfos.data();
-   // createInfo.pEnabledFeatures = &devicefeatures;
     int count = static_cast<uint32_t>(device_extenstions.size());
     std::vector<const char*> ext = device_extenstions; 
 #ifdef TRACY
@@ -201,14 +191,6 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
 #endif
     createInfo.enabledExtensionCount = static_cast<uint32_t>(count);
     createInfo.ppEnabledExtensionNames = ext.data();
-    
-    if (validate) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
-        createInfo.ppEnabledLayerNames = layers.data();
-    }
-    else {
-        createInfo.enabledLayerCount = 0;
-    }
 
     utils::VK_ASSERT(vkCreateDevice(devices.physical_dev, &createInfo, nullptr, &devices.dev), "failed to create logical device!");
     utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDevice(devices.dev, nullptr); });

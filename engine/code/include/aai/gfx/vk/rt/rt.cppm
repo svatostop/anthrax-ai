@@ -84,6 +84,14 @@ export {
                }           
                const ref& get_ref(name d)  { return refs[d]; }
 
+               void clean(const vk::device::handlers& dev) { 
+                    for (int i = 0; i < static_cast<int>(rt::helper::val::SIZE); i++) {
+                        if (rts[i]) {
+                            rts[i]->clean(dev);
+                            delete rts[i];
+                        }
+                    }
+               }
                void create(const vk::device::handlers& dev) {
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)] = new render_target(static_cast<int>(rt::helper::val::MAIN_COLOR));
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_format(VK_FORMAT_R8G8B8A8_UNORM);
