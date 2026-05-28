@@ -31,8 +31,8 @@ I really appreciate your input but I can't promise that I will merge your PR sin
 
 ⚠️ WARNING! [issues remain](#known-issues)
 
-1. Press `Esc` to visualize Editor window.
-2. In Editor Window select provided scenes from "Scenes" dropdown or create a default scene by pressing "New Scene" button.
+1. Press `Esc` to visualize Editor window
+2. In Editor Window select provided scenes from "Scenes" dropdown or create a default scene by pressing "New Scene" button
 3. Use `Esc` to toggle between `editor` and `play` modes
 4. When in `play` mode use WASD to mode camera, for rotation use LMB
 5. You can select a 3D object and move it using arrows 
@@ -74,7 +74,7 @@ more info in [features](#-features)
 <img width="600" src="readme/gizmo.gif">
 </p>
 
-Custom implementation for object mouse picking using SSBO.
+Custom implementation for object mouse picking using SSBO
 Translation of objects using gizmo `x, y, z` axes
 
 ---
@@ -235,5 +235,5 @@ Don't forget that the <kbd>CTRL+SHIFT+P</kbd> key combination helps to `configur
 ## 📌 Known Issues
 - usually doesn't work under Windows
 - Pascal and older nvidia cards are unsupported due to unavailable vulkan features on that hardware.
-- Modified CatchyOS packages break compilation of required `assimp` library
+- Modified CachyOS packages break compilation of required `assimp` library
 - Audio initialization sometimes fails with `failed to allocate buffers` error 
