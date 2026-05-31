@@ -1,6 +1,6 @@
+#include "aai/gfx/vk/model/model_types.h"
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <shaderc/shaderc.h>
-#include <vulkan/vulkan_core.h>
 
 import aai.gfx.vk.pipeline;
 import aai.gfx.vk.pipeline.helper;
@@ -25,7 +25,7 @@ void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, bool n
 
 	VkVertexInputBindingDescription mainBinding = {};
 	mainBinding.binding = 0;
-	mainBinding.stride = sizeof(vk::pipeline::vertex);
+	mainBinding.stride = sizeof(model::types::vertex);
     mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 	desc.bindings.push_back(mainBinding);
 
@@ -34,35 +34,35 @@ void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, bool n
     positionAttribute.binding = 0;
 	positionAttribute.location = 0;
     positionAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    positionAttribute.offset = offsetof(vk::pipeline::vertex, position);
+    positionAttribute.offset = offsetof(model::types::vertex, position);
     
     VkVertexInputAttributeDescription normalAttribute = {};
     normalAttribute.binding = 0;
     normalAttribute.location = 1;
     normalAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    normalAttribute.offset = offsetof(vk::pipeline::vertex, normal);
+    normalAttribute.offset = offsetof(model::types::vertex, normal);
     
     VkVertexInputAttributeDescription colorAttribute = {};
     colorAttribute.binding = 0;
     colorAttribute.location = 2;
     colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    colorAttribute.offset = offsetof(vk::pipeline::vertex, color);
+    colorAttribute.offset = offsetof(model::types::vertex, color);
     
     VkVertexInputAttributeDescription uvattr = {};
     uvattr.binding = 0;
     uvattr.location = 3;
     uvattr.format = VK_FORMAT_R32G32_SFLOAT;
-    uvattr.offset = offsetof(vk::pipeline::vertex, uv);
+    uvattr.offset = offsetof(model::types::vertex, uv);
     VkVertexInputAttributeDescription weightattr = {};
     weightattr.binding = 0;
     weightattr.location = 4;
     weightattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    weightattr.offset = offsetof(vk::pipeline::vertex, weights );
+    weightattr.offset = offsetof(model::types::vertex, weights );
     VkVertexInputAttributeDescription boneattr = {};
     weightattr.binding = 0;
     weightattr.location = 5;
     weightattr.format = VK_FORMAT_R32G32B32A32_UINT;
-    weightattr.offset = offsetof(vk::pipeline::vertex, boneID);
+    weightattr.offset = offsetof(model::types::vertex, boneID);
 
     desc.attributes.push_back(positionAttribute);
     desc.attributes.push_back(normalAttribute);

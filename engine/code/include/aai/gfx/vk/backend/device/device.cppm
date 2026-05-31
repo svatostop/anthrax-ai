@@ -17,7 +17,7 @@ export {
 
                 void init(bool validate, const std::vector<const char*>& layers);
 #ifdef AAI_LINUX
-                void init_linux_surface(VkInstance vk_inst, Display* di, Window w);
+                void init_linux_surface(VkInstance vk_inst,GLFWwindow* glwf_w,  Display* di, Window w);
 #else
                 void init_windows_surface() {}
 #endif
@@ -30,6 +30,8 @@ export {
                 uint32_t get_swapchains_amount() { return sw.images.size(); } 
                 VkSwapchainKHR get_swapchain() { return sw.swapchain; }
                 VkQueue get_queue(vk::queues::type type) { return queue.q[type]; }
+
+                void on_resize();
             private:
                 void init_physical_dev();
                 void init_logical_dev(bool validate, const std::vector<const char*>& layers);
@@ -38,6 +40,9 @@ export {
                 VkInstance inst;
                 VkSurfaceKHR surface;
                 handlers devices;
+                GLFWwindow* glfw_win = nullptr;
+                int width = 0;
+                int height = 0;
                 swapchain::handlers sw; 
                 queues::handlers queue;
 

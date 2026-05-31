@@ -4,7 +4,7 @@ import aai.utils.mem;
 void aai::core::init()
 {
     win.init();
-    gfx.init(win.get_display(), win.get_x11_win());
+    gfx.init(win.get_glfw_win(), win.get_display(), win.get_x11_win());
     gfx.populate();
 }
 

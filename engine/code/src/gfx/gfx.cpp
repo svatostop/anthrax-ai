@@ -7,9 +7,9 @@ import aai.gfx;
 import glm;
 import std;
 
-void gfx::base::init(Display* di, Window w)
+void gfx::base::init(GLFWwindow* glfw_win, Display* di, Window w)
 {
-    vk.init(true, di, w);
+    vk.init(true, glfw_win, di, w);
 }
 
 void gfx::base::run()
@@ -24,7 +24,7 @@ void gfx::base::populate()
 {
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
 
-    glm::vec4 viewport = glm::vec4(800,600,0,0); 
+    glm::vec4 viewport = glm::vec4(400,300,0,0); 
 
     std::vector<mat::shader_module> shaders;
     shaders.push_back({mat::SHADER_VERT, "./shaders/quad.vert"}),
@@ -81,8 +81,4 @@ uint32_t gfx::base::create_texture(const char* path)
     uint32_t id = future.get();
     printf("texture value !!! %d\n", id);
     return id;
-    // auto future = asset_mng.load_async(path, [&](const std::string&) {  
-    //     //vk.create_texture(path);
-    //     return nullptr;
-    // });
 }

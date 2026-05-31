@@ -18,7 +18,7 @@ export {
    namespace vk {
        class base {
            public:
-                void init(bool validate, Display* di, Window w);
+                void init(bool validate,  GLFWwindow* glfw_win, Display* di, Window w);
                 
                 bool begin_frame();
                 void end_frame();

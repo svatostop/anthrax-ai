@@ -11,7 +11,7 @@ export {
            public:
                 void init(VkDevice dev, const int sw_size);
                 
-                void sync_frames(VkDevice dev, VkSwapchainKHR swapchain, uint32_t frame_index);
+                bool sync_frames(VkDevice dev, VkSwapchainKHR swapchain, uint32_t frame_index);
                 bool is_swapchain_index_valid() const {  return swapchain_index >= 0 && swapchain_index < swapchain_size; }
                 uint32_t  get_swapchain_index() const { return swapchain_index; }
                 uint32_t*  get_swapchain_index_ptr() { return &swapchain_index; }

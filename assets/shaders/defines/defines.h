@@ -1,4 +1,5 @@
 #extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_EXT_buffer_reference : require
 
 #define BindlessDescriptorSet 0
 
@@ -7,9 +8,16 @@
 layout(set = BindlessDescriptorSet, binding = BindlessSamplerBinding) \
     uniform sampler2D textures[];
 
+layout(std430, buffer_reference, buffer_reference_align = 16) buffer Camera
+{
+    vec4 viewport; 
+    vec4 test_color; 
+};
+
 layout( push_constant ) uniform constants
 {
-    uint gpu_address;
+    // uint gpu_address;
+    Camera cam;
     uint texture_id;
 } push;
 

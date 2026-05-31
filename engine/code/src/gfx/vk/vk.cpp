@@ -17,11 +17,11 @@ import aai.gfx.vk.rt.cmd;
 import aai.utils;
 import std;
 
-void vk::base::init(bool validate, Display* di, Window w)
+void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w)
 {
     inst.init(validate);
 #ifdef AAI_LINUX
-    dev.init_linux_surface(inst.get_instance(), di, w);
+    dev.init_linux_surface(inst.get_instance(), glfw_win, di, w);
 #else 
     dev.init_windows_surface();
 #endif
@@ -46,7 +46,8 @@ void vk::base::init(bool validate, Display* di, Window w)
 
 bool vk::base::begin_frame()
 {
-    frame.sync_frames(dev.get_device(), dev.get_swapchain());
+    if (!frame.sync_frames(dev.get_device(), dev.get_swapchain()))
+        dev.on_resize();
     return frame.is_swapchain_index_valid();
 }
 
@@ -58,11 +59,14 @@ void vk::base::end_frame()
         dev.get_swapchain_image(frame.get_swapchain_index()),
         { dev.get_swapchain_size().width ,  dev.get_swapchain_size().height }
     );
-    frame.submit_and_present(dev.get_queue(vk::queues::type::GRAPHICS), dev.get_swapchain());
+    if (!frame.submit_and_present(dev.get_queue(vk::queues::type::GRAPHICS), dev.get_swapchain()))
+        dev.on_resize();
 }
 
 void vk::base::execute()
 {
+    gpu_mem.update(dev.get_devices());
+
     set_debug_render_pass_name(frame.get_cmd(), "test");
     render.block(frame.get_cmd(), rq);
     unset_debug_render_pass_name(frame.get_cmd());

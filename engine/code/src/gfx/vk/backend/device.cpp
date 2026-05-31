@@ -13,11 +13,22 @@ void vk::device::init(bool validate, const std::vector<const char*>& layers)
     init_physical_dev();
     init_logical_dev(validate, layers);
     
+    width = 800;
+    height = 600;
     init_swapchain();
 }
 
-void vk::device::init_linux_surface(VkInstance vk_inst, Display* di, Window w)
+void vk::device::on_resize()
 {
+    vkDeviceWaitIdle(devices.dev);
+    glfwGetFramebufferSize(glfw_win, &width, &height);
+    utils::mem::get()->flush(utils::mem::event::DELETE, utils::mem::type::VK_SWAPCHAIN);       
+    init_swapchain();
+}
+
+void vk::device::init_linux_surface(VkInstance vk_inst, GLFWwindow* glwf_w, Display* di, Window w)
+{
+    glfw_win = glwf_w;
     inst = vk_inst;
     VkXlibSurfaceCreateInfoKHR surface_info{};
     surface_info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
@@ -26,7 +37,7 @@ void vk::device::init_linux_surface(VkInstance vk_inst, Display* di, Window w)
     surface_info.window = w;
 
     utils::VK_ASSERT(vkCreateXlibSurfaceKHR(inst, &surface_info, nullptr, &surface), "vkCreateXlibSurfaceKHR failed!");
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroySurfaceKHR(inst, surface, nullptr); });
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK_DEVICE, [=,this]() { vkDestroySurfaceKHR(inst, surface, nullptr); });
 }
 
 const uint32_t vk::device::get_graphics_index() const 
@@ -41,7 +52,7 @@ void vk::device::init_swapchain()
     vk::swapchain::details swapchainsupport = vk::swapchain::query_swapchain_support(devices.physical_dev, surface);
     VkSurfaceFormatKHR surfaceFormat = vk::swapchain::get_format(swapchainsupport.formats);
     VkPresentModeKHR presentMode = vk::swapchain::get_present_mode(swapchainsupport.present_modes);
-    VkExtent2D extent =  vk::swapchain::get_extents(swapchainsupport.capabilities, {800, 800});
+    VkExtent2D extent =  vk::swapchain::get_extents(swapchainsupport.capabilities, {static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
 
     image_count = swapchainsupport.capabilities.minImageCount + 1;
     if (swapchainsupport.capabilities.maxImageCount > 0 && image_count > swapchainsupport.capabilities.maxImageCount)
@@ -74,7 +85,7 @@ void vk::device::init_swapchain()
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
     utils::VK_ASSERT(vkCreateSwapchainKHR(devices.dev, &createInfo, nullptr, &sw.swapchain), "failed to create swap chain!");
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroySwapchainKHR(devices.dev, sw.swapchain, nullptr);; });
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK_SWAPCHAIN, [=,this]() { vkDestroySwapchainKHR(devices.dev, sw.swapchain, nullptr);; });
 	
     vkGetSwapchainImagesKHR(devices.dev, sw.swapchain, &image_count, nullptr);
 	sw.images.resize(image_count);
@@ -99,7 +110,7 @@ void vk::device::init_swapchain()
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
         utils::VK_ASSERT(vkCreateImageView(devices.dev, &createInfo, nullptr, &sw.image_views[i]), "failed to create image view!");
-        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyImageView(devices.dev, sw.image_views[i], nullptr); });
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK_SWAPCHAIN, [=,this]() { vkDestroyImageView(devices.dev, sw.image_views[i], nullptr); });
 	}
 }
 
@@ -193,7 +204,7 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
     createInfo.ppEnabledExtensionNames = ext.data();
 
     utils::VK_ASSERT(vkCreateDevice(devices.physical_dev, &createInfo, nullptr, &devices.dev), "failed to create logical device!");
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDevice(devices.dev, nullptr); });
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK_DEVICE, [=,this]() { vkDestroyDevice(devices.dev, nullptr); });
 
 	vkGetDeviceQueue(devices.dev, indices.graphics.value(), 0, &queue.q[queues::type::GRAPHICS]);
 	vkGetDeviceQueue(devices.dev, indices.present.value(), 0, &queue.q[queues::type::PRESENT]);

@@ -12,7 +12,7 @@ export {
     namespace gfx {
         class base {
             public:
-                void init(Display* di, Window w);
+                void init(GLFWwindow* glfw_win, Display* di, Window w);
                 
                 void run();
                 void populate();

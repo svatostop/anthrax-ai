@@ -114,6 +114,11 @@ GIT_SHALLOW TRUE
 GIT_PROGRESS TRUE
 )
 FetchContent_MakeAvailable(tracy)
+
+#==================================Tiny GLTF=======================================#
+set(TINYGLTF_HEADER_ONLY ON CACHE INTERNAL "" FORCE)
+set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
+list(APPEND _includes ${_path}/tinygltf)
 #=================================== assimp ===================================#
 
 # set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE)

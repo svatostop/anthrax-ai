@@ -64,11 +64,11 @@ void vk::instance::init(bool validate)
     }
 	
     utils::VK_ASSERT(vkCreateInstance(&createinfo, nullptr, &vk_instance), "vkCreateInstance failed");
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyInstance(vk_instance, nullptr); });
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK_INSTANCE, [=,this]() { vkDestroyInstance(vk_instance, nullptr); });
 
     if (validate) {
         utils::VK_ASSERT(setup_debug_layer(vk_instance, &debug_messenger, &info), "vk debug setup failed");
-        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { destroy_debug_layer(vk_instance, debug_messenger); });
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK_INSTANCE, [=,this]() { destroy_debug_layer(vk_instance, debug_messenger); });
     }
 
     SetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(vk_instance, "vkSetDebugUtilsObjectNameEXT");

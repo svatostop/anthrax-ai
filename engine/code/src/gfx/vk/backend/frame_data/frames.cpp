@@ -11,11 +11,13 @@ void vk::frames::init(VkDevice dev, const uint32_t graphics_index, const uint32_
     sync.init(dev, swapchain_size);
 }
 
-void vk::frames::sync_frames(VkDevice dev, VkSwapchainKHR swapchain)
+bool vk::frames::sync_frames(VkDevice dev, VkSwapchainKHR swapchain)
 {
-    sync.sync_frames(dev, swapchain, frame_index);
+    if (!sync.sync_frames(dev, swapchain, frame_index))
+        return false;
     cmd.sync_frames(frame_index);
     cmd.begin(frame_index);
+    return true;
 }
 
 void vk::frames::prepare_for_present(VkImage src_image, const glm::vec2& src_size, VkImage sw_image, const glm::vec2& sw_size)
@@ -45,7 +47,7 @@ VkPresentInfoKHR present_info(VkSwapchainKHR* swapchain, VkSemaphore* rendersem,
     return presentinfo;
 }
 
-void vk::frames::submit_and_present(VkQueue queue, VkSwapchainKHR swapchain)
+bool vk::frames::submit_and_present(VkQueue queue, VkSwapchainKHR swapchain)
 {
     const uint64_t graphics_finished = sync.get_timeline_value();
     const uint64_t all_finished = sync.get_timeline_value() + 1;
@@ -85,11 +87,13 @@ void vk::frames::submit_and_present(VkQueue queue, VkSwapchainKHR swapchain)
 	);
 	VkResult presentresult = vkQueuePresentKHR(queue, &prinfo);
 
-	// if (presentresult == VK_ERROR_OUT_OF_DATE_KHR) {
-	//       OnResize = true;
-	// }
+    bool res = true;
+	if (presentresult == VK_ERROR_OUT_OF_DATE_KHR) {
+	     res = false; 
+	}
 
    inc_frame_ind();
+   return res;
 }
 
 VkCommandBufferBeginInfo vk::frames::cmd_begin_info(VkCommandBufferUsageFlags flags)

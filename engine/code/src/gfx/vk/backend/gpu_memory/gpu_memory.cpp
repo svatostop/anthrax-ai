@@ -1,11 +1,16 @@
 #include "aai/gfx/vk/backend/vk_defines.h" 
 import aai.gfx.vk.gpu_memory;
 import aai.utils.mem;
-
+import glm;
 void vk::gpu_memory::init(vk::device::handlers dev)
 {
     init_descriptor_set(dev);
     init_buffers(dev);
+}
+void vk::gpu_memory::update(vk::device::handlers dev)
+{
+    size_t buffer_size = sizeof(camera_data);
+    vk::buffer::map_memory(camera.data, dev.dev, buffer_size, 0, &camera.raw_data); 
 }
 
 void vk::gpu_memory::update_texture(VkDevice dev, const std::string& name, VkImageView view, VkSampler sampler)
@@ -96,10 +101,10 @@ void vk::gpu_memory::init_descriptor_set(vk::device::handlers dev)
 void vk::gpu_memory::init_buffers(vk::device::handlers dev)
 {
     size_t buffer_size = sizeof(camera_data);
-    vk::buffer::allocate(camera, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    vk::buffer::get_gpu_address(camera, dev.dev);
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, camera.buffer, nullptr); });
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, camera.device_memory, nullptr); });
+    vk::buffer::allocate(camera.data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    vk::buffer::get_gpu_address(camera.data, dev.dev);
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, camera.data.buffer, nullptr); });
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, camera.data.device_memory, nullptr); });
 }
 
 

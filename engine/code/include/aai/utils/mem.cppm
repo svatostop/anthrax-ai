@@ -29,6 +29,9 @@ export {
                 enum class type {
                     NONE = 0,
                     VK,
+                    VK_DEVICE,
+                    VK_SWAPCHAIN,
+                    VK_INSTANCE
                 };
                 void push(event e, type t, std::function<void()>&& function); 
                 void flush(event e, type t);

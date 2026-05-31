@@ -21,17 +21,8 @@ export {
                     VkPipelineVertexInputStateCreateFlags flags = 0;
                 };
 
-                struct vertex {
-                    glm::vec4 position = glm::vec4(0);
-                    glm::vec3 normal = glm::vec3(0);
-                    glm::vec3 color = glm::vec3(0,0,0);
-                    glm::vec2 uv = glm::vec2(0,0);
-                    float weights[4] = { 0.0f, 0.0f, 0.0f, 0.0f};
-                    int boneID[4] = { -1, -1, -1, -1};
-                };
-                
                 struct push_range {
-                    uint32_t gpu_address = 0;
+                    VkDeviceAddress gpu_address = 0;
                     uint32_t texture_id = 0;
                 };
             private:

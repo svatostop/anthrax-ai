@@ -23,13 +23,13 @@ export {
                 
                 void submit(VkDevice dev, VkQueue queue, std::function<void(VkCommandBuffer cmd)>&& f);
 
-                void sync_frames(VkDevice dev, VkSwapchainKHR swapchain);
+                bool sync_frames(VkDevice dev, VkSwapchainKHR swapchain);
                 void wait_timeline(VkDevice dev, VkSwapchainKHR swapchain, VkQueue queue) {
                     sync.wait_timeline(dev);
                 }
 
                 void prepare_for_present(VkImage src_image, const glm::vec2& src_size, VkImage sw_image, const glm::vec2& sw_size);
-                void submit_and_present(VkQueue queue, VkSwapchainKHR swapchain);
+                bool submit_and_present(VkQueue queue, VkSwapchainKHR swapchain);
                 VkCommandBuffer get_upload_cmd() { return cmd.get_upload_cmd(); }
                 VkFence* get_upload_fence() { return sync.get_upload_fence(); }
                 VkCommandPool get_upload_cmd_pool() { return cmd.get_upload_cmd_pool(); }

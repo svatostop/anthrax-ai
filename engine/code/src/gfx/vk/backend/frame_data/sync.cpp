@@ -33,13 +33,15 @@ void vk::synchronization::wait_timeline(VkDevice dev)
     vkWaitSemaphores(dev, &sema_wait, UINT64_MAX);
 }
 
-void vk::synchronization::sync_frames(VkDevice dev, VkSwapchainKHR swapchain, uint32_t frame_index)
+bool vk::synchronization::sync_frames(VkDevice dev, VkSwapchainKHR swapchain, uint32_t frame_index)
 {
    	VkResult e = vkAcquireNextImageKHR(dev, swapchain, 1000000000, present_sema[frame_index], VK_NULL_HANDLE, &swapchain_index);
 	if (e == VK_ERROR_OUT_OF_DATE_KHR) {
-		// return -1;
-	}
-    wait_timeline(dev);    
+        swapchain_index = -1;
+        return false;     
+    }
+    wait_timeline(dev);
+    return true;
 }
 
 void vk::synchronization::init(VkDevice dev, const int sw_size)

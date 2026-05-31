@@ -15,6 +15,7 @@ export {
 
                 Display* get_display() { return display; }
                 Window get_x11_win() { return x11_win; }
+                GLFWwindow* get_glfw_win() { return win; }
             private:
                 GLFWwindow* win;
                 Display* display;
