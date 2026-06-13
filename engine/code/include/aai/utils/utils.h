@@ -4,7 +4,7 @@
 #include <vector>
 
 namespace header_utils {
-void ASSERT(bool x, const std::string& str) {
+inline void ASSERT(bool x, const std::string& str) {
             	bool err = x;												
             	if (err)                                                   	
             	{                                                           
@@ -14,7 +14,7 @@ void ASSERT(bool x, const std::string& str) {
             	}                                                           
         }
 
-void read_file(const std::string& filename, std::vector<char>& buffer)
+inline void read_file(const std::string& filename, std::vector<char>& buffer)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 

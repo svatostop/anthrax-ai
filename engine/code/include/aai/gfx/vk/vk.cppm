@@ -1,6 +1,7 @@
 module;
 #include "aai/io/win_defines.h"
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include <memory>
 #include <stdio.h>
 
 export module aai.gfx.vk;
@@ -12,6 +13,7 @@ export import aai.gfx.vk.pipeline;
 export import aai.gfx.vk.rq;
 export import aai.gfx.vk.renderer;
 import aai.gfx.vk.device.helper;
+export import aai.gfx.vk.model;
 import std;
 
 export {
@@ -26,8 +28,9 @@ export {
 
                 void clean_rts() { render.clean_rts(dev.get_devices()); }
                 void create_texture(const char* path, std::shared_ptr<rt::render_target> target);
+                void create_model(const char* path, std::shared_ptr<model::base> m);
                 void create_material(mat::materials& m) { pipe.create_material(dev.get_device(), m); } 
-                void set_rq(const rq::data& r) { rq = r; }
+                void push_rq(const rq::data& r) { rq.push_back(r); }
 
                 VkDeviceAddress get_buffer_address() { return gpu_mem.get_buffer_address(); }
 
@@ -41,7 +44,7 @@ export {
                 void set_debug_render_pass_name(VkCommandBuffer cmd, const std::string& name);
                 void unset_debug_render_pass_name(VkCommandBuffer cmd);
             
-                rq::data rq;
+                std::deque<rq::data> rq;
                 
                 instance inst;
                 device dev;

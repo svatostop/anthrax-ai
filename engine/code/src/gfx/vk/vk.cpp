@@ -67,11 +67,23 @@ void vk::base::execute()
 {
     gpu_mem.update(dev.get_devices());
 
-    set_debug_render_pass_name(frame.get_cmd(), "test");
-    render.block(frame.get_cmd(), rq);
+    set_debug_render_pass_name(frame.get_cmd(), "test quad");
+    render.block(frame.get_cmd(), rq.front());
+    unset_debug_render_pass_name(frame.get_cmd());
+
+    set_debug_render_pass_name(frame.get_cmd(), "test model");
+    render.block(frame.get_cmd(), rq.back());
     unset_debug_render_pass_name(frame.get_cmd());
 }
 
+void vk::base::create_model(const char* path, std::shared_ptr<model::base> m)
+{
+    m->load(path, dev.get_devices());
+    set_debug_name(path, reinterpret_cast<uint64_t>(m->get_vertex_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
+    set_debug_name(path, reinterpret_cast<uint64_t>(m->get_vertex_buffer()), VK_OBJECT_TYPE_BUFFER);
+    set_debug_name(path, reinterpret_cast<uint64_t>(m->get_index_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
+    set_debug_name(path, reinterpret_cast<uint64_t>(m->get_index_buffer()), VK_OBJECT_TYPE_BUFFER);
+}
 
 void vk::base::create_texture(const char* path, std::shared_ptr<rt::render_target> target)
 {

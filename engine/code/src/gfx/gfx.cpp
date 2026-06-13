@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 import aai.gfx.vk.rt.helper;
+import aai.gfx.vk.model;
 import aai.gfx;
 import glm;
 import std;
@@ -23,6 +24,7 @@ void gfx::base::run()
 void gfx::base::populate()
 {
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
+    uint32_t model_id = create_model("./models/cube.glb");
 
     glm::vec4 viewport = glm::vec4(400,300,0,0); 
 
@@ -59,11 +61,52 @@ void gfx::base::populate()
     });
     vk.create_material(material_pallet);
 
-    vk.set_rq({
+    vk.push_rq({
             .tag = "test",
             .material_handle = material_pallet.get("test"),
             .texture_id = texture_id,
     });
+    
+    shaders.clear();
+    shaders.push_back({mat::SHADER_VERT, "./shaders/mesh.vert"}),
+    shaders.push_back({mat::SHADER_FRAG, "./shaders/mesh.frag"}),
+    material_pallet.add_material_info({
+        .name = "test_model",
+        .rt_ref = vk.get_attachment_ref(rt::base::name::ONE_QUAD),
+        .viewport = viewport,
+        .scissor = viewport,
+        .rasterizer = {
+            .polygon = mat::MODE_FILL,
+            .cull = mat::CULL_NONE,
+            .face = mat::CC
+        },
+        .color_blend = {
+            .src_color_val = mat::SRC_ALPHA,
+            .dst_color_val = mat::ONE_MINUS_SRC_ALPHA, 
+            .src_alpha_val = mat::SRC_ALPHA,
+            .dst_alpha_val = mat::ONE_MINUS_SRC_ALPHA,
+            .c_op = mat::COLOR_OP_ADD,
+            .a_op = mat::COLOR_OP_ADD,
+            .alpha_blend = false
+        },
+        .depth_stencil = {
+            .depth_write = false,
+            .depth_test = false
+        },
+        .shaders = shaders,
+        .multisampling = false,
+        .vertex_attributes = true,
+        .bind_texture = false
+    });
+    vk.create_material(material_pallet);
+
+    vk.push_rq({
+            .tag = "test_model",
+            .material_handle = material_pallet.get("test_model"),
+            .texture_id = texture_id,
+            .mesh_handle = model_mng.get("./models/cube.glb"),
+    });
+
 }
 
 void gfx::base::clean_resources()
@@ -80,5 +123,15 @@ uint32_t gfx::base::create_texture(const char* path)
     });
     uint32_t id = future.get();
     printf("texture value !!! %d\n", id);
+    return id;
+}
+
+uint32_t gfx::base::create_model(const char* path)
+{
+    auto future = model_mng.load_async(path, [&](std::shared_ptr<model::base> m, const char*) {
+        vk.create_model(path, m);
+    });
+    uint32_t id = future.get();
+    printf("model value !!! %d\n", id);
     return id;
 }

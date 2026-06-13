@@ -30,6 +30,7 @@ export {
                 VkPipelineLayout pipe_layout;
                 VkDescriptorSetLayout bindless_texture_layout;
                 VkPipelineVertexInputStateCreateInfo vertex_input_info;
+                vk::pipeline::vertex_desc vert_desc_info;
                 VkPipelineViewportStateCreateInfo viewport_state;
                 VkPipelineColorBlendStateCreateInfo color_blend_state; 
                 VkViewport viewport;

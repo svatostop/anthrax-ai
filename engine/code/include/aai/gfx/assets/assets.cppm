@@ -47,6 +47,7 @@ export {
                         }
                     }
                 }
+                std::shared_ptr<T> get(const std::string& n) { if (cache.find(n) != cache.end()) return cache[n]; return nullptr; }
             private:
                 uint32_t counter = 0;
                 std::map<std::string, std::shared_ptr<T>> cache;

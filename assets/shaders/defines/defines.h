@@ -8,10 +8,13 @@
 layout(set = BindlessDescriptorSet, binding = BindlessSamplerBinding) \
     uniform sampler2D textures[];
 
-layout(std430, buffer_reference, buffer_reference_align = 16) buffer Camera
+layout(std430, buffer_reference, buffer_reference_align = 64) buffer Camera
 {
     vec4 viewport; 
-    vec4 test_color; 
+    vec4 test_color;
+
+    mat4 view;
+    mat4 proj;
 };
 
 layout( push_constant ) uniform constants

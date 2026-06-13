@@ -8,7 +8,7 @@ import aai.gfx.vk.loader.shader;
 import aai.utils;
 import glm;
 import std;
-void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, bool no_vertex)
+void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, vk::pipeline::vertex_desc& desc, bool no_vertex)
 {
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	info.pNext = nullptr;
@@ -21,14 +21,15 @@ void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, bool n
         info.vertexBindingDescriptionCount =0;
         return;
     }   
-    vk::pipeline::vertex_desc desc;
+    
+    desc.bindings.clear();
+    desc.attributes.clear();
 
 	VkVertexInputBindingDescription mainBinding = {};
 	mainBinding.binding = 0;
 	mainBinding.stride = sizeof(model::types::vertex);
     mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 	desc.bindings.push_back(mainBinding);
-
 
     VkVertexInputAttributeDescription positionAttribute = {};
     positionAttribute.binding = 0;
@@ -221,7 +222,7 @@ VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::base::ref& attachm
 
 void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 {
-    vertex_input_create_info(vertex_input_info, m.get_info().vertex_attributes);
+    vertex_input_create_info(vertex_input_info, vert_desc_info, m.get_info().vertex_attributes);
     VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
     convert_and_apply_viewport(viewport, m.get_info().viewport);
     convert_and_apply_scissor(scissor, m.get_info().scissor);
@@ -312,6 +313,6 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
         vkDestroyShaderModule(dev, shader_stage.module, nullptr);
     }
 
-    m.set_data(m.get_info().name, pipe, pipe_layout, m.get_info().rt_ref);
+    m.set_data(m.get_info().name, pipe, pipe_layout, m.get_info().rt_ref, m.get_info().vertex_attributes);
 }
 

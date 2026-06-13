@@ -1,5 +1,6 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include "aai/gfx/vk/model/model_types.h"
 #include <vulkan/vulkan_core.h>
 
 export module aai.gfx.vk.renderer;
@@ -24,6 +25,7 @@ export {
                 void start_render(VkCommandBuffer cmd, const rt::base::ref& attachment_ref);
                 void end_render(VkCommandBuffer cmd);
                 void draw(VkCommandBuffer cmd, const rq::data& rq);
+                void draw(VkCommandBuffer cmd, const rq::data& rq, const model::types::node* n);
 
                 PFN_vkCmdBeginRenderingKHR vkCmdBeginRenderingKHR{VK_NULL_HANDLE};
         	    PFN_vkCmdEndRenderingKHR   vkCmdEndRenderingKHR{VK_NULL_HANDLE};

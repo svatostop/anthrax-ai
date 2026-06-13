@@ -1,4 +1,5 @@
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include "aai/gfx/vk/model/model_types.h"
 #include <vulkan/vulkan_core.h>
 
 import aai.gfx.vk.renderer;
@@ -19,7 +20,16 @@ void vk::renderer::init(VkInstance inst, const vk::device::handlers& dev, VkDesc
 void vk::renderer::block(VkCommandBuffer cmd, const rq::data& rq)
 {
     start_render(cmd, rq.material_handle->attachment_ref);
-    draw(cmd, rq);
+    if (rq.mesh_handle) {
+        VkDeviceSize offsets[1] = { 0 };
+        VkBuffer vert_buf = rq.mesh_handle->get_vertex_buffer();
+        vkCmdBindVertexBuffers(cmd, 0, 1, &vert_buf, offsets);
+        vkCmdBindIndexBuffer(cmd, rq.mesh_handle->get_index_buffer(), 0, VK_INDEX_TYPE_UINT16);
+        for (const model::types::node* n : rq.mesh_handle->get_nodes())    
+            draw(cmd, rq, n);
+    }
+    else
+        draw(cmd, rq);
     end_render(cmd);
 }
 
@@ -91,11 +101,38 @@ void vk::renderer::end_render(VkCommandBuffer cmd)
 {
     vkCmdEndRenderingKHR(cmd);
 }
+void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::types::node* n)
+{
+    if (n->mesh.primitives.size() > 0) {
+        {
+            if (rq.texture_id > 0) {
+                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline_layout , 0, 1, &bindless_set, 0, nullptr);
+            }
+            vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline);
+        }
+    
+        vk::pipeline::push_range constants;
+        constants.gpu_address = buffer_address;
+        constants.texture_id = rq.texture_id;
+        vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
+
+        for (const model::types::primitive& prim : n->mesh.primitives) {
+            if (prim.index_count <= 0)
+                continue;
+            vkCmdDrawIndexed(cmd, prim.index_count, 1, prim.first_index, 0, 0);
+        }
+    }
+    
+    for (model::types::node* child : n->children) {
+        draw(cmd, rq, child);
+    }
+}
+
 void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq)
 {
 
     // bool bindpipe, bindindex = false;
-	// CheckTmpBindings(object.Mesh, object.Material, &bindpipe, &bindindex);
+	// check_tmp_binds(rq.mesh, object.Material, &bindpipe, &bindindex);
 
     //if (bindpipe) 
     {
@@ -104,14 +141,13 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq)
         }
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline);
     }
-
+    
 	vk::pipeline::push_range constants;
     constants.gpu_address = buffer_address;
     constants.texture_id = rq.texture_id;
 	vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
-	
+    
     vkCmdDraw(cmd, 6, 1, 0, 0);
     
-    //Utils::Debug::GetInstance()->DebugDrawCall();
 }
 

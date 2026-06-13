@@ -17,7 +17,6 @@ namespace vk {
         struct handlers {
             VkBuffer buffer;
             VkDeviceMemory device_memory;
-            void* uniform_mapped_memory;
             std::string tag;
 
             VkDeviceAddress gpu_address = 0; 
@@ -98,7 +97,7 @@ namespace vk {
             map_memory(stagingbuffer, devices.dev, buffersize, 0, datasrc);
 
             allocate(bufferhandler, devices, buffersize, flags[1], VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        // todo: doesn't submit
+            
             copy(devices.dev, stagingbuffer.buffer, bufferhandler.buffer, buffersize);
 
             vkDestroyBuffer(devices.dev, stagingbuffer.buffer, nullptr);

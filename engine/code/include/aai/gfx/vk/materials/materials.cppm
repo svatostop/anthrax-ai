@@ -13,6 +13,7 @@ export {
             VkPipelineLayout pipeline_layout;
             VkPipeline pipeline;
             rt::base::ref attachment_ref;
+            bool vertex_attributes;
 
             void clean(VkDevice dev) {
                 vkDestroyPipelineLayout(dev, pipeline_layout, nullptr);
@@ -94,10 +95,11 @@ export {
         class materials {
             public:
                 void add_material_info(info_helper d) { infos = d; } 
-                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r) { 
+                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r, bool vertex_attributes) { 
                     mat_map[n].pipeline = pipe; 
                     mat_map[n].pipeline_layout = pipe_layout; 
                     mat_map[n].attachment_ref = r;
+                    mat_map[n].vertex_attributes = vertex_attributes;
                 }
                 const info_helper& get_info() { return infos; }
                 data* get(const std::string& n) { 
