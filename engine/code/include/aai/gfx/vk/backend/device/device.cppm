@@ -6,6 +6,7 @@ export module aai.gfx.vk.device;
 import aai.gfx.vk.device.helper;
 import aai.gfx.vk.device.swapchain;
 import std;
+import glm;
 export {
    namespace vk {
        class device {
@@ -31,7 +32,8 @@ export {
                 VkSwapchainKHR get_swapchain() { return sw.swapchain; }
                 VkQueue get_queue(vk::queues::type type) { return queue.q[type]; }
 
-                void on_resize();
+                const glm::ivec2& on_resize();
+                const glm::ivec2& get_window_size() { return window_size; }
             private:
                 void init_physical_dev();
                 void init_logical_dev(bool validate, const std::vector<const char*>& layers);
@@ -41,8 +43,7 @@ export {
                 VkSurfaceKHR surface;
                 handlers devices;
                 GLFWwindow* glfw_win = nullptr;
-                int width = 0;
-                int height = 0;
+                glm::ivec2 window_size;
                 swapchain::handlers sw; 
                 queues::handlers queue;
 

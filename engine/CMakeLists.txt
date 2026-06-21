@@ -19,14 +19,14 @@ file(GLOB_RECURSE anthrax_headers CONFIGURE_DEPENDS ${aai_engine_code_dir}/inclu
 
 # add_library(${PROJECT_NAME})
 add_library(engine SHARED)
-
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 target_sources(engine 
-    PRIVATE
-        ${anthrax_sources} 
     PUBLIC
         FILE_SET CXX_MODULES
         FILES
            ${anthrax_headers}
+    PRIVATE
+        ${anthrax_sources} 
 )
 set_target_properties(engine PROPERTIES
     CXX_STANDARD 23

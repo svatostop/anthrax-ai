@@ -11,6 +11,7 @@ export {
         namespace rq {
             struct data {
                 std::string tag;
+                // todo make shared_ptr
                 mat::data* material_handle = nullptr;
                 uint32_t texture_id = 0;
                 std::shared_ptr<model::base> mesh_handle = nullptr;

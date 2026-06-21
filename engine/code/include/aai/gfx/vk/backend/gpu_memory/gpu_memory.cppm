@@ -2,10 +2,12 @@ module;
 #include "aai/gfx/vk/backend/vk_defines.h"
 
 export module aai.gfx.vk.gpu_memory;
+export import aai.keeper.camera;
 export import aai.gfx.vk.gpu_data;
 export import aai.gfx.vk.buffer;
 export import aai.gfx.vk.device;
 export import std;
+export import glm;
 export {
     namespace vk {
         class gpu_memory {
@@ -19,7 +21,7 @@ export {
 
                 VkDeviceAddress get_buffer_address() { return camera.data.gpu_address; }
 
-                void update(vk::device::handlers dev);
+                void update(vk::device::handlers dev, const std::shared_ptr<keeper::camera> cam, const glm::ivec2& window_size);
             private:
                 void init_descriptor_set(vk::device::handlers dev);
                 void init_buffers(vk::device::handlers dev);

@@ -1,32 +1,37 @@
+module;
 #include "aai/io/win_defines.h"
 #include <cstdint>
 #include <stdio.h>
 
+module aai.gfx;
 import aai.gfx.vk.rt.helper;
 import aai.gfx.vk.model;
-import aai.gfx;
 import glm;
 import std;
 
 void gfx::base::init(GLFWwindow* glfw_win, Display* di, Window w)
 {
-    vk.init(true, glfw_win, di, w);
+    vk.init(true, glfw_win, di, w, cam);
+    window_size = vk.get_window_size();
 }
 
 void gfx::base::run()
 {
+    cam->update();
+
     if (vk.begin_frame()) {
         vk.execute(); 
         vk.end_frame();
     } 
+    window_size = vk.get_window_size();
 }
 
 void gfx::base::populate()
 {
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
     uint32_t model_id = create_model("./models/cube.glb");
-
-    glm::vec4 viewport = glm::vec4(400,300,0,0); 
+    
+    glm::vec4 viewport = glm::vec4(window_size.x, window_size.y ,0,0); 
 
     std::vector<mat::shader_module> shaders;
     shaders.push_back({mat::SHADER_VERT, "./shaders/quad.vert"}),
@@ -36,6 +41,7 @@ void gfx::base::populate()
         .rt_ref = vk.get_attachment_ref(rt::base::name::ONE_QUAD),
         .viewport = viewport,
         .scissor = viewport,
+        .dynamic_viewport = true,
         .rasterizer = {
             .polygon = mat::MODE_FILL,
             .cull = mat::CULL_NONE,
@@ -75,6 +81,7 @@ void gfx::base::populate()
         .rt_ref = vk.get_attachment_ref(rt::base::name::ONE_QUAD),
         .viewport = viewport,
         .scissor = viewport,
+        .dynamic_viewport = true,
         .rasterizer = {
             .polygon = mat::MODE_FILL,
             .cull = mat::CULL_NONE,
@@ -103,7 +110,7 @@ void gfx::base::populate()
     vk.push_rq({
             .tag = "test_model",
             .material_handle = material_pallet.get("test_model"),
-            .texture_id = texture_id,
+            .texture_id = 0,
             .mesh_handle = model_mng.get("./models/cube.glb"),
     });
 

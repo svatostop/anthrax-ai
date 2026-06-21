@@ -1,7 +1,9 @@
+module;
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <stdio.h>
 #include <vulkan/vulkan_core.h>
-import aai.gfx.vk.frames.sync;
+
+module aai.gfx.vk.frames.sync;
 import aai.utils;
 import aai.utils.mem;
 import std;

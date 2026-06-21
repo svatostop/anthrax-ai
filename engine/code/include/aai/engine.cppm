@@ -1,6 +1,7 @@
 
 export module aai;
 export import aai.gfx;
+export import aai.keeper;
 export import aai.window;
 
 export {
@@ -18,6 +19,7 @@ export {
 
                 aai::window win;
                 gfx::base gfx;
+                keeper::base keeper;
         };
     }
 };

@@ -62,7 +62,7 @@ export {
        };
 
        class base {
-           public: 
+           public:
                struct type {
                    rt::helper::val v;
                    VkFormat format;
@@ -75,33 +75,38 @@ export {
                    uint32_t depth_count = 0;
                    std::vector<type> color_types;
                    type depth_types;
+                   uint32_t id = 0;
                };
+               typedef std::map<name, ref> ref_map;
                void fill_refs() {
                    ref r;
                    r.color_types.push_back({ rt::helper::val::MAIN_COLOR, VK_FORMAT_R8G8B8A8_UNORM });
                    r.color_count = r.color_types.size();
+                   r.id = ++refs_counter;
                    refs[name::ONE_QUAD] = r;
                }           
                const ref& get_ref(name d)  { return refs[d]; }
+               const ref_map& get_rt_ref_map() const { return refs; }
 
                void clean(const vk::device::handlers& dev) { 
-                    for (int i = 0; i < static_cast<int>(rt::helper::val::SIZE); i++) {
-                        if (rts[i]) {
-                            rts[i]->clean(dev);
-                            delete rts[i];
-                        }
-                    }
+                   for (int i = 0; i < static_cast<int>(rt::helper::val::SIZE); i++) {
+                       if (rts[i]) {
+                           rts[i]->clean(dev);
+                           delete rts[i];
+                       }
+                   }
                }
-               void create(const vk::device::handlers& dev) {
+               void create(const vk::device::handlers& dev, glm::ivec2 window_size) {
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)] = new render_target(static_cast<int>(rt::helper::val::MAIN_COLOR));
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_format(VK_FORMAT_R8G8B8A8_UNORM);
-                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_dimensions({800, 600});
+                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_dimensions({window_size.x, window_size.y});
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_sampler(true);
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->create(dev);
                }
                rt::render_target* get_rt(rt::helper::val v)  { return rts[static_cast<int>(v)]; }
            private:
-               std::map<name, ref> refs;
+               ref_map refs;
+               uint32_t refs_counter = 0;
                rt::render_target* rts[static_cast<int>(rt::helper::val::SIZE)];
        };
    }

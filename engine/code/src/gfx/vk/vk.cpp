@@ -1,3 +1,4 @@
+module;
 #include "aai/io/win_defines.h"
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <cstdint>
@@ -6,7 +7,7 @@
 #include <string>
 #include <vulkan/vulkan_core.h>
 
-import aai.gfx.vk;
+module aai.gfx.vk;
 import aai.gfx.vk.buffer;
 import aai.gfx.vk.device.helper;
 import aai.gfx.vk.frames;
@@ -17,8 +18,10 @@ import aai.gfx.vk.rt.cmd;
 import aai.utils;
 import std;
 
-void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w)
+void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w, std::shared_ptr<keeper::camera> c)
 {
+    cam = c;
+
     inst.init(validate);
 #ifdef AAI_LINUX
     dev.init_linux_surface(inst.get_instance(), glfw_win, di, w);
@@ -26,19 +29,17 @@ void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w)
     dev.init_windows_surface();
 #endif
     dev.init(validate, inst.get_layers());
+    window_size = dev.get_window_size();
 
     frame.init(dev.get_device(), dev.get_graphics_index(), dev.get_swapchains_amount());
 
     gpu_mem.init(dev.get_devices());
     pipe.set_layout(gpu_mem.get_bindless_layout());
 
+    render.set_window_size(window_size);
     render.init(inst.get_instance(), dev.get_devices(), gpu_mem.get_bindless_set(), gpu_mem.get_buffer_address());
 
-    frame.submit(dev.get_device(), dev.get_queue(vk::queues::type::GRAPHICS), [&](VkCommandBuffer cmd) {
-        render.get_rt(rt::helper::val::MAIN_COLOR)->memory_barrier(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    });
-    set_debug_name("test", reinterpret_cast<uint64_t>(render.get_rt(rt::helper::val::MAIN_COLOR)->get_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
-    set_debug_name("test", reinterpret_cast<uint64_t>(render.get_rt(rt::helper::val::MAIN_COLOR)->get_image()), VK_OBJECT_TYPE_IMAGE);
+    init_rt_states();
 
     auto f = std::bind(&vk::frames::submit, &frame, std::placeholders::_1, std::placeholders::_2,std::placeholders::_3);
     vk::buffer::set_submit_callback(f, dev.get_queue(vk::queues::type::GRAPHICS));
@@ -47,7 +48,7 @@ void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w)
 bool vk::base::begin_frame()
 {
     if (!frame.sync_frames(dev.get_device(), dev.get_swapchain()))
-        dev.on_resize();
+        on_resize();
     return frame.is_swapchain_index_valid();
 }
 
@@ -60,13 +61,16 @@ void vk::base::end_frame()
         { dev.get_swapchain_size().width ,  dev.get_swapchain_size().height }
     );
     if (!frame.submit_and_present(dev.get_queue(vk::queues::type::GRAPHICS), dev.get_swapchain()))
-        dev.on_resize();
+        on_resize();
 }
 
 void vk::base::execute()
 {
-    gpu_mem.update(dev.get_devices());
-
+    // TODO do something with the argument 'cam'
+    gpu_mem.update(dev.get_devices(), cam, window_size);
+    
+    render.set_window_size(window_size);
+    // TODO (rq back(), front())
     set_debug_render_pass_name(frame.get_cmd(), "test quad");
     render.block(frame.get_cmd(), rq.front());
     unset_debug_render_pass_name(frame.get_cmd());
@@ -106,6 +110,43 @@ void vk::base::create_texture(const char* path, std::shared_ptr<rt::render_targe
     vkFreeMemory(dev.get_device(), stagingbuffer.device_memory, nullptr);
 
     gpu_mem.update_texture(dev.get_device(), target->get_name(), target->get_image_view(), *(target->get_sampler()));
+}
+
+void vk::base::on_resize()
+{
+    window_size = dev.on_resize();
+    render.set_window_size(window_size);
+    render.recreate_rts(dev.get_devices());
+    init_rt_states();
+}
+void vk::base::init_rt_states()
+{
+    std::vector<rt::helper::val> rt_transition_values;
+    const rt::base::ref_map ref_map = render.get_rt_ref_map();
+    rt_transition_values.reserve(ref_map.size());
+    for (const auto& it : ref_map) {
+        for (const auto type : it.second.color_types) {
+            if (std::find(rt_transition_values.begin(), rt_transition_values.end(), type.v) == rt_transition_values.end()) {
+                frame.submit(dev.get_device(), dev.get_queue(vk::queues::type::GRAPHICS), [&](VkCommandBuffer cmd) {
+                        render.get_rt(type.v)->memory_barrier(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+                });
+                rt_transition_values.push_back(type.v);
+            }
+
+            set_debug_name(rt::helper::get_value(type.v), reinterpret_cast<uint64_t>(render.get_rt(type.v)->get_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
+            set_debug_name(rt::helper::get_value(type.v), reinterpret_cast<uint64_t>(render.get_rt(type.v)->get_image()), VK_OBJECT_TYPE_IMAGE);
+        }
+        if (it.second.depth_count > 0) {
+            if (std::find(rt_transition_values.begin(), rt_transition_values.end(), it.second.depth_types.v) == rt_transition_values.end()) {
+                frame.submit(dev.get_device(), dev.get_queue(vk::queues::type::GRAPHICS), [&](VkCommandBuffer cmd) {
+                        render.get_rt(it.second.depth_types.v)->memory_barrier(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+                });
+                rt_transition_values.push_back(it.second.depth_types.v);
+            }
+            set_debug_name(rt::helper::get_value(it.second.depth_types.v), reinterpret_cast<uint64_t>(render.get_rt(it.second.depth_types.v)->get_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
+            set_debug_name(rt::helper::get_value(it.second.depth_types.v), reinterpret_cast<uint64_t>(render.get_rt(it.second.depth_types.v)->get_image()), VK_OBJECT_TYPE_IMAGE);
+        }
+    }
 }
 
 void vk::base::set_debug_name(const std::string& name, uint64_t handle, VkObjectType type)

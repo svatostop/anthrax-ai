@@ -5,6 +5,7 @@ module;
 #include <stdio.h>
 
 export module aai.gfx.vk;
+export import aai.keeper.camera;
 export import aai.gfx.vk.instance;
 export import aai.gfx.vk.device;
 export import aai.gfx.vk.frames;
@@ -20,7 +21,7 @@ export {
    namespace vk {
        class base {
            public:
-                void init(bool validate,  GLFWwindow* glfw_win, Display* di, Window w);
+                void init(bool validate,  GLFWwindow* glfw_win, Display* di, Window w, std::shared_ptr<keeper::camera> c);
                 
                 bool begin_frame();
                 void end_frame();
@@ -39,7 +40,14 @@ export {
                 
                 vk::device::handlers get_devices() { return dev.get_devices(); }
                 void wait_timeline() { frame.wait_timeline(dev.get_device(), dev.get_swapchain(), dev.get_queue(vk::queues::type::GRAPHICS)); }
+
+                const glm::ivec2& get_window_size() { return window_size; }
+
+                void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; } 
            private:
+                void init_rt_states();
+                void on_resize();
+
                 void set_debug_name(const std::string& name, uint64_t handle, VkObjectType type);
                 void set_debug_render_pass_name(VkCommandBuffer cmd, const std::string& name);
                 void unset_debug_render_pass_name(VkCommandBuffer cmd);
@@ -53,6 +61,8 @@ export {
                 pipeline pipe;
 
                 renderer render;
+                glm::ivec2 window_size;
+                std::shared_ptr<keeper::camera> cam;
         };
    }
 };

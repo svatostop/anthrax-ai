@@ -1,7 +1,8 @@
+module;
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <cstdint>
 
-import aai.gfx.vk.frames;
+module aai.gfx.vk.frames;
 import aai.gfx.vk.rt.cmd;
 import aai.utils;
 

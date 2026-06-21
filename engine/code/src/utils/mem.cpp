@@ -1,4 +1,5 @@
-import aai.utils.mem;
+
+module aai.utils.mem;
 import std;
 
 void utils::mem::push(utils::mem::event e, utils::mem::type t, std::function<void()>&& function)

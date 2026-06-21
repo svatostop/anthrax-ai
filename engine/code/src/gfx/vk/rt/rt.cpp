@@ -1,6 +1,7 @@
+module;
 #include "aai/gfx/vk/backend/vk_defines.h"
 
-import aai.gfx.vk.rt;
+module aai.gfx.vk.rt;
 import aai.gfx.vk.device;
 import aai.gfx.vk.buffer;
 import aai.utils;

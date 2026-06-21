@@ -13,7 +13,7 @@ export {
             VkPipelineLayout pipeline_layout;
             VkPipeline pipeline;
             rt::base::ref attachment_ref;
-            bool vertex_attributes;
+            bool dynamic_viewport;
 
             void clean(VkDevice dev) {
                 vkDestroyPipelineLayout(dev, pipeline_layout, nullptr);
@@ -83,6 +83,7 @@ export {
             rt::base::ref rt_ref;
             glm::vec4 viewport = glm::vec4(0);
             glm::vec4 scissor = glm::vec4(0);
+            bool dynamic_viewport = false;
             rasterizer_helper rasterizer;            
             color_blend_helper color_blend;
             depth_helper depth_stencil;
@@ -95,11 +96,11 @@ export {
         class materials {
             public:
                 void add_material_info(info_helper d) { infos = d; } 
-                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r, bool vertex_attributes) { 
+                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r, bool dynamic_viewport) { 
                     mat_map[n].pipeline = pipe; 
                     mat_map[n].pipeline_layout = pipe_layout; 
                     mat_map[n].attachment_ref = r;
-                    mat_map[n].vertex_attributes = vertex_attributes;
+                    mat_map[n].dynamic_viewport = dynamic_viewport;
                 }
                 const info_helper& get_info() { return infos; }
                 data* get(const std::string& n) { 

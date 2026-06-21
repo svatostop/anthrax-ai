@@ -1,7 +1,7 @@
 module;
 #include "aai/io/win_defines.h"
 
-import aai.window;
+module aai.window;
 
 void aai::window::init()
 {

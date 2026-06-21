@@ -26,6 +26,7 @@ export {
                     uint32_t texture_id = 0;
                 };
             private:
+                VkPipelineVertexInputStateCreateInfo vertex_input_create_info(bool no_vertex);
                 VkPipeline pipe;
                 VkPipelineLayout pipe_layout;
                 VkDescriptorSetLayout bindless_texture_layout;

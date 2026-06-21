@@ -1,15 +1,17 @@
+module;
 #include "aai/gfx/vk/model/model_types.h"
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <shaderc/shaderc.h>
 
-import aai.gfx.vk.pipeline;
+module aai.gfx.vk.pipeline;
 import aai.gfx.vk.pipeline.helper;
 import aai.gfx.vk.loader.shader;
 import aai.utils;
 import glm;
 import std;
-void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, vk::pipeline::vertex_desc& desc, bool no_vertex)
+VkPipelineVertexInputStateCreateInfo vk::pipeline::vertex_input_create_info(bool no_vertex)
 {
+    VkPipelineVertexInputStateCreateInfo info{};
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	info.pNext = nullptr;
     info.flags = 0;
@@ -19,17 +21,17 @@ void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, vk::pi
 
     	info.pVertexBindingDescriptions = nullptr;
         info.vertexBindingDescriptionCount =0;
-        return;
+        return info;
     }   
     
-    desc.bindings.clear();
-    desc.attributes.clear();
+    vert_desc_info.bindings.clear();
+    vert_desc_info.attributes.clear();
 
 	VkVertexInputBindingDescription mainBinding = {};
 	mainBinding.binding = 0;
 	mainBinding.stride = sizeof(model::types::vertex);
     mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-	desc.bindings.push_back(mainBinding);
+	vert_desc_info.bindings.push_back(mainBinding);
 
     VkVertexInputAttributeDescription positionAttribute = {};
     positionAttribute.binding = 0;
@@ -60,23 +62,24 @@ void vertex_input_create_info(VkPipelineVertexInputStateCreateInfo& info, vk::pi
     weightattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
     weightattr.offset = offsetof(model::types::vertex, weights );
     VkVertexInputAttributeDescription boneattr = {};
-    weightattr.binding = 0;
-    weightattr.location = 5;
-    weightattr.format = VK_FORMAT_R32G32B32A32_UINT;
-    weightattr.offset = offsetof(model::types::vertex, boneID);
+    boneattr.binding = 0;
+    boneattr.location = 5;
+    boneattr.format = VK_FORMAT_R32G32B32A32_UINT;
+    boneattr.offset = offsetof(model::types::vertex, boneID);
 
-    desc.attributes.push_back(positionAttribute);
-    desc.attributes.push_back(normalAttribute);
-    desc.attributes.push_back(colorAttribute);
-    desc.attributes.push_back(uvattr);
-    desc.attributes.push_back(weightattr);
-    desc.attributes.push_back(boneattr);
+    vert_desc_info.attributes.push_back(positionAttribute);
+    vert_desc_info.attributes.push_back(normalAttribute);
+    vert_desc_info.attributes.push_back(colorAttribute);
+    vert_desc_info.attributes.push_back(uvattr);
+    vert_desc_info.attributes.push_back(weightattr);
+    vert_desc_info.attributes.push_back(boneattr);
 
-	info.pVertexAttributeDescriptions = desc.attributes.data();
-	info.vertexAttributeDescriptionCount = desc.attributes.size();
+    info.pVertexAttributeDescriptions = vert_desc_info.attributes.data();
+    info.vertexAttributeDescriptionCount = vert_desc_info.attributes.size();
 
-	info.pVertexBindingDescriptions = desc.bindings.data();
-	info.vertexBindingDescriptionCount = desc.bindings.size();
+    info.pVertexBindingDescriptions = vert_desc_info.bindings.data();
+    info.vertexBindingDescriptionCount = vert_desc_info.bindings.size();
+    return info;
 }
 VkPipelineInputAssemblyStateCreateInfo input_assembly_create_info()
 {
@@ -222,7 +225,7 @@ VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::base::ref& attachm
 
 void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 {
-    vertex_input_create_info(vertex_input_info, vert_desc_info, m.get_info().vertex_attributes);
+    vertex_input_info = vertex_input_create_info(m.get_info().vertex_attributes);
     VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
     convert_and_apply_viewport(viewport, m.get_info().viewport);
     convert_and_apply_scissor(scissor, m.get_info().scissor);
@@ -262,11 +265,30 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
     viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewport_state.pNext = nullptr;
     viewport_state.flags = 0;
-	viewport_state.viewportCount = 1;
-	viewport_state.pViewports = &viewport;
-	viewport_state.scissorCount = 1;
-	viewport_state.pScissors = &scissor;
+    
+    VkPipelineDynamicStateCreateInfo dynamic_states{};
+    dynamic_states.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamic_states.flags = 0;
+    dynamic_states.dynamicStateCount = 0;
+    dynamic_states.pDynamicStates = nullptr;
 
+    if (m.get_info().dynamic_viewport) {
+        viewport_state.viewportCount = 1;
+        viewport_state.pViewports = nullptr;
+        viewport_state.scissorCount = 1;
+        viewport_state.pScissors = nullptr;
+        dynamic_states.dynamicStateCount = 2;
+        VkDynamicState states[2];
+        states[0] = VK_DYNAMIC_STATE_VIEWPORT;
+        states[1] = VK_DYNAMIC_STATE_SCISSOR;
+        dynamic_states.pDynamicStates = states;
+    }
+    else {
+        viewport_state.viewportCount = 1;
+        viewport_state.pViewports = &viewport;
+        viewport_state.scissorCount = 1;
+        viewport_state.pScissors = &scissor;
+    }
     rt::base::ref attachments = m.get_info().rt_ref;
     get_color_blend_state(color_blend_state, color_blend, attachments);
     std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentStates;
@@ -304,6 +326,7 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 	pipelineinfo.pColorBlendState = &color_blend_state;
 	pipelineinfo.pDepthStencilState = &depth_stencil;
 	pipelineinfo.layout = pipe_layout;
+    pipelineinfo.pDynamicState = &dynamic_states ;
 	pipelineinfo.renderPass = nullptr;// renderer.getrenderpass();
 	pipelineinfo.subpass = 0;
 
@@ -313,6 +336,6 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
         vkDestroyShaderModule(dev, shader_stage.module, nullptr);
     }
 
-    m.set_data(m.get_info().name, pipe, pipe_layout, m.get_info().rt_ref, m.get_info().vertex_attributes);
+    m.set_data(m.get_info().name, pipe, pipe_layout, m.get_info().rt_ref, m.get_info().dynamic_viewport);
 }
 

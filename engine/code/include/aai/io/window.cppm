@@ -2,7 +2,7 @@ module;
 #include "aai/io/win_defines.h"
 
 export module aai.window;
-
+import glm;
 export {
     namespace  aai {
         class window {

@@ -1,6 +1,7 @@
+module;
 #include "aai/gfx/vk/backend/loaders/model_loader.h"
 
-import aai.gfx.vk.model;
+module aai.gfx.vk.model;
 import aai.utils;
 
 void model::base::load(const std::string& path, vk::device::handlers devices)

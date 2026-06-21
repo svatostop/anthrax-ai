@@ -1,10 +1,10 @@
 module;
 // #include "aai/gfx/vk/backend/vk_defines.h" 
-#ifdef __cplusplus
-#undef __cplusplus
+// #ifdef __cplusplus
+// #undef __cplusplus
 #include <vulkan/vk_enum_string_helper.h>
-#define __cplusplus
-#endif
+// #define __cplusplus
+// #endif
 
 export module aai.utils;
 import std;

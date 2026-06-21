@@ -1,7 +1,9 @@
+module;
 #include <cstring>
 #include "aai/gfx/vk/backend/vk_defines.h" 
 #include <vulkan/vulkan_core.h>
-import aai.gfx.vk.instance;
+
+module aai.gfx.vk.instance;
 import aai.utils;
 import aai.utils.mem;
 import std;
