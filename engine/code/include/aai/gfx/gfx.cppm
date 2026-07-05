@@ -19,7 +19,7 @@ export {
                 void run();
                 void populate();
 
-                void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; }
+                void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; cam->set_position(glm::vec3(-2.0f, 0.0f, -10.0f)); }
 
                 uint32_t create_texture(const char* path);
                 uint32_t create_model(const char* path);

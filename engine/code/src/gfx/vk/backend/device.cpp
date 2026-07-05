@@ -22,7 +22,7 @@ void vk::device::init(bool validate, const std::vector<const char*>& layers)
 const glm::ivec2& vk::device::on_resize()
 {
     vkDeviceWaitIdle(devices.dev);
-    glfwGetFramebufferSize(glfw_win, &window_size.x, &window_size.x);
+    glfwGetFramebufferSize(glfw_win, &window_size.x, &window_size.y);
     utils::mem::get()->flush(utils::mem::event::DELETE, utils::mem::type::VK_SWAPCHAIN);       
     init_swapchain();
 

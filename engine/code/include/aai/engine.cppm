@@ -5,7 +5,7 @@ export import aai.keeper;
 export import aai.window;
 
 export {
-    namespace  aai {
+    namespace  aai { 
         class core {
             public:
                 core() {}

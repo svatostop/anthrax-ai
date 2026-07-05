@@ -168,7 +168,7 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq)
     
 }
 
-void vk::renderer::check_bindings(mat::data* material, std::shared_ptr<model::base> mesh)
+void vk::renderer::check_bindings(std::shared_ptr<mat::data> material, std::shared_ptr<model::base> mesh)
 {
 	state.bind_pipeline = state.check_material != material;
     state.bind_mesh = state.check_mesh != mesh;

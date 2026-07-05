@@ -21,7 +21,7 @@ export {
 
                 VkDeviceAddress get_buffer_address() { return camera.data.gpu_address; }
 
-                void update(vk::device::handlers dev, const std::shared_ptr<keeper::camera> cam, const glm::ivec2& window_size);
+                void update(vk::device::handlers dev, const camera_data& data);
             private:
                 void init_descriptor_set(vk::device::handlers dev);
                 void init_buffers(vk::device::handlers dev);

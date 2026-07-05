@@ -1,12 +1,13 @@
 module aai;
 import aai.utils.mem;
+import aai.utils.timer;
 
 void aai::core::init()
 {
     win.init();
-    keeper.init(glm::vec3(-2.0f, 0.0f, -10.0f));
-
-    gfx.set_camera(keeper.get_camera(keeper::camera::type::EDITOR));
+    keeper.create<keeper::camera>();
+    keeper::entity_id id = keeper.get_last_id();
+    gfx.set_camera(std::static_pointer_cast<keeper::camera>(keeper.get(id)));
     gfx.init(win.get_glfw_win(), win.get_display(), win.get_x11_win());
     gfx.populate();
 }
@@ -15,7 +16,8 @@ void aai::core::run()
 {
     while (!win.closed()) {
         win.poll_events();
-
+        keeper.update();
+        utils::timer::next_frame();
         gfx.run();
     }
 }

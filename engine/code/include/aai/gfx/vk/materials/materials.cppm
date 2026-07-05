@@ -96,31 +96,33 @@ export {
         class materials {
             public:
                 void add_material_info(info_helper d) { infos = d; } 
-                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r, bool dynamic_viewport) { 
-                    mat_map[n].pipeline = pipe; 
-                    mat_map[n].pipeline_layout = pipe_layout; 
-                    mat_map[n].attachment_ref = r;
-                    mat_map[n].dynamic_viewport = dynamic_viewport;
+                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r, bool dynamic_viewport) {
+                    std::shared_ptr<data> d(new data);
+                    d->pipeline = pipe; 
+                    d->pipeline_layout = pipe_layout; 
+                    d->attachment_ref = r;
+                    d->dynamic_viewport = dynamic_viewport;
+                    mat_map[n] = d;
                 }
                 const info_helper& get_info() { return infos; }
-                data* get(const std::string& n) { 
+                std::shared_ptr<data> get(const std::string& n) { 
                 	auto it = mat_map.find(n);
                 	if (it == mat_map.end()) {
                 		return nullptr;
                 	}
                 	else {
-                		return &(*it).second;
+                		return (*it).second;
                 	}
                 }
 
                 void clean(const vk::device::handlers& dev) {
                     for (auto& m : mat_map) {
-                        m.second.clean(dev.dev);
+                        m.second->clean(dev.dev);
                     }
                 }
             private:
                 info_helper infos;
-                std::map<std::string, data> mat_map; 
+                std::map<std::string, std::shared_ptr<data>> mat_map; 
         };
     }
 };

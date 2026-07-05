@@ -28,6 +28,7 @@ void gfx::base::run()
 
 void gfx::base::populate()
 {
+    // todo better rq setup
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
     uint32_t model_id = create_model("./models/cube.glb");
     

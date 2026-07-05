@@ -30,6 +30,7 @@ void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w, 
 #endif
     dev.init(validate, inst.get_layers());
     window_size = dev.get_window_size();
+    cam->set_window_size(window_size);
 
     frame.init(dev.get_device(), dev.get_graphics_index(), dev.get_swapchains_amount());
 
@@ -66,18 +67,15 @@ void vk::base::end_frame()
 
 void vk::base::execute()
 {
-    // TODO do something with the argument 'cam'
-    gpu_mem.update(dev.get_devices(), cam, window_size);
+    cam_data.view = cam->get_view();
+    cam_data.proj = cam->get_proj();
+    gpu_mem.update(dev.get_devices(), cam_data);
     
-    render.set_window_size(window_size);
-    // TODO (rq back(), front())
-    set_debug_render_pass_name(frame.get_cmd(), "test quad");
-    render.block(frame.get_cmd(), rq.front());
-    unset_debug_render_pass_name(frame.get_cmd());
-
-    set_debug_render_pass_name(frame.get_cmd(), "test model");
-    render.block(frame.get_cmd(), rq.back());
-    unset_debug_render_pass_name(frame.get_cmd());
+    for (const rq::data& data : rq) {
+        set_debug_render_pass_name(frame.get_cmd(),  data.tag);
+        render.block(frame.get_cmd(), data);
+        unset_debug_render_pass_name(frame.get_cmd());
+    }
 }
 
 void vk::base::create_model(const char* path, std::shared_ptr<model::base> m)
@@ -116,6 +114,7 @@ void vk::base::on_resize()
 {
     window_size = dev.on_resize();
     render.set_window_size(window_size);
+    cam->set_window_size(window_size);
     render.recreate_rts(dev.get_devices());
     init_rt_states();
 }

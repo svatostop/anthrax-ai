@@ -1,9 +1,5 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
-#include "glm/glm.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/ext/matrix_clip_space.hpp"
-
 
 module aai.gfx.vk.gpu_memory;
 import aai.utils.mem;
@@ -13,16 +9,9 @@ void vk::gpu_memory::init(vk::device::handlers dev)
     init_descriptor_set(dev);
     init_buffers(dev);
 }
-void vk::gpu_memory::update(vk::device::handlers dev, const std::shared_ptr<keeper::camera> cam, const glm::ivec2& window_size)
+void vk::gpu_memory::update(vk::device::handlers dev, const camera_data& data)
 {
-    // TODO
-    glm::mat4 view = glm::lookAt(cam->get_pos(),glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 projection = glm::perspective(glm::radians(45.f), (window_size.x / (float)window_size.y), 1.0f, 1000.0f);
-	projection[1][1] *= -1;
-    
-    camera.raw_data.view = view;
-    camera.raw_data.proj = projection;
-
+    camera.raw_data = data;
     size_t buffer_size = sizeof(camera_data);
     vk::buffer::map_memory(camera.data, dev.dev, buffer_size, 0, &camera.raw_data); 
 }

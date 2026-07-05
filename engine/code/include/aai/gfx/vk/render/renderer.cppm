@@ -33,12 +33,12 @@ export {
 
                     bool bind_pipeline = true;
                     bool bind_mesh = true;
-                    mat::data* check_material = nullptr;
+                    std::shared_ptr<mat::data> check_material = nullptr;
                     std::shared_ptr<model::base> check_mesh = nullptr;
                 };
 
                 void check_render_state(const rq::data& rq);
-                void check_bindings(mat::data* material, std::shared_ptr<model::base> mesh);
+                void check_bindings(std::shared_ptr<mat::data> material, std::shared_ptr<model::base> mesh);
                 
                 void set_dynamic_viewport(VkCommandBuffer cmd);
                 void start_render(VkCommandBuffer cmd, const rt::base::ref& attachment_ref);

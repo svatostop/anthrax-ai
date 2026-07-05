@@ -56,23 +56,24 @@ VkPipelineVertexInputStateCreateInfo vk::pipeline::vertex_input_create_info(bool
     uvattr.location = 3;
     uvattr.format = VK_FORMAT_R32G32_SFLOAT;
     uvattr.offset = offsetof(model::types::vertex, uv);
-    VkVertexInputAttributeDescription weightattr = {};
-    weightattr.binding = 0;
-    weightattr.location = 4;
-    weightattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    weightattr.offset = offsetof(model::types::vertex, weights );
-    VkVertexInputAttributeDescription boneattr = {};
-    boneattr.binding = 0;
-    boneattr.location = 5;
-    boneattr.format = VK_FORMAT_R32G32B32A32_UINT;
-    boneattr.offset = offsetof(model::types::vertex, boneID);
 
+    // VkVertexInputAttributeDescription weightattr = {};
+    // weightattr.binding = 0;
+    // weightattr.location = 4;
+    // weightattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    // weightattr.offset = offsetof(model::types::vertex, weights );
+    // VkVertexInputAttributeDescription boneattr = {};
+    // boneattr.binding = 0;
+    // boneattr.location = 5;
+    // boneattr.format = VK_FORMAT_R32G32B32A32_UINT;
+    // boneattr.offset = offsetof(model::types::vertex, boneID);
+    //
     vert_desc_info.attributes.push_back(positionAttribute);
     vert_desc_info.attributes.push_back(normalAttribute);
     vert_desc_info.attributes.push_back(colorAttribute);
     vert_desc_info.attributes.push_back(uvattr);
-    vert_desc_info.attributes.push_back(weightattr);
-    vert_desc_info.attributes.push_back(boneattr);
+    // vert_desc_info.attributes.push_back(weightattr);
+    // vert_desc_info.attributes.push_back(boneattr);
 
     info.pVertexAttributeDescriptions = vert_desc_info.attributes.data();
     info.vertexAttributeDescriptionCount = vert_desc_info.attributes.size();
