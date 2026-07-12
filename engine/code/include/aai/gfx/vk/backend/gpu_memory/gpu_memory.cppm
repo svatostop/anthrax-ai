@@ -19,9 +19,9 @@ export {
                 VkDescriptorSetLayout get_bindless_layout() { return bindless_texture_layout; }
                 VkDescriptorSet get_bindless_set() { return bindless_texture_descriptor; }
 
-                VkDeviceAddress get_buffer_address() { return camera.data.gpu_address; }
+                VkDeviceAddress get_buffer_address(const gpu_data_type& t);
 
-                void update(vk::device::handlers dev, const camera_data& data);
+                void update(vk::device::handlers dev, const camera_data& data, const std::deque<instance_data>& inst_data);
             private:
                 void init_descriptor_set(vk::device::handlers dev);
                 void init_buffers(vk::device::handlers dev);
@@ -31,6 +31,7 @@ export {
                 VkDescriptorSet bindless_texture_descriptor;
 
                 gpu_data<camera_data> camera;
+                gpu_data<instance_data> instance;
 
                 std::map<std::string, uint32_t> texture_bindings;
                 uint32_t texture_handle = 0;

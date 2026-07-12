@@ -6,16 +6,24 @@ module;
 module aai.gfx.vk.renderer;
 import aai.gfx.vk.pipeline;
 import std;
-void vk::renderer::init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless, VkDeviceAddress buffer_addr)
+void vk::renderer::init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless, VkDeviceAddress buffer_addr, VkDeviceAddress instance_addr)
 {
     bindless_set = bindless;
-    buffer_address = buffer_addr;
+    camera_buffer_address = buffer_addr;
+    instance_buffer_address = instance_addr;
 
     vkCmdBeginRenderingKHR = (PFN_vkCmdBeginRenderingKHR) vkGetInstanceProcAddr(inst, "vkCmdBeginRenderingKHR");
 	vkCmdEndRenderingKHR = (PFN_vkCmdEndRenderingKHR) vkGetInstanceProcAddr(inst, "vkCmdEndRenderingKHR");
 
     rts.create(dev, window_size);
     rts.fill_refs();
+}
+
+void vk::renderer::refresh_state()
+{
+    state.instance_ind = 0;
+    state.check_material = nullptr;
+    state.check_mesh = nullptr;
 }
 
 void vk::renderer::check_render_state(const rq::data& rq)
@@ -133,14 +141,15 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::ty
         }
     
         vk::pipeline::push_range constants;
-        constants.gpu_address = buffer_address;
+        constants.camera_gpu_address = camera_buffer_address;
+        constants.instance_gpu_address = instance_buffer_address;
         constants.texture_id = rq.texture_id;
         vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
 
         for (const model::types::primitive& prim : n->mesh.primitives) {
             if (prim.index_count <= 0)
                 continue;
-            vkCmdDrawIndexed(cmd, prim.index_count, 1, prim.first_index, 0, 0);
+            vkCmdDrawIndexed(cmd, prim.index_count, 1, prim.first_index, 0, state.instance_ind);
         }
     }
     
@@ -160,7 +169,7 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq)
     }
     
 	vk::pipeline::push_range constants;
-    constants.gpu_address = buffer_address;
+    constants.camera_gpu_address = camera_buffer_address;
     constants.texture_id = rq.texture_id;
 	vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
     

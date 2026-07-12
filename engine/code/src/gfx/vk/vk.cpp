@@ -38,7 +38,7 @@ void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w, 
     pipe.set_layout(gpu_mem.get_bindless_layout());
 
     render.set_window_size(window_size);
-    render.init(inst.get_instance(), dev.get_devices(), gpu_mem.get_bindless_set(), gpu_mem.get_buffer_address());
+    render.init(inst.get_instance(), dev.get_devices(), gpu_mem.get_bindless_set(), gpu_mem.get_buffer_address(gpu_data_type::CAMERA), gpu_mem.get_buffer_address(gpu_data_type::INSTANCE));
 
     init_rt_states();
 
@@ -69,8 +69,16 @@ void vk::base::execute()
 {
     cam_data.view = cam->get_view();
     cam_data.proj = cam->get_proj();
-    gpu_mem.update(dev.get_devices(), cam_data);
-    
+    // do something about it ?? todo
+    inst_data.clear();
+    for (const rq::data& data : rq) {
+        instance_data d{};
+        d.model = data.model_matrix;
+        inst_data.push_back(d);  
+    }
+    gpu_mem.update(dev.get_devices(), cam_data, inst_data);
+
+    render.refresh_state();
     for (const rq::data& data : rq) {
         set_debug_render_pass_name(frame.get_cmd(),  data.tag);
         render.block(frame.get_cmd(), data);

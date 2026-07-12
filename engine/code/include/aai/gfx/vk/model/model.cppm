@@ -25,6 +25,8 @@ export {
                 const std::vector<model::types::node*>& get_nodes() const { return nodes; }
             private:
                 std::vector<model::types::node*> nodes;
+                std::vector<model::types::skin> skins;
+                std::vector<model::animation::base> animations;
                 vk_data data;
         };
     }

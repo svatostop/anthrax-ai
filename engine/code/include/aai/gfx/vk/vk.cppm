@@ -33,8 +33,6 @@ export {
                 void create_material(mat::materials& m) { pipe.create_material(dev.get_device(), m); } 
                 void push_rq(const rq::data& r) { rq.push_back(r); }
 
-                VkDeviceAddress get_buffer_address() { return gpu_mem.get_buffer_address(); }
-
                 rt::render_target* get_last_target() { return render.get_last_target(); } 
                 const rt::base::ref& get_attachment_ref(const rt::base::name r) { return render.get_attachment_ref(r); }
                 
@@ -64,6 +62,7 @@ export {
                 glm::ivec2 window_size;
                 std::shared_ptr<keeper::camera> cam;
                 camera_data cam_data;
+                std::deque<instance_data> inst_data;
         };
    }
 };

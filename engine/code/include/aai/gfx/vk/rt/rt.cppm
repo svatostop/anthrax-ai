@@ -13,7 +13,7 @@ export {
            public:
                 render_target() { name = "please dont call this ctor"; }
                 render_target(const std::string& n) : name(n) {}
-                render_target(uint32_t ind) { name = "test_name"; id = ind; }
+                render_target(uint32_t ind) { name = rt::helper::get_value(rt::helper::val(ind)); id = ind; }
                 //render_target(const RenderTarget& rt, uint32_t id);
 
                 void create(const vk::device::handlers& dev);
@@ -97,6 +97,9 @@ export {
                    }
                }
                void create(const vk::device::handlers& dev, glm::ivec2 window_size) {
+                   for (int i = 0; i < static_cast<int>(rt::helper::val::SIZE); i++) {
+                        rts[i] = nullptr;
+                   }
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)] = new render_target(static_cast<int>(rt::helper::val::MAIN_COLOR));
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_format(VK_FORMAT_R8G8B8A8_UNORM);
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_dimensions({window_size.x, window_size.y});

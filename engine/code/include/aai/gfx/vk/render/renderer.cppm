@@ -15,7 +15,7 @@ export {
     namespace vk {
         class renderer {
             public:
-                void init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless, VkDeviceAddress buffer_addr);
+                void init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless, VkDeviceAddress buffer_addr, VkDeviceAddress instance_addr);
                 
                 void block(VkCommandBuffer cmd, const rq::data& rq);
 
@@ -26,6 +26,8 @@ export {
                 void clean_rts(const vk::device::handlers& dev) { rts.clean(dev); }
                 void recreate_rts(const vk::device::handlers& dev) { rts.create(dev, window_size); }
                 void set_window_size(glm::ivec2 w) { window_size = w; }
+
+                void refresh_state();
             private:
                 struct render_state {
                     rt::base::ref attachment_ref;
@@ -35,6 +37,8 @@ export {
                     bool bind_mesh = true;
                     std::shared_ptr<mat::data> check_material = nullptr;
                     std::shared_ptr<model::base> check_mesh = nullptr;
+
+                    uint32_t instance_ind = 0;
                 };
 
                 void check_render_state(const rq::data& rq);
@@ -50,7 +54,8 @@ export {
         	    PFN_vkCmdEndRenderingKHR   vkCmdEndRenderingKHR{VK_NULL_HANDLE};
 
                 VkDescriptorSet bindless_set;
-                VkDeviceAddress buffer_address;
+                VkDeviceAddress camera_buffer_address;
+                VkDeviceAddress instance_buffer_address;
 
                 rt::base rts;
                 render_state state;

@@ -8,7 +8,7 @@ void model::base::load(const std::string& path, vk::device::handlers devices)
 {
     std::vector<types::vertex> verts;
     std::vector<uint16_t> inds;
-    loader::gltf::load(path, nodes, inds, verts);
+    loader::gltf::load(path, nodes, inds, verts, skins, animations);
     
     utils::ASSERT(verts.empty(), "loader::gltf::load(): returned emprty vertex buffer");
     utils::ASSERT(inds.empty(), "loader::gltf::load(): returned emprty index buffer");

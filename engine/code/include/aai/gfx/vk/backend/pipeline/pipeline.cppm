@@ -22,7 +22,8 @@ export {
                 };
 
                 struct push_range {
-                    VkDeviceAddress gpu_address = 0;
+                    VkDeviceAddress camera_gpu_address = 0;
+                    VkDeviceAddress instance_gpu_address = 0;
                     uint32_t texture_id = 0;
                 };
             private:
