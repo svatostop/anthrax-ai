@@ -31,6 +31,7 @@ void gfx::base::populate()
     // todo better rq setup
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
     uint32_t model_id = create_model("./models/cube.glb");
+    model_id = create_model("./models/fox.glb");
     
     glm::vec4 viewport = glm::vec4(window_size.x, window_size.y ,0,0); 
 
@@ -64,7 +65,8 @@ void gfx::base::populate()
         .shaders = shaders,
         .multisampling = false,
         .vertex_attributes = false,
-        .bind_texture = texture_id > 0
+        .bind_texture = texture_id > 0,
+        .has_bones = false
     });
     vk.create_material(material_pallet);
 
@@ -104,15 +106,60 @@ void gfx::base::populate()
         .shaders = shaders,
         .multisampling = false,
         .vertex_attributes = true,
-        .bind_texture = false
+        .bind_texture = false,
+        .has_bones = false
     });
     vk.create_material(material_pallet);
 
+    // vk.push_rq({
+    //         .tag = "test_model",
+    //         .material_handle = material_pallet.get("test_model"),
+    //         .texture_id = 0,
+    //         .mesh_handle = model_mng.get("./models/cube.glb"),
+    // });
+    //
+    shaders.clear();
+    shaders.push_back({mat::SHADER_VERT, "./shaders/mesh_anim.vert"}),
+    shaders.push_back({mat::SHADER_FRAG, "./shaders/mesh.frag"}),
+    material_pallet.add_material_info({
+        .name = "test_model_anim",
+        .rt_ref = vk.get_attachment_ref(rt::base::name::ONE_QUAD),
+        .viewport = viewport,
+        .scissor = viewport,
+        .dynamic_viewport = true,
+        .rasterizer = {
+            .polygon = mat::MODE_FILL,
+            .cull = mat::CULL_NONE,
+            .face = mat::CC
+        },
+        .color_blend = {
+            .src_color_val = mat::SRC_ALPHA,
+            .dst_color_val = mat::ONE_MINUS_SRC_ALPHA, 
+            .src_alpha_val = mat::SRC_ALPHA,
+            .dst_alpha_val = mat::ONE_MINUS_SRC_ALPHA,
+            .c_op = mat::COLOR_OP_ADD,
+            .a_op = mat::COLOR_OP_ADD,
+            .alpha_blend = false
+        },
+        .depth_stencil = {
+            .depth_write = false,
+            .depth_test = false
+        },
+        .shaders = shaders,
+        .multisampling = false,
+        .vertex_attributes = true,
+        .bind_texture = false,
+        .has_bones = true
+    });
+    // todo push and create of mat - can be joined
+    vk.create_material(material_pallet);
+
     vk.push_rq({
-            .tag = "test_model",
-            .material_handle = material_pallet.get("test_model"),
+            .tag = "test_model_anim",
+            .material_handle = material_pallet.get("test_model_anim"),
             .texture_id = 0,
-            .mesh_handle = model_mng.get("./models/cube.glb"),
+            // todo - models must be retrieved using unique id from asset mng
+            .mesh_handle = model_mng.get("./models/fox.glb"),
     });
 
 }

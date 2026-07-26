@@ -5,5 +5,5 @@
 
 void main()
 {
-    out_frag_color = vec4(1);
+    out_frag_color = vec4(normalize(innormal.xyz), 1);
 }

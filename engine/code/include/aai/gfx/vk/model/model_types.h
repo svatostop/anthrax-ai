@@ -51,6 +51,7 @@ namespace model {
             std::string name;
             node* skeleton_root = nullptr;
             std::vector<glm::mat4> inv_matrices;
+            std::vector<glm::mat4> fin_bone_transforms;
             std::vector<node*> bones;
         };
     }

@@ -9,13 +9,13 @@ import aai.gfx.vk.loader.shader;
 import aai.utils;
 import glm;
 import std;
-VkPipelineVertexInputStateCreateInfo vk::pipeline::vertex_input_create_info(bool no_vertex)
+VkPipelineVertexInputStateCreateInfo vk::pipeline::vertex_input_create_info(const mat::info_helper& mat_info)
 {
     VkPipelineVertexInputStateCreateInfo info{};
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	info.pNext = nullptr;
     info.flags = 0;
-    if (!no_vertex) {
+    if (!mat_info.vertex_attributes) {
         info.pVertexAttributeDescriptions = nullptr;
 	    info.vertexAttributeDescriptionCount = 0;
 
@@ -27,54 +27,47 @@ VkPipelineVertexInputStateCreateInfo vk::pipeline::vertex_input_create_info(bool
     vert_desc_info.bindings.clear();
     vert_desc_info.attributes.clear();
 
-	VkVertexInputBindingDescription mainBinding = {};
+	VkVertexInputBindingDescription& mainBinding = vert_desc_info.bindings.emplace_back();
 	mainBinding.binding = 0;
 	mainBinding.stride = sizeof(model::types::vertex);
     mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-	vert_desc_info.bindings.push_back(mainBinding);
 
-    VkVertexInputAttributeDescription positionAttribute = {};
+    VkVertexInputAttributeDescription& positionAttribute = vert_desc_info.attributes.emplace_back();
     positionAttribute.binding = 0;
 	positionAttribute.location = 0;
     positionAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
     positionAttribute.offset = offsetof(model::types::vertex, position);
     
-    VkVertexInputAttributeDescription normalAttribute = {};
+    VkVertexInputAttributeDescription& normalAttribute = vert_desc_info.attributes.emplace_back();
     normalAttribute.binding = 0;
     normalAttribute.location = 1;
     normalAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     normalAttribute.offset = offsetof(model::types::vertex, normal);
     
-    VkVertexInputAttributeDescription colorAttribute = {};
+    VkVertexInputAttributeDescription& colorAttribute = vert_desc_info.attributes.emplace_back();
     colorAttribute.binding = 0;
     colorAttribute.location = 2;
     colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     colorAttribute.offset = offsetof(model::types::vertex, color);
     
-    VkVertexInputAttributeDescription uvattr = {};
+    VkVertexInputAttributeDescription& uvattr = vert_desc_info.attributes.emplace_back();
     uvattr.binding = 0;
     uvattr.location = 3;
     uvattr.format = VK_FORMAT_R32G32_SFLOAT;
     uvattr.offset = offsetof(model::types::vertex, uv);
 
-    // VkVertexInputAttributeDescription weightattr = {};
-    // weightattr.binding = 0;
-    // weightattr.location = 4;
-    // weightattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    // weightattr.offset = offsetof(model::types::vertex, weights );
-    // VkVertexInputAttributeDescription boneattr = {};
-    // boneattr.binding = 0;
-    // boneattr.location = 5;
-    // boneattr.format = VK_FORMAT_R32G32B32A32_UINT;
-    // boneattr.offset = offsetof(model::types::vertex, boneID);
-    //
-    vert_desc_info.attributes.push_back(positionAttribute);
-    vert_desc_info.attributes.push_back(normalAttribute);
-    vert_desc_info.attributes.push_back(colorAttribute);
-    vert_desc_info.attributes.push_back(uvattr);
-    // vert_desc_info.attributes.push_back(weightattr);
-    // vert_desc_info.attributes.push_back(boneattr);
-
+    if (mat_info.has_bones) {
+        VkVertexInputAttributeDescription& weightattr = vert_desc_info.attributes.emplace_back();
+        VkVertexInputAttributeDescription& boneattr = vert_desc_info.attributes.emplace_back();
+        weightattr.binding = 0;
+        weightattr.location = 4;
+        weightattr.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        weightattr.offset = offsetof(model::types::vertex, weights );
+        boneattr.binding = 0;
+        boneattr.location = 5;
+        boneattr.format = VK_FORMAT_R32G32B32A32_SINT;
+        boneattr.offset = offsetof(model::types::vertex, bone_ids);
+    }
     info.pVertexAttributeDescriptions = vert_desc_info.attributes.data();
     info.vertexAttributeDescriptionCount = vert_desc_info.attributes.size();
 
@@ -226,7 +219,7 @@ VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::base::ref& attachm
 
 void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 {
-    vertex_input_info = vertex_input_create_info(m.get_info().vertex_attributes);
+    vertex_input_info = vertex_input_create_info(m.get_info());
     VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
     convert_and_apply_viewport(viewport, m.get_info().viewport);
     convert_and_apply_scissor(scissor, m.get_info().scissor);

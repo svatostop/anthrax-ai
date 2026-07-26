@@ -144,6 +144,10 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::ty
         constants.camera_gpu_address = camera_buffer_address;
         constants.instance_gpu_address = instance_buffer_address;
         constants.texture_id = rq.texture_id;
+        constants.skin_gpu_address = 0;
+        if (n->skin_id > -1) {
+            constants.skin_gpu_address = rq.mesh_handle->get_skin_gpu_address(n->skin_id); 
+        }
         vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
 
         for (const model::types::primitive& prim : n->mesh.primitives) {

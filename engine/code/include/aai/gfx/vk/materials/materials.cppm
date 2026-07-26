@@ -91,6 +91,7 @@ export {
             bool multisampling = false;
             bool vertex_attributes = false;
             bool bind_texture = false;
+            bool has_bones = false;
         };
  
         class materials {

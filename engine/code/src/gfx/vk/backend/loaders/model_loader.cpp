@@ -3,9 +3,11 @@
 #include <glm/fwd.hpp>
 #include <glm/matrix.hpp>
 #define TINYGLTF_IMPLEMENTATION
+// #define STB_IMAGE_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE_WRITE
-#define TINYGLTF_NO_STB_IMAGE
-#define TINYGLTF_NO_EXTERNAL_IMAGE
+// #define TINYGLTF_NO_STB_IMAGE_WRITE
+// #define TINYGLTF_NO_STB_IMAGE
+// #define TINYGLTF_NO_EXTERNAL_IMAGE
 #include "tiny_gltf.h"
 
 model::types::node* find_node(uint32_t ind, model::types::node* parent) {
@@ -48,7 +50,6 @@ void load_skins(const tinygltf::Model& gltf_model, std::vector<model::types::ski
             const tinygltf::Buffer& buff = gltf_model.buffers[buff_view.buffer];
             skins[i].inv_matrices.resize(accessor.count);
             memcpy(skins[i].inv_matrices.data(), &buff.data[accessor.byteOffset + buff_view.byteOffset], accessor.count * sizeof(glm::mat4));
-            // this data should go to vk dest set bone matrcies
         }
         i++;
     }
@@ -132,19 +133,18 @@ glm::mat4 get_node_matrix(model::types::node* n) {
     return m;
 }
 
-void update_bones(model::types::node* n, std::vector<model::types::skin>& skins) {
+void loader::gltf::update_bones(model::types::node* n, std::vector<model::types::skin>& skins) {
     if (n->skin_id > -1) {
         glm::mat4 inv_transofrm = glm::inverse(get_node_matrix(n));
-        model::types::skin s = skins[n->skin_id];
+        model::types::skin& s = skins[n->skin_id];
         size_t num_bone = s.bones.size();
-        std::vector<glm::mat4> bones_mat(num_bone);
+        s.fin_bone_transforms.resize(num_bone);
         int i = 0;
-        for (glm::mat4& m : bones_mat) {
+        for (glm::mat4& m : s.fin_bone_transforms) {
             m = get_node_matrix(s.bones[i]) * s.inv_matrices[i];
             m = inv_transofrm * m;
             i++;
         }
-        // copy to the vulkan buffer todo
     }
     for (auto& child : n->children) {
         update_bones(child, skins);
@@ -175,7 +175,7 @@ void load_node(const tinygltf::Node& input_node,  uint32_t node_ind, std::vector
 
             if (!input_node.children.empty()) {
                 for (const int& v : input_node.children) {
-                    load_node(gltf_model.nodes[v], input_node.children[v], nodes,gltf_model, n, index_buffer, vertex_buffer);
+                    load_node(gltf_model.nodes[v], v, nodes,gltf_model, n, index_buffer, vertex_buffer);
                 }
             }
 

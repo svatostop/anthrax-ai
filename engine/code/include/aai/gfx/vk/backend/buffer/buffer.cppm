@@ -80,7 +80,7 @@ namespace vk {
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = find_memory_type(devices.physical_dev, memRequirements.memoryTypeBits, properties);
             
-            if (usage == VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
+            if (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
                 VkMemoryAllocateFlagsInfoKHR flags_info{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO_KHR};
 	            flags_info.flags  = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
 	            allocInfo.pNext = &flags_info;
@@ -107,8 +107,7 @@ namespace vk {
         void allocate_with_mem_type(vk::buffer::handlers& bufferhandler, vk::device::handlers devices, VkDeviceSize buffersize, VkBufferUsageFlagBits usage, bool device_only )
         {
             if (device_only) {
-                // usage = static_cast<VkBufferUsageFlagBits>(usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-                    allocate(bufferhandler, devices,  buffersize, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                allocate(bufferhandler, devices,  buffersize, usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
             }
             else {
                 if (usage == VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) {

@@ -14,5 +14,6 @@
 namespace loader {
     namespace gltf {
         void load(const std::string& path, std::vector<model::types::node*>& nodes, std::vector<uint16_t>& index_buffer, std::vector<model::types::vertex>& vertex_buffer, std::vector<model::types::skin>& skins, std::vector<model::animation::base>& animations);
+        void update_bones(model::types::node* n, std::vector<model::types::skin>& skins);
     }
 }

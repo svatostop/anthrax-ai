@@ -33,21 +33,17 @@ void vk::gpu_memory::update(vk::device::handlers dev, const camera_data& data, c
     vk::buffer::map_memory(camera.data, dev.dev, buffer_size, 0, &camera.raw_data);
 
     if (!inst_data.empty()) {
-    buffer_size = sizeof(instance_data) * inst_data.size();
-    void* ptr_data;
-    vkMapMemory(dev.dev , instance.data.device_memory, 0, buffer_size, 0, (void**)&ptr_data);
-    instance_data* d = (instance_data*)ptr_data;
-    int ind = 0;
-    for (const instance_data& i_data : inst_data) {
-        d[ind].model = i_data.model;
-        ind++;
+        buffer_size = sizeof(instance_data) * inst_data.size();
+        void* ptr_data;
+        vkMapMemory(dev.dev , instance.data.device_memory, 0, buffer_size, 0, (void**)&ptr_data);
+        instance_data* d = (instance_data*)ptr_data;
+        int ind = 0;
+        for (const instance_data& i_data : inst_data) {
+            d[ind].model = i_data.model;
+            ind++;
+        }
+        vkUnmapMemory(dev.dev, instance.data.device_memory);
     }
-    vkUnmapMemory(dev.dev, instance.data.device_memory);
-    }
-    // instance.raw_data = inst_data;
-    // buffer_size = sizeof(instance_data) * 1000;
-    // vk::buffer::map_memory(instance.data, dev.dev, buffer_size, 0, &instance.raw_data); 
-
 }
 
 void vk::gpu_memory::update_texture(VkDevice dev, const std::string& name, VkImageView view, VkSampler sampler)
@@ -137,6 +133,7 @@ void vk::gpu_memory::init_descriptor_set(vk::device::handlers dev)
 }
 void vk::gpu_memory::init_buffers(vk::device::handlers dev)
 {
+    // todo - tripple buffer buffers
     size_t buffer_size = sizeof(camera_data);
     vk::buffer::allocate(camera.data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     vk::buffer::get_gpu_address(camera.data, dev.dev);
@@ -145,7 +142,7 @@ void vk::gpu_memory::init_buffers(vk::device::handlers dev)
 
     // todo - instance size hardcoded
     buffer_size = sizeof(instance_data) * 1000;
-    vk::buffer::allocate(instance.data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    vk::buffer::allocate(instance.data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     vk::buffer::get_gpu_address(instance.data, dev.dev);
     utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, instance.data.buffer, nullptr); });
     utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, instance.data.device_memory, nullptr); });
