@@ -89,14 +89,14 @@ namespace vk {
             vkBindBufferMemory(devices.dev, bufhandler.buffer, bufhandler.device_memory, 0);
         }
 
-        void create(vk::buffer::handlers& bufferhandler, vk::device::handlers devices, VkBufferUsageFlags flags[2], VkDeviceSize buffersize, const void *datasrc)
+        void create(vk::buffer::handlers& bufferhandler, vk::device::handlers devices, VkBufferUsageFlags flags[2], VkMemoryPropertyFlags memory_type, VkDeviceSize buffersize, const void *datasrc)
         {
             handlers stagingbuffer;
             allocate(stagingbuffer, devices, buffersize, flags[0], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
             map_memory(stagingbuffer, devices.dev, buffersize, 0, datasrc);
 
-            allocate(bufferhandler, devices, buffersize, flags[1], VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            allocate(bufferhandler, devices, buffersize, flags[1], memory_type);
             
             copy(devices.dev, stagingbuffer.buffer, bufferhandler.buffer, buffersize);
 

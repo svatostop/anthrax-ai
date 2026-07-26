@@ -31,7 +31,7 @@ void gfx::base::populate()
     // todo better rq setup
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
     uint32_t model_id = create_model("./models/cube.glb");
-    model_id = create_model("./models/fox.glb");
+    model_id = create_model("./models/man.glb");
     
     glm::vec4 viewport = glm::vec4(window_size.x, window_size.y ,0,0); 
 
@@ -159,7 +159,7 @@ void gfx::base::populate()
             .material_handle = material_pallet.get("test_model_anim"),
             .texture_id = 0,
             // todo - models must be retrieved using unique id from asset mng
-            .mesh_handle = model_mng.get("./models/fox.glb"),
+            .mesh_handle = model_mng.get("./models/man.glb"),
     });
 
 }
