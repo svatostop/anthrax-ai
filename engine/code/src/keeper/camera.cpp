@@ -18,11 +18,26 @@ void keeper::camera::set_directions()
     front = -direction;
 }
 
+// written by tokyospliff :з 
+inline glm::mat4 ReverseZPerspective(float fovYRadians, float aspect, float zNear) {
+    float f = 1.0f / std::tan(fovYRadians / 2.0f);
+
+    glm::mat4 projection(0.0f);
+    projection[0][0] = f / aspect;
+    projection[1][1] = f;
+    projection[2][2] = 0.0f;
+    projection[2][3] = -1.0f;
+    projection[3][2] = zNear;
+
+    return projection;
+}
 void keeper::camera::update_matrices()
 {
     view = glm::lookAt(get_pos(), get_pos() + get_front(), get_up());
-	projection = glm::perspective(glm::radians(45.f), (window_size.x / (float)window_size.y), 1.0f, 1000.0f);
+	projection = glm::perspective(glm::radians(45.f), (window_size.x / (float)window_size.y), 0.1f, 1000.0f);
 	projection[1][1] *= -1;
+	reverse_projection = ReverseZPerspective(glm::radians(45.f), (window_size.x / (float)window_size.y), 0.1f);
+    reverse_projection[1][1] *= -1;
 }
 
 void keeper::camera::update_movement()

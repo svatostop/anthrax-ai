@@ -31,8 +31,7 @@ export {
             private:
                 struct render_state {
                     rt::base::ref attachment_ref;
-                    rt::helper::rule attachment_rule;
-
+                    
                     bool bind_pipeline = true;
                     bool bind_mesh = true;
                     std::shared_ptr<mat::data> check_material = nullptr;

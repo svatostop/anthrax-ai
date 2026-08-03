@@ -64,11 +64,13 @@ export {
        class base {
            public:
                struct type {
+                   rt::helper::rule rule;
                    rt::helper::val v;
                    VkFormat format;
                };
                enum class name {
                    ONE_QUAD = 0,
+                   COLOR_WITH_DEPTH,
                };
                struct ref {
                    uint32_t color_count = 0;
@@ -79,11 +81,23 @@ export {
                };
                typedef std::map<name, ref> ref_map;
                void fill_refs() {
-                   ref r;
-                   r.color_types.push_back({ rt::helper::val::MAIN_COLOR, VK_FORMAT_R8G8B8A8_UNORM });
-                   r.color_count = r.color_types.size();
-                   r.id = ++refs_counter;
-                   refs[name::ONE_QUAD] = r;
+                   {
+                        ref r;
+                        r.color_types.push_back({ rt::helper::rule::CLEAR, rt::helper::val::MAIN_COLOR, VK_FORMAT_R8G8B8A8_UNORM });
+                        r.color_count = r.color_types.size();
+                        r.id = ++refs_counter;
+                        refs[name::ONE_QUAD] = r;
+                   }
+                   {
+                        ref r;
+                        r.color_types.push_back({ rt::helper::rule::CLEAR, rt::helper::val::MAIN_COLOR, VK_FORMAT_R8G8B8A8_UNORM });
+                        r.depth_types = { rt::helper::rule::CLEAR, rt::helper::val::MAIN_DEPTH, VK_FORMAT_D32_SFLOAT };
+                        r.color_count = r.color_types.size();
+                        r.depth_count++;
+                        r.id = ++refs_counter;
+                        refs[name::COLOR_WITH_DEPTH] = r;
+                   }
+
                }           
                const ref& get_ref(name d)  { return refs[d]; }
                const ref_map& get_rt_ref_map() const { return refs; }
@@ -105,6 +119,14 @@ export {
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_dimensions({window_size.x, window_size.y});
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_sampler(true);
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->create(dev);
+
+                   rts[static_cast<int>(rt::helper::val::MAIN_DEPTH)] = new render_target(static_cast<int>(rt::helper::val::MAIN_DEPTH));
+                   rts[static_cast<int>(rt::helper::val::MAIN_DEPTH)]->set_format(VK_FORMAT_D32_SFLOAT);
+                   rts[static_cast<int>(rt::helper::val::MAIN_DEPTH)]->set_dimensions({window_size.x, window_size.y});
+                   rts[static_cast<int>(rt::helper::val::MAIN_DEPTH)]->set_sampler(false);
+                   rts[static_cast<int>(rt::helper::val::MAIN_DEPTH)]->set_depth(true);
+                   rts[static_cast<int>(rt::helper::val::MAIN_DEPTH)]->create(dev);
+
                }
                rt::render_target* get_rt(rt::helper::val v)  { return rts[static_cast<int>(v)]; }
            private:

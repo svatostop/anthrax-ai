@@ -16,6 +16,7 @@ export {
                 
                 const glm::mat4& get_view() const { return view; }
                 const glm::mat4& get_proj() const { return projection; }
+                const glm::mat4& get_reverse_proj() const { return reverse_projection; }
                 const glm::vec3& get_dir() const { return direction; }
                 const glm::vec3& get_pos() const { return position; }
                 const glm::vec3& get_front() const { return front; }
@@ -43,6 +44,7 @@ export {
 
                 glm::mat4 view;
                 glm::mat4 projection;
+                glm::mat4 reverse_projection;
                 glm::mat4 rotation;
                 
                 glm::ivec2 window_size;

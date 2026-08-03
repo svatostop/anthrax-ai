@@ -31,7 +31,7 @@ void gfx::base::populate()
     // todo better rq setup
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
     uint32_t model_id = create_model("./models/cube.glb");
-    model_id = create_model("./models/man.glb");
+    model_id = create_model("./models/fox.glb");
     
     glm::vec4 viewport = glm::vec4(window_size.x, window_size.y ,0,0); 
 
@@ -111,19 +111,19 @@ void gfx::base::populate()
     });
     vk.create_material(material_pallet);
 
-    // vk.push_rq({
-    //         .tag = "test_model",
-    //         .material_handle = material_pallet.get("test_model"),
-    //         .texture_id = 0,
-    //         .mesh_handle = model_mng.get("./models/cube.glb"),
-    // });
-    //
+    vk.push_rq({
+            .tag = "test_model",
+            .material_handle = material_pallet.get("test_model"),
+            .texture_id = 0,
+            .mesh_handle = model_mng.get("./models/cube.glb"),
+    });
+
     shaders.clear();
     shaders.push_back({mat::SHADER_VERT, "./shaders/mesh_anim.vert"}),
     shaders.push_back({mat::SHADER_FRAG, "./shaders/mesh.frag"}),
     material_pallet.add_material_info({
         .name = "test_model_anim",
-        .rt_ref = vk.get_attachment_ref(rt::base::name::ONE_QUAD),
+        .rt_ref = vk.get_attachment_ref(rt::base::name::COLOR_WITH_DEPTH),
         .viewport = viewport,
         .scissor = viewport,
         .dynamic_viewport = true,
@@ -142,8 +142,9 @@ void gfx::base::populate()
             .alpha_blend = false
         },
         .depth_stencil = {
-            .depth_write = false,
-            .depth_test = false
+            .d_op = mat::DEPTH_OP_GREATER,
+            .depth_write = true,
+            .depth_test = true
         },
         .shaders = shaders,
         .multisampling = false,
@@ -159,7 +160,7 @@ void gfx::base::populate()
             .material_handle = material_pallet.get("test_model_anim"),
             .texture_id = 0,
             // todo - models must be retrieved using unique id from asset mng
-            .mesh_handle = model_mng.get("./models/man.glb"),
+            .mesh_handle = model_mng.get("./models/fox.glb"),
     });
 
 }

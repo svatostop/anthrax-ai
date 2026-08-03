@@ -160,14 +160,14 @@ void load_node(const tinygltf::Node& input_node,  uint32_t node_ind, std::vector
             n->skin_id = input_node.skin;
             n->matrix = glm::mat4(1.0f);
             if (input_node.translation.size() == 3) {
-                n->matrix = glm::translate(n->matrix, glm::vec3(glm::make_vec3(input_node.translation.data())));
+                n->translation = glm::make_vec3(input_node.translation.data());//glm::translate(n->matrix, glm::vec3(glm::make_vec3(input_node.translation.data())));
             }
             if (input_node.rotation.size() == 4) {
                 glm::quat q = glm::make_quat(input_node.rotation.data());
-                n->matrix *= glm::mat4(q);  
+                n->rotation = glm::mat4(q);  
             }
             if (input_node.scale.size() == 3) {
-                n->matrix = glm::scale(n->matrix, glm::vec3(glm::make_vec3(input_node.scale.data())));
+                n->scale = glm::make_vec3(input_node.scale.data());//glm::scale(n->matrix, glm::vec3(glm::make_vec3(input_node.scale.data())));
             }
             if (input_node.matrix.size() == 16) {
                 n->matrix = glm::make_mat4x4(input_node.matrix.data());

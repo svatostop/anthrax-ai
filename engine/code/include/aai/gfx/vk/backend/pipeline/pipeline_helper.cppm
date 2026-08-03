@@ -75,6 +75,8 @@ export {
                 switch (val) {
                     case mat::DEPTH_OP_LESS_OR_EQUAL:
                         return VK_COMPARE_OP_LESS_OR_EQUAL;
+                    case mat::DEPTH_OP_GREATER:
+                        return VK_COMPARE_OP_GREATER;
                     default:
                     case mat::DEPTH_OP_SIZE:
                         utils::ASSERT(true, "depth_op not set!");

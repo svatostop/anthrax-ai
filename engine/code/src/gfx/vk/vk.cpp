@@ -64,8 +64,12 @@ void vk::base::end_frame()
 
 void vk::base::execute()
 {
+    // todo : multithreading ENGINEEEE
+    // todo : improve camera movement
+    // todo : imgui
+    // todo : json integration
     cam_data.view = cam->get_view();
-    cam_data.proj = cam->get_proj();
+    cam_data.proj = cam->get_reverse_proj();
     // do something about it ?? todo
     inst_data.clear();
     for (const rq::data& data : rq) {

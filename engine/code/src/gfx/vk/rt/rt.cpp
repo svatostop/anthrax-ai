@@ -149,7 +149,7 @@ void rt::render_target::memory_barrier(VkCommandBuffer cmd, VkImageLayout oldlay
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.image = image;
-    barrier.subresourceRange.aspectMask =  (oldlayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL || newlayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;;
+    barrier.subresourceRange.aspectMask =  (newlayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL || newlayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL || oldlayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL || newlayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
     barrier.subresourceRange.baseArrayLayer = 0 ;

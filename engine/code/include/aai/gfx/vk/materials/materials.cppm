@@ -9,7 +9,8 @@ import glm;
 import std;
 export {
     namespace mat {
-        struct data {               
+        struct data {
+            std::string name;
             VkPipelineLayout pipeline_layout;
             VkPipeline pipeline;
             rt::base::ref attachment_ref;
@@ -48,6 +49,7 @@ export {
         };
         enum depth_op {
             DEPTH_OP_LESS_OR_EQUAL =0,
+            DEPTH_OP_GREATER,
             DEPTH_OP_SIZE
         };
         enum shader_type {
@@ -103,6 +105,7 @@ export {
                     d->pipeline_layout = pipe_layout; 
                     d->attachment_ref = r;
                     d->dynamic_viewport = dynamic_viewport;
+                    d->name = n;
                     mat_map[n] = d;
                 }
                 const info_helper& get_info() { return infos; }

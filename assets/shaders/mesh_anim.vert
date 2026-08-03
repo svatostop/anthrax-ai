@@ -12,13 +12,12 @@ void main()
     mat4 model = push.inst.data[gl_InstanceIndex].model;
     mat4 skin_transform = mat4(1);
     for (int i = 0; i < 4; i++) {
-        // if (vbones[i] <= 0)
-            // continue;
+        if (vbones[i] <= 0)
+            continue;
         skin_transform += vweights[i] * push.skin.transforms[vbones[i]]; 
     }
     // debugPrintfEXT("instanceIndex=%d | %f,%f,%f\n", gl_InstanceIndex, model[3][0], model[3][1], model[3][2]);
     vec4 position = proj * view * model * skin_transform * vec4(vposition.xyz, 1.0f);
     gl_Position = position;
-
     outnormal = vnormal;
 }

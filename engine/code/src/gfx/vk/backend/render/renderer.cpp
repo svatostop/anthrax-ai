@@ -24,15 +24,28 @@ void vk::renderer::refresh_state()
     state.instance_ind = 0;
     state.check_material = nullptr;
     state.check_mesh = nullptr;
+    state.attachment_ref.id = -1;
+    state.attachment_ref.color_types.clear();
 }
 
 void vk::renderer::check_render_state(const rq::data& rq)
 {
-    state.attachment_rule = rt::helper::rule::LOAD;
+    state.attachment_ref.depth_types.rule = rt::helper::rule::LOAD;
     if (state.attachment_ref.id != rq.material_handle->attachment_ref.id) {
-        state.attachment_rule = rt::helper::rule::CLEAR;
+        rq.material_handle->attachment_ref.depth_types.rule = rt::helper::rule::CLEAR;
+        for (int i = 0;i < rq.material_handle->attachment_ref.color_types.size(); i++) {
+            rq.material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::CLEAR;
+            if (i < state.attachment_ref.color_types.size() && state.attachment_ref.color_types[i].v == rq.material_handle->attachment_ref.color_types[i].v) {
+                rq.material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::LOAD;
+            }
+        }
         state.attachment_ref = rq.material_handle->attachment_ref;
-    } 
+    }
+    else {
+        for (int i = 0;i < rq.material_handle->attachment_ref.color_types.size(); i++) {
+            rq.material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::LOAD;
+        }
+    }
 }
 
 void vk::renderer::block(VkCommandBuffer cmd, const rq::data& rq)
@@ -77,7 +90,7 @@ VkRenderingAttachmentInfoKHR get_attachment_info(VkImageView imageview, bool isc
         info.clearValue = clearvalue;
 	}
     else {
-		clearvalue.depthStencil = {1.0f, 0};
+		clearvalue.depthStencil = {0.0f, 0};
 
 		info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
 		info.imageView = imageview;
@@ -111,14 +124,14 @@ void vk::renderer::start_render(VkCommandBuffer cmd, const rt::base::ref& attach
     
     VkRenderingAttachmentInfoKHR depth_info{};
     if (attachment_ref.depth_count > 0) {
-        depth_info = get_attachment_info(rts.get_rt(attachment_ref.depth_types.v)->get_image_view(), false, state.attachment_rule);
+        depth_info = get_attachment_info(rts.get_rt(attachment_ref.depth_types.v)->get_image_view(), false, attachment_ref.depth_types.rule);
         renderinfo.pDepthAttachment = &depth_info;
     }
     std::vector<VkRenderingAttachmentInfoKHR> colors;
     if (attachment_ref.color_count > 0) {
         colors.reserve(attachment_ref.color_count);
         for (const rt::base::type& t : attachment_ref.color_types) {
-            colors.push_back(get_attachment_info(rts.get_rt(t.v)->get_image_view(), true, state.attachment_rule));
+            colors.push_back(get_attachment_info(rts.get_rt(t.v)->get_image_view(), true, t.rule));
         }
         renderinfo.colorAttachmentCount = colors.size();
         renderinfo.pColorAttachments = (colors.data());

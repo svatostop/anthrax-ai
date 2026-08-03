@@ -10,7 +10,7 @@ export {
         namespace helper {
 #define RT_LOOKUP \
             X(MAIN_COLOR, "main_color") \
-            X(DEPTH, "depth") \
+            X(MAIN_DEPTH, "main_depth") \
             X(SIZE, "rts size") \
 
 #define X(element, name) element,
