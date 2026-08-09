@@ -119,6 +119,18 @@ FetchContent_MakeAvailable(tracy)
 set(TINYGLTF_HEADER_ONLY ON CACHE INTERNAL "" FORCE)
 set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
 list(APPEND _includes ${_path}/tinygltf)
+
+
+#=================================== nlohmann ===================================#
+set(NLOHMANN_JSON_BUILD_MODULES ON)
+add_subdirectory(${_path}/nlohmann)
+
+list(APPEND _libraries nlohmann_json_modules)
+
+# set(NLOHMANN_JSON_BUILD_MODULES ON CACHE BOOL "Enable nlohmann.json module support")
+#
+# FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
+# FetchContent_MakeAvailable(json)
 #=================================== assimp ===================================#
 
 # set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE)
@@ -169,6 +181,10 @@ target_sources(glm-module
 	FILES ${_path}/glm/glm/glm.cppm
 )
 target_link_libraries(libraries INTERFACE glm-module)
+target_compile_definitions(libraries INTERFACE NLOHMANN_JSON_BUILD_MODULES)
+
+# target_link_libraries(libraries INTERFACE nlohmann_json_modules)
+# target_compile_definitions(libraries INTERFACE NLOHMANN_JSON_BUILD_MODULES)
 # target_sources(libraries
 #     PUBLIC
 #     FILE_SET CXX_MODULES

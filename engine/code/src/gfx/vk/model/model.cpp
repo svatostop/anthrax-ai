@@ -1,5 +1,5 @@
 module;
-#include "aai/gfx/vk/backend/loaders/model_loader.h"
+#include "aai/gfx/vk/loaders/model_loader.h"
 
 module aai.gfx.vk.model;
 import aai.utils;

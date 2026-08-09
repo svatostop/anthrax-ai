@@ -7,8 +7,9 @@ module aai.gfx;
 import aai.gfx.vk.rt.helper;
 import aai.gfx.vk.model;
 import glm;
+import nlohmann.json;
 import std;
-
+using json = nlohmann::json;
 void gfx::base::init(GLFWwindow* glfw_win, Display* di, Window w)
 {
     vk.init(true, glfw_win, di, w, cam);
@@ -30,8 +31,8 @@ void gfx::base::populate()
 {
     // todo better rq setup
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
-    uint32_t model_id = create_model("./models/cube.glb");
-    model_id = create_model("./models/fox.glb");
+    uint32_t model_cube_id = create_model("./models/cube.glb");
+    uint32_t model_fox_id = create_model("./models/fox.glb");
     
     glm::vec4 viewport = glm::vec4(window_size.x, window_size.y ,0,0); 
 
@@ -115,7 +116,7 @@ void gfx::base::populate()
             .tag = "test_model",
             .material_handle = material_pallet.get("test_model"),
             .texture_id = 0,
-            .mesh_handle = model_mng.get("./models/cube.glb"),
+            .mesh_handle = model_mng.get(model_cube_id),
     });
 
     shaders.clear();
@@ -159,8 +160,7 @@ void gfx::base::populate()
             .tag = "test_model_anim",
             .material_handle = material_pallet.get("test_model_anim"),
             .texture_id = 0,
-            // todo - models must be retrieved using unique id from asset mng
-            .mesh_handle = model_mng.get("./models/fox.glb"),
+            .mesh_handle = model_mng.get(model_fox_id),
     });
 
 }

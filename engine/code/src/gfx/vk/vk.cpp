@@ -65,7 +65,6 @@ void vk::base::end_frame()
 void vk::base::execute()
 {
     // todo : multithreading ENGINEEEE
-    // todo : improve camera movement
     // todo : imgui
     // todo : json integration
     cam_data.view = cam->get_view();

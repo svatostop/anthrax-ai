@@ -10,8 +10,7 @@ export {
         class base {
             public:
                 template<typename T>
-                void create() { std::shared_ptr<T> e = std::make_shared<T>(); entities[e->get_id()] = e; }
-                entity_id get_last_id() { return std::prev(entities.end())->first; }
+                entity_id create() { std::shared_ptr<T> e = std::make_shared<T>(); entities[e->get_id()] = e; return e->get_id(); }
 
                 std::shared_ptr<entity> get(const entity_id id) { return entities[id]; }
 

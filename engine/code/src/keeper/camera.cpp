@@ -42,7 +42,11 @@ void keeper::camera::update_matrices()
 
 void keeper::camera::update_movement()
 {
-    float delta = 0.001 * utils::timer::delta_ms;
+    float speed_factor = 0.001f;
+    if (aai::io::key::is_state(aai::io::key::val::SHIFT)) {
+        speed_factor = 0.005f;
+    }
+    float delta = speed_factor * utils::timer::delta_ms;
     if (aai::io::key::is_state(aai::io::key::val::W)) {
         position += delta * front;
     }
@@ -59,15 +63,14 @@ void keeper::camera::update_movement()
 
 void keeper::camera::update_directions()
 {
-    float delta = 0.0000005 * utils::timer::delta_ms;
-    if (!aai::io::mouse::is_state(aai::io::mouse::val::LEFT_PRESSED))
-        return;
+    float delta = 0.00005 * utils::timer::delta_ms;
     glm::vec2 pos_delta = aai::io::mouse::get_delta();
-
+    if (!aai::io::mouse::is_state(aai::io::mouse::val::LEFT_PRESSED) || !aai::io::mouse::was_moved())
+        return;
     float rot_speed = delta;
     
     float yaw = rot_speed * pos_delta.x;
-    float pitch = rot_speed * pos_delta.y;
+    float pitch = rot_speed * -pos_delta.y;
 
     rotation = glm::rotate(glm::mat4(1.0), -yaw, glm::vec3(0.f, 1.f, 0.f));
     rotation = glm::rotate(rotation, -pitch, right);
