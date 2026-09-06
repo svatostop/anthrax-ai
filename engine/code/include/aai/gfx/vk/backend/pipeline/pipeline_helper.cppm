@@ -19,7 +19,7 @@ export {
                         return VK_POLYGON_MODE_POINT;
                     default:
                     case mat::polygon::val::SIZE:
-                        utils::ASSERT(true, "polygon_val not set!");
+                        utils::CHECK(true, "polygon_val not set!");
                         return VK_POLYGON_MODE_FILL;
                 }
             }
@@ -33,7 +33,7 @@ export {
                         return VK_CULL_MODE_NONE;
                     default:
                     case mat::cull::val::SIZE:
-                        utils::ASSERT(true, "cull_val not set!");
+                        utils::CHECK(true, "cull_val not set!");
                         return VK_CULL_MODE_NONE;
                 }
             }
@@ -45,7 +45,7 @@ export {
                         return VK_FRONT_FACE_COUNTER_CLOCKWISE;
                     default:
                     case mat::face::val::SIZE:
-                        utils::ASSERT(true, "face_val not set!");
+                        utils::CHECK(true, "face_val not set!");
                         return VK_FRONT_FACE_COUNTER_CLOCKWISE;
                 }
             }
@@ -56,9 +56,9 @@ export {
                     case mat::color_blends::val::ONE_MINUS_SRC_ALPHA:
                         return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
                     default:
-                    case mat::color_blends::val::BLEND_SIZE:
-                        utils::ASSERT(true, "mat::color_blends::val not set!");
-                        return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                    case mat::color_blends::val::SIZE:
+                        utils::CHECK(true, "mat::color_blends::val not set!");
+                        return VK_BLEND_FACTOR_SRC_COLOR;
                 }
             }
             VkBlendOp blend_op(mat::color_op::val val) {
@@ -66,8 +66,8 @@ export {
                     case mat::color_op::val::ADD:
                         return VK_BLEND_OP_ADD;
                     default:
-                    case mat::color_op::val::COLOR_OP_SIZE:
-                        utils::ASSERT(true, "mat::color_op::val not set!");
+                    case mat::color_op::val::SIZE:
+                        utils::CHECK(true, "mat::color_op::val not set!");
                         return VK_BLEND_OP_ADD;
                 }
             }
@@ -79,8 +79,8 @@ export {
                         return VK_COMPARE_OP_GREATER;
                     default:
                     case mat::depth_op::SIZE:
-                        utils::ASSERT(true, "depth_op not set!");
-                        return VK_COMPARE_OP_LESS_OR_EQUAL;
+                        utils::CHECK(true, "depth_op not set!");
+                        return VK_COMPARE_OP_NEVER;
                 }
             }
             VkShaderStageFlagBits shader_type_vk(mat::shader_type t) {

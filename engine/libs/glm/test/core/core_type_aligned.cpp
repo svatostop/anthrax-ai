@@ -1,3 +1,12 @@
+#include <glm/detail/setup.hpp>
+
+#if GLM_PLATFORM & GLM_PLATFORM_APPLE // Fail on Github macOS-latest (macOS-13 was fine)
+int main()
+{
+	return 0;
+}
+#else
+
 #ifndef GLM_FORCE_PURE
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #endif
@@ -78,6 +87,9 @@ static int test_vec3_aligned()
 #if GLM_COMPILER & GLM_COMPILER_CLANG
 #	pragma clang diagnostic push
 #	pragma clang diagnostic ignored "-Wpadded"
+#elif (GLM_COMPILER & GLM_COMPILER_VC)
+#	pragma warning(push)
+#	pragma warning(disable: 4324) // 'test_vec3_aligned::Struct2': structure was padded due to alignment specifier 
 #endif
 
 	struct Struct2
@@ -89,6 +101,8 @@ static int test_vec3_aligned()
 
 #if GLM_COMPILER & GLM_COMPILER_CLANG
 #	pragma clang diagnostic pop
+#elif (GLM_COMPILER & GLM_COMPILER_VC)
+#	pragma warning(pop)
 #endif
 
 	std::size_t const Size2 = sizeof(Struct2);
@@ -111,3 +125,5 @@ int main()
 
 	return Error;
 }
+
+#endif//GLM_PLATFORM & GLM_PLATFORM_APPLE

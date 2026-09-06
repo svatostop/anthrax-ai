@@ -1,10 +1,7 @@
 /// @ref gtx_pca
 
-#ifndef GLM_HAS_CXX11_STL
 #include <algorithm>
-#else
 #include <utility>
-#endif
 
 namespace glm {
 

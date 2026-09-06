@@ -2,16 +2,16 @@
     "material_sprite": {
         "pipeline_ref": "test",
         "vertex": "quad.vert",
-        "sprite": "quad.frag"
+        "fragment": "quad.frag"
     },
-    "marerial_model": {
-        "pipeline_ref": "test_model_anim",
+    "material_model": {
+        "pipeline_ref": "test_model",
         "vertex": "mesh.vert",
-        "sprite": "mesh.frag"
+        "fragment": "mesh.frag"
     },
-    "marerial_model_anim": {
+    "material_model_anim": {
         "pipeline_ref": "test_model_anim",
         "vertex": "mesh_anim.vert",
-        "sprite": "mesh.frag"
+        "fragment": "mesh.frag"
     }
 }

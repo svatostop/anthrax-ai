@@ -1,0 +1,15 @@
+
+export module aai.json;
+export import aai.json.helper;
+import aai.gfx;
+import aai.json.materials;
+
+export {
+    namespace aai {
+        namespace json {
+            void parse(const gfx::base& gfx) {
+                parse_material_data(gfx.get_material_parsing_data());
+            }
+        }
+    }
+};

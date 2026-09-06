@@ -228,7 +228,7 @@ struct compute_vec_div<L, T, Q, true> : public compute_vec_div<L, T, Q, false>
 			vec<L, int, Q> Result;
 			glm_i32vec4 ia = a.data;
 			glm_i32vec4 ib = b.data;
-#ifdef __SSE4_1__  // modern CPU - use SSE 4.1
+#if GLM_ARCH & GLM_ARCH_SSE41_BIT
 			Result.data = _mm_mullo_epi32(ia, ib);
 #else               // old CPU - use SSE 2
 			__m128i tmp1 = _mm_mul_epu32(ia, ib); /* mul 2,0*/
@@ -921,7 +921,7 @@ struct _swizzle_base1<L, uint, Q, E0, E1, E2, E3, true> : public _swizzle_base1<
 	{
 		static bool call(vec<L, float, Q> const& v1, vec<L, float, Q> const& v2)
 		{
-			return !compute_vec_equal<float, Q, false, 32, true>::call(v1, v2);
+			return !compute_vec_equal<L, float, Q, false, 32, true>::call(v1, v2);
 		}
 	};
 
@@ -930,7 +930,7 @@ struct _swizzle_base1<L, uint, Q, E0, E1, E2, E3, true> : public _swizzle_base1<
 	{
 		static bool call(vec<L, uint, Q> const& v1, vec<L, uint, Q> const& v2)
 		{
-			return !compute_vec_equal<uint, Q, false, 32, true>::call(v1, v2);
+			return !compute_vec_equal<L, uint, Q, false, 32, true>::call(v1, v2);
 		}
 	};
 
@@ -939,7 +939,7 @@ struct _swizzle_base1<L, uint, Q, E0, E1, E2, E3, true> : public _swizzle_base1<
 	{
 		static bool call(vec<L, int, Q> const& v1, vec<L, int, Q> const& v2)
 		{
-			return !compute_vec_equal<int, Q, false, 32, true>::call(v1, v2);
+			return !compute_vec_equal<L, int, Q, false, 32, true>::call(v1, v2);
 		}
 	};
 

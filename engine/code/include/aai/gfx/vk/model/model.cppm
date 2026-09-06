@@ -27,6 +27,8 @@ export {
                     std::vector<vk::buffer::handlers> skin;
                 };
                 const std::vector<model::types::node*>& get_nodes() const { return nodes; }
+
+                bool is_animated() { return !animations.empty(); }
             private:
                 std::vector<model::types::node*> nodes;
                 std::vector<model::types::skin> skins;

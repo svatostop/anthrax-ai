@@ -6,7 +6,7 @@
         "dst_alpha": "one_minus_src_alpha",
         "c_op": "add",
         "a_op": "add",
-        "blend": false,
+        "blend": false
     },
     "alpha_blend": {
         "src_color": "src_alpha",
@@ -15,7 +15,7 @@
         "dst_alpha": "zero",
         "c_op": "add",
         "a_op": "add",
-        "blend": true,
-    },
+        "blend": true
+    }
 
 }

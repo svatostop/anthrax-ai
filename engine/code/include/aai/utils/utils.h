@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace header_utils {
 inline void ASSERT(bool x, const std::string& str) {
@@ -13,7 +14,15 @@ inline void ASSERT(bool x, const std::string& str) {
             		throw std::runtime_error(errstr);						
             	}                                                           
         }
-
+inline void CHECK(bool x, const std::string& str) {
+            	bool err = x;												
+            	if (err)                                                   	
+            	{                                                           
+            		std::string errstr = "Error: " + str;					
+            		errstr += "\n\n"; 
+                    std::cout << errstr;
+            	}                                                           
+        }
 inline void read_file(const std::string& filename, std::vector<char>& buffer)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);

@@ -5,7 +5,6 @@ module;
 export module aai.gfx.materials;
 export import aai.gfx.materials.types;
 import aai.gfx.vk.device;
-import aai.json;
 import glm;
 import std;
 export {
@@ -25,9 +24,6 @@ export {
          
         class materials {
             public:
-                void parse_data() {
-                    aai::json::parse_material_data(infos_map);
-                }
                 uint32_t set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r, bool dynamic_viewport) {
                     std::shared_ptr<data> d(new data);
                     d->pipeline = pipe; 
@@ -39,7 +35,11 @@ export {
                     mat_map[ids] = d;
                     return ids;
                 }
+                bool is_empty() { return infos_map.empty(); }
+                material_infos_map& get_material_info_data() { return infos_map; }
                 const info_helper& get_info(const std::string& name) { return infos_map[name]; }
+                void request_mesh_use(const std::string& name, bool use) {infos_map[name].vertex_attributes = use;}
+                void request_mesh_animation(const std::string& name, bool has_anim) { infos_map[name].has_bones = has_anim;}
                 void request_texture_use(const std::string& name, bool use) { infos_map[name].bind_texture = use; }
                 void request_rt_ref_change(const std::string& name, const rt::base::ref ref) { infos_map[name].rt_ref = ref; }
                 rt::name::val get_rt_ref_val(const std::string& name) { return infos_map[name].rt_ref_val;  }

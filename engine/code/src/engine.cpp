@@ -1,4 +1,5 @@
 module aai;
+import aai.json;
 import aai.utils.mem;
 import aai.utils.timer;
 
@@ -8,6 +9,7 @@ void aai::core::init()
     keeper::entity_id id = keeper.create<keeper::camera>();
     gfx.set_camera(std::static_pointer_cast<keeper::camera>(keeper.get(id)));
     gfx.init(win.get_glfw_win(), win.get_display(), win.get_x11_win());
+    aai::json::parse(gfx);
     gfx.populate();
 }
 

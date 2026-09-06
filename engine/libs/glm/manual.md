@@ -18,10 +18,10 @@
 + [1.5. Finding GLM with CMake](#section1_5)
 + [2. Preprocessor configurations](#section2)
 + [2.1. GLM\_FORCE\_MESSAGES: Platform auto detection and default configuration](#section2_1)
-+ [2.2. GLM\_FORCE\_PLATFORM\_UNKNOWN: Force GLM to no detect the build platform](#section2_2)
-+ [2.3. GLM\_FORCE\_COMPILER\_UNKNOWN: Force GLM to no detect the C++ compiler](#section2_3)
-+ [2.4. GLM\_FORCE\_ARCH\_UNKNOWN: Force GLM to no detect the build architecture](#section2_4)
-+ [2.5. GLM\_FORCE\_CXX\_UNKNOWN: Force GLM to no detect the C++ standard](#section2_5)
++ [2.2. GLM\_FORCE\_PLATFORM\_UNKNOWN: Force GLM not to detect the build platform](#section2_2)
++ [2.3. GLM\_FORCE\_COMPILER\_UNKNOWN: Force GLM not to detect the C++ compiler](#section2_3)
++ [2.4. GLM\_FORCE\_ARCH\_UNKNOWN: Force GLM not to detect the build architecture](#section2_4)
++ [2.5. GLM\_FORCE\_CXX\_UNKNOWN: Force GLM not to detect the C++ standard](#section2_5)
 + [2.6. GLM\_FORCE\_CXX**: C++ language detection](#section2_6)
 + [2.7. GLM\_FORCE\_EXPLICIT\_CTOR: Requiring explicit conversions](#section2_7)
 + [2.8. GLM\_FORCE\_INLINE: Force inline](#section2_8)
@@ -81,7 +81,7 @@
 + [7.1 Why GLM follows GLSL specification and conventions?](#section7_1)
 + [7.2. Does GLM run GLSL programs?](#section7_2)
 + [7.3. Does a GLSL compiler build GLM codes?](#section7_3)
-+ [7.4. Should I use ‘GTX’ extensions?](#section7_4)
++ [7.4. Should I use 'GTX' extensions?](#section7_4)
 + [7.5. Where can I ask my questions?](#section7_5)
 + [7.6. Where can I find the documentation of extensions?](#section7_6)
 + [7.7. Should I use 'using namespace glm;'?](#section7_7)
@@ -200,7 +200,7 @@ glm::mat4 transform(glm::vec2 const& Orientation, glm::vec3 const& Translate, gl
 }
 ```
 
-*Note: Including `<glm/glm.hpp>` and `<glm/ext.hpp>` is convenient but pull a lot of code which will significantly increase build time, particularly if these files are included in all source files. We may prefer to use the approaches describe in the two following sections to keep the project build fast.*
+*Note: Including `<glm/glm.hpp>` and `<glm/ext.hpp>` is convenient but pull a lot of code which will significantly increase build time, particularly if these files are included in all source files. We may prefer to use the approaches described in the two following sections to keep the project build fast.*
 
 ### <a name="section1_2"></a> 1.2. Using separated headers
 
@@ -215,7 +215,7 @@ GLM relies on C++ templates heavily, and may significantly increase compilation 
 #include <glm/mat2x4.hpp>             // mat2x4, dmat2x4
 #include <glm/mat3x2.hpp>             // mat3x2, dmat3x2
 #include <glm/mat3x3.hpp>             // mat3, dmat3
-#include <glm/mat3x4.hpp>             // mat3x4, dmat2
+#include <glm/mat3x4.hpp>             // mat3x4, dmat3x4
 #include <glm/mat4x2.hpp>             // mat4x2, dmat4x2
 #include <glm/mat4x3.hpp>             // mat4x3, dmat4x3
 #include <glm/mat4x4.hpp>             // mat4, dmat4
@@ -297,7 +297,7 @@ find_package(glm REQUIRED)
 target_link_libraries(<your executable> glm::glm)
 ```
 
-To use GLM as a submodule in a project instead, use `add_subdirectory` to expose the same target, or add the directory to your target's
+To use GLM as a submodule in a project instead, use `add_subdirectory` to expose the same target, or add the directory to your target's include directories:
 
 ```cmake
 add_subdirectory(glm)
@@ -343,43 +343,42 @@ GLM: GLM_FORCE_LEFT_HANDED is undefined. Using right handed coordinate system.
 
 The following subsections describe each configurations and defines.
 
-### <a name="section2_2"></a> 2.2. GLM\_FORCE\_PLATFORM\_UNKNOWN: Force GLM to no detect the build platform
+### <a name="section2_2"></a> 2.2. GLM\_FORCE\_PLATFORM\_UNKNOWN: Force GLM not to detect the build platform
 
 `GLM_FORCE_PLATFORM_UNKNOWN` prevents GLM from detecting the build platform.
 
-### <a name="section2_3"></a> 2.3. GLM\_FORCE\_COMPILER\_UNKNOWN: Force GLM to no detect the C++ compiler
+### <a name="section2_3"></a> 2.3. GLM\_FORCE\_COMPILER\_UNKNOWN: Force GLM not to detect the C++ compiler
 
 `GLM_FORCE_COMPILER_UNKNOWN` prevents GLM from detecting the C++ compiler.
 
-### <a name="section2_4"></a> 2.4. GLM\_FORCE\_ARCH\_UNKNOWN: Force GLM to no detect the build architecture
+### <a name="section2_4"></a> 2.4. GLM\_FORCE\_ARCH\_UNKNOWN: Force GLM not to detect the build architecture
 
 `GLM_FORCE_ARCH_UNKNOWN` prevents GLM from detecting the build target architecture.
 
-### <a name="section2_5"></a> 2.5. GLM\_FORCE\_CXX\_UNKNOWN: Force GLM to no detect the C++ standard
+### <a name="section2_5"></a> 2.5. GLM\_FORCE\_CXX\_UNKNOWN: Force GLM not to detect the C++ standard
 
-`GLM_FORCE_CSS_UNKNOWN` prevents GLM from detecting the C++ compiler standard support.
+`GLM_FORCE_CXX_UNKNOWN` prevents GLM from detecting the C++ compiler standard support.
 
 ### <a name="section2_6"></a> 2.6. GLM\_FORCE\_CXX**: C++ language detection
 
-GLM will automatically take advantage of compilers’ language extensions when enabled. To increase cross platform compatibility and to avoid compiler extensions, a programmer can define `GLM_FORCE_CXX98` before
-any inclusion of `<glm/glm.hpp>` to restrict the language feature set C++98:
+GLM will automatically take advantage of compilers' language extensions when enabled. To increase cross platform compatibility and to avoid compiler extensions, a programmer can define `GLM_FORCE_CXX17` before
+any inclusion of `<glm/glm.hpp>` to restrict the language feature set C++17:
 
 ```cpp
-#define GLM_FORCE_CXX98
+#define GLM_FORCE_CXX17
 #include <glm/glm.hpp>
 ```
 
-For C++11, C++14, and C++17 equivalent defines are available:
+For C++17 and C++20 equivalent defines are available:
 
-* `GLM_FORCE_CXX11`
-* `GLM_FORCE_CXX14`
 * `GLM_FORCE_CXX17`
+* `GLM_FORCE_CXX20`
 
 ```cpp
 #define GLM_FORCE_CXX11
 #include <glm/glm.hpp>
 
-// If the compiler doesn’t support C++11, compiler errors will happen.
+// If the compiler doesn't support C++11, compiler errors will happen.
 ```
 
 `GLM_FORCE_CXX17` overrides `GLM_FORCE_CXX14`; `GLM_FORCE_CXX14` overrides `GLM_FORCE_CXX11`; and `GLM_FORCE_CXX11` overrides `GLM_FORCE_CXX98` defines.
@@ -413,10 +412,11 @@ With `GLM_FORCE_EXPLICIT_CTOR` define, implicit conversions are not allowed:
 void foo()
 {
     glm::ivec4 a;
-    {
-        glm::vec4 b(a); // Explicit conversion, OK
-        glm::vec4 c = a; // Implicit conversion, ERROR
-        ...
+    ...
+
+    glm::vec4 b(a); // Explicit conversion, OK
+    glm::vec4 c = a; // Implicit conversion, ERROR
+    ...
 }
 ```
 
@@ -489,7 +489,7 @@ void foo()
 >>> MyStruct is tightly packed: 32 bytes
 ```
 
-*Note: GLM SIMD optimizations require the use of aligned types*
+*Note: GLM SIMD optimizations require the use of aligned types.*
 
 ### <a name="section2_11"></a> 2.11. GLM\_FORCE\_INTRINSICS: Using SIMD optimizations
 
@@ -497,7 +497,7 @@ GLM provides some SIMD optimizations based on [compiler intrinsics](https://msdn
 These optimizations will be automatically thanks to compiler arguments when `GLM_FORCE_INTRINSICS` is defined before including GLM files.
 For example, if a program is compiled with Visual Studio using `/arch:AVX`, GLM will detect this argument and generate code using AVX instructions automatically when available.
 
-It’s possible to avoid the instruction set detection by forcing the use of a specific instruction set with one of the fallowing define:
+It's possible to avoid the instruction set detection by forcing the use of a specific instruction set with one of the following define:
 `GLM_FORCE_SSE2`, `GLM_FORCE_SSE3`, `GLM_FORCE_SSSE3`, `GLM_FORCE_SSE41`, `GLM_FORCE_SSE42`, `GLM_FORCE_AVX`, `GLM_FORCE_AVX2` or `GLM_FORCE_AVX512`.
 
 The use of intrinsic functions by GLM implementation can be avoided using the define `GLM_FORCE_PURE` before any inclusion of GLM headers. This can be particularly useful if we want to rely on C++14 `constexpr`.
@@ -515,7 +515,7 @@ static_assert(glm::vec4::length() == 4, "Using GLM C++ 14 constexpr support for 
 #define GLM_FORCE_SIMD_AVX2
 #include <glm/glm.hpp>
 
-// If the compiler doesn’t support AVX2 intrinsics, compiler errors will happen.
+// If the compiler doesn't support AVX2 intrinsics, compiler errors will happen.
 ```
 
 Additionally, GLM provides a low level SIMD API in glm/simd directory for users who are really interested in writing fast algorithms.
@@ -563,7 +563,7 @@ Available defines for unsigned integer types (`glm::uvec\*`):
 
 ### <a name="section2_13"></a> 2.13. GLM\_FORCE\_SINGLE\_ONLY: Removed explicit 64-bits floating point types
 
-Some platforms (Dreamcast) doesn't support double precision floating point values. To compile on such platforms, GCC has the `--m4-single-only` build argument. When defining `GLM_FORCE_SINGLE_ONLY` before including GLM headers, GLM releases the requirement of double precision floating point values support. Effectivement, all the float64 types are no longer defined and double behaves like float.
+Some platforms (Dreamcast) doesn't support double precision floating point values. To compile on such platforms, GCC has the `--m4-single-only` build argument. When defining `GLM_FORCE_SINGLE_ONLY` before including GLM headers, GLM releases the requirement of double precision floating point values support. Effectively, all the float64 types are no longer defined and double behaves like float.
 
 ### <a name="section2_14"></a> 2.14. GLM\_FORCE\_SWIZZLE: Enable swizzle operators
 
@@ -599,7 +599,7 @@ void foo()
     glm::vec3 const ColorBGR = ColorRGBA.bgr();
 
     glm::vec3 const PositionA = glm::vec3(1.0f, 0.5f, 0.0f);
-    glm::vec3 const PositionB = PositionXYZ.xyz() * 2.0f;
+    glm::vec3 const PositionB = PositionA.xyz() * 2.0f;
 
     glm::vec2 const TexcoordST = glm::vec2(1.0f, 0.5f);
     glm::vec4 const TexcoordSTPQ = TexcoordST.stst();
@@ -670,12 +670,12 @@ void foo()
 }
 ```
 
-*Note: The implementation has a caveat: Swizzle operator types must be different on both size of the equal operator or the operation will fail. There is no known fix for this issue to date*
+*Note: The implementation has a caveat: Swizzle operator types must be different on both size of the equal operator or the operation will fail. There is no known fix for this issue to date.*
 
 ### <a name="section2_15"></a> 2.15. GLM\_FORCE\_XYZW\_ONLY: Only exposes x, y, z and w components
 
 Following GLSL specifications, GLM supports three sets of components to access vector types member: x, y, z, w; r, g, b, a; and s, t, p, q.
-Also, this is making vector component very expressive in the code, it may make debugging vector types a little cubersom as the debuggers will typically display three time the values for each compoenents due to the existence of the three sets.
+Also, this is making vector component very expressive in the code, it may make debugging vector types a little cumbersome as the debuggers will typically display three times the value for each component due to the existence of the three sets.
 
 To simplify vector types, GLM allows exposing only x, y, z and w components thanks to `GLM_FORCE_XYZW_ONLY` define.
 
@@ -847,7 +847,7 @@ Include `<glm/ext/scalar_constants.hpp>` to use these features.
 
 #### 3.2.4. GLM_EXT_scalar_ulp
 
-This extension exposes function that measure of accuracy in numeric calculations.
+This extension exposes functions that measure accuracy in numeric calculations.
 
 ```cpp
 #include <glm/ext/scalar_ulp.hpp>
@@ -1368,7 +1368,7 @@ Include `<glm/ext/matrix_clip_space.hpp>` to use these features.
 
 #### 3.8.4. GLM_EXT_matrix_projection
 
-This extension exposes functions to map object coordinates into window coordinates and reverse
+This extension exposes functions to map object coordinates into window coordinates and reverse.
 
 Include `<glm/ext/matrix_projection.hpp>` to use these features.
 
@@ -1552,7 +1552,7 @@ Figure 4.10.5: glm::perlin(glm::vec3(x / 16.f, y / 16.f, 0.5f));
 
 ![](./doc/manual/noise-perlin3.jpg)
 
-Figure 4.10.6: glm::perlin(glm::vec4(x / 16.f, y / 16.f, 0.5f, 0.5f)));
+Figure 4.10.6: glm::perlin(glm::vec4(x / 16.f, y / 16.f, 0.5f, 0.5f));
 
 ![](./doc/manual/noise-perlin4.png)
 
@@ -1855,7 +1855,7 @@ ivec3 foo(in vec4 v)
     highp vec4 a = v;
     mediump vec4 b = a;
     lowp ivec3 c = ivec3(b);
-    return c;
+    return c;
 }
 
 // Using precision qualifier in GLM:
@@ -1865,9 +1865,9 @@ ivec3 foo(in vec4 v)
 ivec3 foo(const vec4 & v)
 {
     highp_vec4 a = v;
-    medium_vec4 b = a;
+    mediump_vec4 b = a;
     lowp_ivec3 c = glm::ivec3(b);
-    return c;
+    return c;
 }
 ```
 
@@ -1887,15 +1887,15 @@ No, GLM is a C++ implementation of a subset of GLSL.
 
 ### <a name="section7_3"></a> 7.3. Does a GLSL compiler build GLM codes?
 
-No, this is not what GLM attends to do.
+No, this is not what GLM intends to do.
 
-### <a name="section7_4"></a> 7.4. Should I use ‘GTX’ extensions?
+### <a name="section7_4"></a> 7.4. Should I use 'GTX' extensions?
 
-GTX extensions are qualified to be experimental extensions. In GLM this means that these extensions might change from version to version without any restriction. In practice, it doesn’t really change except time to
+GTX extensions are qualified to be experimental extensions. In GLM this means that these extensions might change from version to version without any restriction. In practice, it doesn't really change except time to
 time. GTC extensions are stabled, tested and perfectly reliable in time. Many GTX extensions extend GTC extensions and provide a way to explore features and implementations and APIs and then are promoted to GTC
 extensions. This is fairly the way OpenGL features are developed; through extensions.
 
-Stating with GLM 0.9.9, to use experimental extensions, an application must define GLM_ENABLE_EXPERIMENTAL.
+Starting with GLM 0.9.9, to use experimental extensions, an application must define GLM_ENABLE_EXPERIMENTAL.
 
 ### <a name="section7_5"></a> 7.5. Where can I ask my questions?
 
@@ -1903,10 +1903,10 @@ A good place is [stackoverflow](http://stackoverflow.com/search?q=GLM) using the
 
 ### <a name="section7_6"></a> 7.6. Where can I find the documentation of extensions?
 
-The Doxygen generated documentation includes a complete list of all extensions available. Explore this [*API documentation*](http://glm.g-truc.net/html/index.html) to get a complete
+The Doxygen generated documentation includes a complete list of all extensions available. Explore this [*API documentation*](http://glm.g-truc.net/0.9.9/api/modules.html) to get a complete
 view of all GLM capabilities!
 
-### <a name="section7_7"></a> 7.7. Should I use ‘using namespace glm;’?
+### <a name="section7_7"></a> 7.7. Should I use 'using namespace glm;'?
 
 NO! Chances are that if using namespace glm; is called, especially in a header file, name collisions will happen as GLM is based on GLSL which uses common tokens for types and functions. Avoiding using namespace
 glm; will a higher compatibility with third party library and SDKs.
@@ -1927,7 +1927,7 @@ You should not have any warnings even in `/W4` mode. However, if you expect such
 
 ### <a name="section7_10"></a> 7.10. Why some GLM functions can crash because of division by zero?
 
-GLM functions crashing is the result of a domain error. Such behavior follows the precedent set by C and C++'s standard library. For example, it’s a domain error to pass a null vector (all zeroes) to glm::normalize function, or to pass a negative number into std::sqrt.
+GLM functions crashing is the result of a domain error. Such behavior follows the precedent set by C and C++'s standard library. For example, it's a domain error to pass a null vector (all zeroes) to glm::normalize function, or to pass a negative number into std::sqrt.
 
 ### <a name="section7_11"></a> 7.11. What unit for angles is used in GLM?
 
@@ -2054,14 +2054,14 @@ glm::i32vec2 const PositionDataI32[VertexCount] =
 glm::vec3 lighting(intersection const& Intersection, material const& Material, light const& Light, glm::vec3 const& View)
 {
     glm::vec3 Color = glm::vec3(0.0f);
-    glm::vec3 LightVertor = glm::normalize(
+    glm::vec3 LightVector = glm::normalize(
         Light.position() - Intersection.globalPosition() +
-        glm::ballRand(0.0f, Light.inaccuracy());
+        glm::ballRand(0.0f, Light.inaccuracy()));
 
-    if(!shadow(Intersection.globalPosition(), Light.position(), LightVertor))
+    if(!shadow(Intersection.globalPosition(), Light.position(), LightVector))
     {
         float Diffuse = glm::dot(Intersection.normal(), LightVector);
-        if(Diffuse &lt;= 0.0f)
+        if(Diffuse <= 0.0f)
             return Color;
 
         if(Material.isDiffuse())
@@ -2073,7 +2073,7 @@ glm::vec3 lighting(intersection const& Intersection, material const& Material, l
             float Dot = glm::dot(Reflect, View);
             float Base = Dot &gt; 0.0f ? Dot : 0.0f;
             float Specular = glm::pow(Base, Material.exponent());
-            Color += Material.specular() \* Specular;
+            Color += Material.specular() * Specular;
         }
     }
 
@@ -2092,7 +2092,7 @@ Bug should be reported on Github using the [issue page](https://github.com/g-tru
 
 A minimal code to reproduce the issue will help.
 
-Additional, bugs can be configuration specific. We can report the configuration by defining `GLM_FORCE_MESSAGES` before including GLM headers then build and copy paste the build messages GLM will output.
+Additionally, bugs can be configuration specific. We can report the configuration by defining `GLM_FORCE_MESSAGES` before including GLM headers then build and copy paste the build messages GLM will output.
 
 ```cpp
 #define GLM_FORCE_MESSAGES
@@ -2104,7 +2104,7 @@ An example of build messages generated by GLM:
 ```plaintext
 GLM: 0.9.9.1
 GLM: C++ 17 with extensions
-GLM: GCC compiler detected"
+GLM: GCC compiler detected
 GLM: x86 64 bits with AVX instruction set build target
 GLM: Linux platform detected
 GLM: GLM_FORCE_SWIZZLE is undefined. swizzling functions or operators are disabled.
@@ -2120,15 +2120,15 @@ This tutorial will show us how to successfully contribute a bug-fix to GLM using
 
 We will be typing git commands in the Terminal. Mac and Linux users may have git pre-installed. You can download git from [here](http://git-scm.com/downloads).
 
-The tutorial assumes you have some basic understanding of git concepts - repositories, branches, commits, etc. Explaining it all from scratch is beyond the scope of this tutorial. Some good links to learn git basics are: [Link 1](http://git-scm.com/book/en/Getting-Started-Git-Basics), [Link 2](https://www.atlassian.com/git/tutorial/git-basics)
+The tutorial assumes you have some basic understanding of git concepts - repositories, branches, commits, etc. Explaining it all from scratch is beyond the scope of this tutorial. Some good links to learn git basics are: [Link 1](http://git-scm.com/book/en/Getting-Started-Git-Basics), [Link 2](https://www.atlassian.com/git/tutorial/git-basics).
 
 #### Step 1: Setup our GLM Fork
 
-We will make our changes in our own copy of the GLM sitory. On the GLM GitHub repo and we press the Fork button.
+We will make our changes in our own copy of the GLM repository. On the GLM GitHub repo and we press the Fork button.
 We need to download a copy of our fork to our local machine. In the terminal, type:
 
 ```plaintext
->>> git clone <our-repository-fork-git-url>
+git clone <our-repository-fork-git-url>
 ```
 
 This will clone our fork repository into the current folder.
@@ -2140,25 +2140,25 @@ We can find our repository git url on the Github repository page. The url looks 
 We can use the following command to add `upstream` (original project repository) as a remote repository so that we can fetch the latest GLM commits into our branch and keep our forked copy is synchronized.
 
 ```plaintext
->>> git remote add upstream https://github.com/processing/processing.git
+git remote add upstream https://github.com/g-truc/glm.git
 ```
 
 To synchronize our fork to the latest commit in the GLM repository, we can use the following command:
 
 ```plaintext
->>> git fetch upstream
+git fetch upstream
 ```
 
 Then, we can merge the remote master branch to our current branch:
 
 ```plaintext
->>> git merge upstream/master
+git merge upstream/master
 ```
 
 Now our local copy of our fork has been synchronized. However, the fork's copy is not updated on GitHub's servers yet. To do that, use:
 
 ```plaintext
->>> git push origin master
+git push origin master
 ```
 
 #### Step 3: Modifying our GLM Fork
@@ -2172,10 +2172,10 @@ Before creating a new branch, it's best to synchronize our fork and then create 
 If we are not on the master branch, we should switch to it using:
 
 ```plaintext
->>> git checkout master
+git checkout master
 ```
 
-To create a new branch called `bugifx`, we use:
+To create a new branch called `bugfix`, we use:
 
 ```plaintext
 git branch bugfix
@@ -2184,21 +2184,21 @@ git branch bugfix
 Once the code changes for the fix is done, we need to commit the changes:
 
 ```plaintext
->>> git commit -m "Resolve the issue that caused problem with a specific fix #432"
+git commit -m "Resolve the issue that caused problem with a specific fix #432"
 ```
 
-The commit message should be as specific as possible and finished by the bug number in the [GLM GitHub issue page](https://github.com/g-truc/glm/issues)
+The commit message should be as specific as possible and finished by the bug number in the [GLM GitHub issue page](https://github.com/g-truc/glm/issues).
 
 Finally, we need to push our changes in our branch to our GitHub fork using:
 
 ```plaintext
->>> git push origin bugfix
+git push origin bugfix
 ```
 
 Some things to keep in mind for a pull request:
 
 * Keep it minimal: Try to make the minimum required changes to fix the issue. If we have added any debugging code, we should remove it.
-* A fix at a time: The pull request should deal with one issue at a time only, unless two issue are so interlinked they must be fixed together.
+* A fix at a time: The pull request should deal with one issue at a time only, unless two issues are so interlinked they must be fixed together.
 * Write a test: GLM is largely unit tests. Unit tests are in `glm/test` directory. We should also add tests for the fixes we provide to ensure future regression doesn't happen.
 * No whitespace changes: Avoid unnecessary formatting or whitespace changes in other parts of the code. Be careful with auto-format options in the code editor which can cause wide scale formatting changes.
 * Follow [GLM Code Style](#section9_3) for consistency.
@@ -2276,11 +2276,11 @@ One blank line after the function blocks.
 
 #### Comments
 
-Always one space after the // in single line comments
+Always one space after the // in single line comments.
 
-One space before // at the end of a line (that has code as well)
+One space before // at the end of a line (that has code as well).
 
-Try to use // comments inside functions, to make it easier to remove a whole block via /\* \*/
+Try to use // comments inside functions, to make it easier to remove a whole block via /\* \*/.
 
 #### Cases
 
@@ -2315,19 +2315,19 @@ namespace detail // glm::detail namespace is for implementation detail
 
 ### <a name="section10_1"></a> 10.1. OpenGL specifications
 
-* OpenGL 4.3 core specification
+* OpenGL 4.3 core specification.
 * [GLSL 4.30 specification](http://www.opengl.org/registry/doc/GLSLangSpec.4.30.7.diff.pdf)
-![](media/image21.png){width="2.859722222222222in" height="1.6083333333333334in"}- [*GLU 1.3 specification*](http://www.opengl.org/documentation/specs/glu/glu1_3.pdf)
+![](media/image21.png){width="2.859722222222222in" height="1.6083333333333334in"}- [*GLU 1.3 specification*](http://www.opengl.org/documentation/specs/glu/glu1_3.pdf).
 
 ### <a name="section10_2"></a> 10.2. External links
 
-* [GLM on stackoverflow](http://stackoverflow.com/search?q=GLM)
+* [GLM on stackoverflow](http://stackoverflow.com/search?q=GLM).
 
 ### <a name="section10_3"></a> 10.3. Projects using GLM
 
-***[Leo’s Fortune](http://www.leosfortune.com/)***
+***[Leo's Fortune](http://www.leosfortune.com/)***
 
-Leo’s Fortune is a platform adventure game where you hunt down the cunning and mysterious thief that stole your gold. Available on PS4, Xbox One, PC, Mac, iOS and Android.
+Leo's Fortune is a platform adventure game where you hunt down the cunning and mysterious thief that stole your gold. Available on PS4, Xbox One, PC, Mac, iOS and Android.
 
 Beautifully hand-crafted levels bring the story of Leo to life in this epic adventure.
 
@@ -2397,34 +2397,34 @@ LibreOffice includes several applications that make it the most powerful Free an
 
 ### <a name="section10_4"></a> 10.4. Tutorials using GLM
 
-* [Sascha Willems' Vulkan examples](https://github.com/SaschaWillems/Vulkan), Examples and demos for the new Vulkan API
-* [VKTS](https://github.com/McNopper/Vulkan) Vulkan examples using VulKan ToolS (VKTS)
-* [*The OpenGL Samples Pack*](http://www.g-truc.net/project-0026.html#menu), samples that show how to set up all the different new features
-* [*Learning Modern 3D Graphics programming*](http://www.arcsynthesis.org/gltut/), a great OpenGL tutorial using GLM by Jason L. McKesson
-* [*Morten Nobel-Jørgensen’s*](http://blog.nobel-joergensen.com/2011/04/02/glm-brilliant-math-library-for-opengl/) review and use an [*OpenGL renderer*](https://github.com/mortennobel/RenderE)
-* [*Swiftless’ OpenGL tutorial*](http://www.swiftless.com/opengltuts.html) using GLM by Donald Urquhart
-* [*Rastergrid*](http://rastergrid.com/blog/), many technical articles with companion programs using GLM by Daniel Rákos\
-* [*OpenGL Tutorial*](http://www.opengl-tutorial.org), tutorials for OpenGL 3.1 and later
+* [Sascha Willems' Vulkan examples](https://github.com/SaschaWillems/Vulkan), Examples and demos for the new Vulkan API.
+* [VKTS](https://github.com/McNopper/Vulkan) Vulkan examples using VulKan ToolS (VKTS).
+* [*The OpenGL Samples Pack*](http://www.g-truc.net/project-0026.html#menu), samples that show how to set up all the different new features.
+* [*Learning Modern 3D Graphics programming*](http://www.arcsynthesis.org/gltut/), a great OpenGL tutorial using GLM by Jason L. McKesson.
+* [*Morten Nobel-Jørgensen's*](http://blog.nobel-joergensen.com/2011/04/02/glm-brilliant-math-library-for-opengl/) review and use an [*OpenGL renderer*](https://github.com/mortennobel/RenderE).
+* [*Swiftless' OpenGL tutorial*](http://www.swiftless.com/opengltuts.html) using GLM by Donald Urquhart.
+* [*Rastergrid*](http://rastergrid.com/blog/), many technical articles with companion programs using GLM by Daniel Rákos.
+* [*OpenGL Tutorial*](http://www.opengl-tutorial.org), tutorials for OpenGL 3.1 and later.
 * [*OpenGL Programming on Wikibooks*](http://en.wikibooks.org/wiki/OpenGL_Programming): For beginners who are discovering OpenGL.
 * [*3D Game Engine Programming*](http://3dgep.com/): Learning the latest 3D Game Engine Programming techniques.
 * [Game Tutorials](http://www.gametutorials.com/opengl-4-matrices-and-glm/), graphics and game programming.
-* [open.gl](https://open.gl/), OpenGL tutorial
-* [c-jump](http://www.c-jump.com/bcc/common/Talk3/Math/GLM/GLM.html), GLM tutorial
-* [Learn OpenGL](http://learnopengl.com/), OpenGL tutorial
+* [open.gl](https://open.gl/), OpenGL tutorial.
+* [c-jump](http://www.c-jump.com/bcc/common/Talk3/Math/GLM/GLM.html), GLM tutorial.
+* [Learn OpenGL](http://learnopengl.com/), OpenGL tutorial.
 * [***Are you using GLM in a tutorial?***](mailto:glm@g-truc.net)
 
 ### <a name="section10_5"></a> 10.5. Equivalent for other languages
 
 * [*cglm*](https://github.com/recp/cglm): OpenGL Mathematics (glm) for C.
 * [*GlmSharp*](https://github.com/Philip-Trettner/GlmSharp): Open-source semi-generated GLM-flavored math library for .NET/C\#.
-* [glm-js](https://github.com/humbletim/glm-js): JavaScript adaptation of the OpenGL Mathematics (GLM) C++ library interfaces
-* [JVM OpenGL Mathematics (GLM)](https://github.com/kotlin-graphics/glm): written in Kotlin, Java compatible
-* [JGLM](https://github.com/jroyalty/jglm) - Java OpenGL Mathematics Library
-* [SwiftGL Math Library](https://github.com/SwiftGL/Math/blob/master/Sources/glm.swift) GLM for Swift
-* [glm-go](https://github.com/jbowtie/glm-go): Simple linear algebra library similar in spirit to GLM
-* [openll](https://github.com/Polkm/openll): Lua bindings for OpenGL, GLM, GLFW, OpenAL, SOIL and PhysicsFS
-* [glm-rs](https://github.com/dche/glm-rs): GLSL mathematics for Rust programming language
-* [glmpython](https://github.com/Queatz/glmpython): GLM math library for Python
+* [glm-js](https://github.com/humbletim/glm-js): JavaScript adaptation of the OpenGL Mathematics (GLM) C++ library interfaces.
+* [JVM OpenGL Mathematics (GLM)](https://github.com/kotlin-graphics/glm): written in Kotlin, Java compatible.
+* [JGLM](https://github.com/jroyalty/jglm) - Java OpenGL Mathematics Library.
+* [SwiftGL Math Library](https://github.com/SwiftGL/Math/blob/master/Sources/glm.swift) GLM for Swift.
+* [glm-go](https://github.com/jbowtie/glm-go): Simple linear algebra library similar in spirit to GLM.
+* [openll](https://github.com/Polkm/openll): Lua bindings for OpenGL, GLM, GLFW, OpenAL, SOIL and PhysicsFS.
+* [glm-rs](https://github.com/dche/glm-rs): GLSL mathematics for Rust programming language.
+* [glmpython](https://github.com/Queatz/glmpython): GLM math library for Python.
 
 ### <a name="section10_6"></a> 10.6. Alternatives to GLM
 
@@ -2446,5 +2446,5 @@ Special thanks to:
 * Ghenadii Ursachi for GLM\_GTX\_matrix\_interpolation implementation.
 * Mathieu Roumillac for providing some implementation ideas.
 * [*Grant James*](http://www.zeuscmd.com/) for the implementation of all combination of none-squared matrix products.
-* Jesse Talavera-Greenberg for his work on the manual amount other things.
+* Jesse Talavera-Greenberg for his work on the manual among other things.
 * All the GLM users that have report bugs and hence help GLM to become a great library!

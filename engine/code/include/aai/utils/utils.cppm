@@ -5,27 +5,6 @@ export module aai.utils;
 import std;
 export {
     namespace utils {
-    // LOOKUP TABLES MACRO
-    #define GENERATE_ENUM(element, name) element,
-    #define GENERATE_STRING(element, name) case element: return name;
-    
-    #define DECLARE_LOOKUP_TABLE(TABLE_NAME, ENUM_NAME)                                                                    \
-    enum ENUM_NAME                                                                                                         \
-    {                                                                                                                      \
-        TABLE_NAME(GENERATE_ENUM)                                                                                          \
-    };                                                                                                                     \
-                                                                                                                           \
-    inline const std::string get_value(ENUM_NAME id)                                                                             \
-    {                                                                                                                      \
-        switch (id)                                                                                                        \
-        {                                                                                                                  \
-            TABLE_NAME(GENERATE_STRING)                                                                               \
-        default:                                                                                                           \
-            return "undef";                                                                                                \
-        }                                                                                                                  \
-    }
-    //------------------
-
         template <typename T>
         class singleton
         {
@@ -49,6 +28,16 @@ export {
             		throw std::runtime_error(errstr);						
             	}                                                           
         }
+        void CHECK(bool x, const std::string& str) {
+            	bool err = x;												
+            	if (err)                                                   	
+            	{                                                           
+            		std::string errstr = "Error: " + str;					
+            		errstr += "\n\n";									
+                    std::cout << errstr;
+            	}                                                           
+        }
+
         void VK_ASSERT(VkResult err, const std::string& str) {
             	if (err)                                                    
             	{        													

@@ -2,12 +2,12 @@
     "no_cull_fill": {
          "polygon": "fill",
          "cull": "none",
-         "face": "cc",
+         "face": "cc"
     },
     "back_cull_fill": {
          "polygon": "fill",
          "cull": "back",
-         "face": "cc",
-    },
+         "face": "cc"
+    }
 
 }

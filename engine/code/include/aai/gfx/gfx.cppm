@@ -25,6 +25,8 @@ export {
                 uint32_t create_model(const char* path);
 
                 void clean() { vk.wait_timeline(); clean_resources(); }
+
+                mat::material_infos_map& get_material_info_data() { return material_pallet.get_material_info_data(); }
             private:
                 void clean_resources();
                 vk::base vk;
