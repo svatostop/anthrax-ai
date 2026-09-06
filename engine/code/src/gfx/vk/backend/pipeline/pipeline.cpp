@@ -217,16 +217,16 @@ VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::base::ref& attachm
     return pipelineRenderingCreateInfo;
 }
 
-void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
+uint32_t vk::pipeline::create_material(VkDevice dev, mat::materials& m, const std::string& name)
 {
-    vertex_input_info = vertex_input_create_info(m.get_info());
+    vertex_input_info = vertex_input_create_info(m.get_info(name));
     VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
-    convert_and_apply_viewport(viewport, m.get_info().viewport);
-    convert_and_apply_scissor(scissor, m.get_info().scissor);
-    VkPipelineRasterizationStateCreateInfo 	rasterizer = convert_and_apply_rasterizer(m.get_info().rasterizer);
-    VkPipelineColorBlendAttachmentState 	color_blend = convert_and_apply_color_blend(m.get_info().color_blend);
-    VkPipelineMultisampleStateCreateInfo 	multisampling = multisampling_create_info(m.get_info().multisampling);
-    VkPipelineDepthStencilStateCreateInfo 	depth_stencil = convert_and_apply_depth_stencil(m.get_info().depth_stencil);
+    convert_and_apply_viewport(viewport, m.get_info(name).viewport);
+    convert_and_apply_scissor(scissor, m.get_info(name).scissor);
+    VkPipelineRasterizationStateCreateInfo 	rasterizer = convert_and_apply_rasterizer(m.get_info(name).rasterizer);
+    VkPipelineColorBlendAttachmentState 	color_blend = convert_and_apply_color_blend(m.get_info(name).color_blend);
+    VkPipelineMultisampleStateCreateInfo 	multisampling = multisampling_create_info(m.get_info(name).multisampling);
+    VkPipelineDepthStencilStateCreateInfo 	depth_stencil = convert_and_apply_depth_stencil(m.get_info(name).depth_stencil);
 
     VkPipelineLayoutCreateInfo pipelinelayoutinfo{}; 
     pipelinelayoutinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -238,7 +238,7 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
 	pipelinelayoutinfo.pPushConstantRanges = &push_constant;
 	pipelinelayoutinfo.pushConstantRangeCount = 1;
     VkDescriptorSetLayout setLayouts[] = {  bindless_texture_layout };
-    if (m.get_info().bind_texture) {
+    if (m.get_info(name).bind_texture) {
         pipelinelayoutinfo.setLayoutCount = 1;
         pipelinelayoutinfo.pSetLayouts = setLayouts;
     }
@@ -253,7 +253,7 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
     //     return nullptr;
     // });
     std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
-    for (auto& shader : m.get_info().shaders)
+    for (auto& shader : m.get_info(name).shaders)
         build_shader(dev, shader, shader_stages);
 
     viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -266,7 +266,7 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
     dynamic_states.dynamicStateCount = 0;
     dynamic_states.pDynamicStates = nullptr;
 
-    if (m.get_info().dynamic_viewport) {
+    if (m.get_info(name).dynamic_viewport) {
         viewport_state.viewportCount = 1;
         viewport_state.pViewports = nullptr;
         viewport_state.scissorCount = 1;
@@ -283,7 +283,7 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
         viewport_state.scissorCount = 1;
         viewport_state.pScissors = &scissor;
     }
-    rt::base::ref attachments = m.get_info().rt_ref;
+    rt::base::ref attachments = m.get_info(name).rt_ref;
     get_color_blend_state(color_blend_state, color_blend, attachments);
     std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentStates;
     color_blend_state.attachmentCount = attachments.color_count;
@@ -330,6 +330,6 @@ void vk::pipeline::create_material(VkDevice dev, mat::materials& m)
         vkDestroyShaderModule(dev, shader_stage.module, nullptr);
     }
 
-    m.set_data(m.get_info().name, pipe, pipe_layout, m.get_info().rt_ref, m.get_info().dynamic_viewport);
+    return m.set_data(m.get_info(name).name, pipe, pipe_layout, m.get_info(name).rt_ref, m.get_info(name).dynamic_viewport);
 }
 

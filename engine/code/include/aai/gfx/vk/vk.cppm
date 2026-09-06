@@ -30,11 +30,11 @@ export {
                 void clean_rts() { render.clean_rts(dev.get_devices()); }
                 void create_texture(const char* path, std::shared_ptr<rt::render_target> target);
                 void create_model(const char* path, std::shared_ptr<model::base> m);
-                void create_material(mat::materials& m) { pipe.create_material(dev.get_device(), m); } 
+                uint32_t create_material(mat::materials& m, const std::string& name) { return pipe.create_material(dev.get_device(), m, name); } 
                 void push_rq(const rq::data& r) { rq.push_back(r); }
 
                 rt::render_target* get_last_target() { return render.get_last_target(); } 
-                const rt::base::ref& get_attachment_ref(const rt::base::name r) { return render.get_attachment_ref(r); }
+                const rt::base::ref& get_attachment_ref(const rt::name::val r) { return render.get_attachment_ref(r); }
                 
                 vk::device::handlers get_devices() { return dev.get_devices(); }
                 void wait_timeline() { frame.wait_timeline(dev.get_device(), dev.get_swapchain(), dev.get_queue(vk::queues::type::GRAPHICS)); }

@@ -68,10 +68,6 @@ export {
                    rt::helper::val v;
                    VkFormat format;
                };
-               enum class name {
-                   ONE_QUAD = 0,
-                   COLOR_WITH_DEPTH,
-               };
                struct ref {
                    uint32_t color_count = 0;
                    uint32_t depth_count = 0;
@@ -79,14 +75,14 @@ export {
                    type depth_types;
                    uint32_t id = 0;
                };
-               typedef std::map<name, ref> ref_map;
+               typedef std::map<name::val, ref> ref_map;
                void fill_refs() {
                    {
                         ref r;
                         r.color_types.push_back({ rt::helper::rule::CLEAR, rt::helper::val::MAIN_COLOR, VK_FORMAT_R8G8B8A8_UNORM });
                         r.color_count = r.color_types.size();
                         r.id = ++refs_counter;
-                        refs[name::ONE_QUAD] = r;
+                        refs[name::val::ONE_QUAD] = r;
                    }
                    {
                         ref r;
@@ -95,11 +91,11 @@ export {
                         r.color_count = r.color_types.size();
                         r.depth_count++;
                         r.id = ++refs_counter;
-                        refs[name::COLOR_WITH_DEPTH] = r;
+                        refs[name::val::COLOR_WITH_DEPTH] = r;
                    }
 
                }           
-               const ref& get_ref(name d)  { return refs[d]; }
+               const ref& get_ref(rt::name::val d)  { return refs[d]; }
                const ref_map& get_rt_ref_map() const { return refs; }
 
                void clean(const vk::device::handlers& dev) { 

@@ -1,0 +1,38 @@
+{
+    "test": {
+        "color_blend": "no_alpha_blend",
+        "rt_ref": "one_quad",
+        "viewport": [
+            0,
+            0
+        ],
+        "scissor": [
+            0,
+            0
+        ],
+        "dynamic_viewport": true,
+        "rasterizer": "no_cull_fill",
+        "depth_test": false,
+        "depth_write": false,
+        "multisampling": false
+    },
+    "test_model_anim": {
+        "color_blend": "no_alpha_blend",
+        "rt_ref": "color_with_depth",
+        "viewport": [
+            0,
+            0
+        ],
+        "scissor": [
+            0,
+            0
+        ],
+        "dynamic_viewport": true,
+        "rasterizer": "no_cull_fill",
+        "depth_test": true,
+        "depth_write": true,
+        "depth_op": "greater",
+        "multisampling": false
+    }
+
+}

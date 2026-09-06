@@ -22,7 +22,7 @@ export {
                 rt::render_target* get_rt(rt::helper::val v)  { return rts.get_rt(v); }
                 const rt::base::ref_map& get_rt_ref_map() const { return rts.get_rt_ref_map(); }
                 rt::render_target* get_last_target() { return rts.get_rt(rt::helper::val::MAIN_COLOR); } 
-                const rt::base::ref& get_attachment_ref(const rt::base::name r) { return rts.get_ref(r); }
+                const rt::base::ref& get_attachment_ref(const rt::name::val r) { return rts.get_ref(r); }
                 void clean_rts(const vk::device::handlers& dev) { rts.clean(dev); }
                 void recreate_rts(const vk::device::handlers& dev) { rts.create(dev, window_size); }
                 void set_window_size(glm::ivec2 w) { window_size = w; }

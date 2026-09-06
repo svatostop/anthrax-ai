@@ -11,7 +11,7 @@ export {
     namespace vk {
         class pipeline {
             public:
-                void create_material(VkDevice dev, mat::materials& m);
+                uint32_t create_material(VkDevice dev, mat::materials& m, const std::string& name);
                 
                 void set_layout(VkDescriptorSetLayout l) { bindless_texture_layout = l; }
                 

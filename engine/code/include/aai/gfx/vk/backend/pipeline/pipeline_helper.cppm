@@ -9,76 +9,76 @@ import aai.utils;
 export {
     namespace vk {
         namespace convert {
-            VkPolygonMode polygon(mat::polygon_val val) {
+            VkPolygonMode polygon(mat::polygon::val val) {
                 switch (val) {
-                    case mat::MODE_LINE:
+                    case mat::polygon::val::LINE:
                         return VK_POLYGON_MODE_LINE;
-                    case mat::MODE_FILL:
+                    case mat::polygon::val::FILL:
                         return VK_POLYGON_MODE_FILL;
-                    case mat::MODE_POINT:
+                    case mat::polygon::val::POINT:
                         return VK_POLYGON_MODE_POINT;
                     default:
-                    case mat::MODE_SIZE:
+                    case mat::polygon::val::SIZE:
                         utils::ASSERT(true, "polygon_val not set!");
                         return VK_POLYGON_MODE_FILL;
                 }
             }
-            VkCullModeFlagBits cull(mat::cull_val val) {
+            VkCullModeFlagBits cull(mat::cull::val val) {
                 switch (val) {
-                    case mat::CULL_FRONT:
+                    case mat::cull::val::FRONT:
                         return VK_CULL_MODE_FRONT_BIT;
-                    case mat::CULL_BACK:
+                    case mat::cull::val::BACK:
                         return VK_CULL_MODE_BACK_BIT;
-                    case mat::CULL_NONE:
+                    case mat::cull::val::NONE:
                         return VK_CULL_MODE_NONE;
                     default:
-                    case mat::CULL_SIZE:
+                    case mat::cull::val::SIZE:
                         utils::ASSERT(true, "cull_val not set!");
                         return VK_CULL_MODE_NONE;
                 }
             }
-            VkFrontFace face(mat::face_val val) {
+            VkFrontFace face(mat::face::val val) {
                 switch (val) {
-                    case mat::CC:
+                    case mat::face::val::CC:
                         return VK_FRONT_FACE_CLOCKWISE;
-                    case mat::CCW:
+                    case mat::face::val::CCW:
                         return VK_FRONT_FACE_COUNTER_CLOCKWISE;
                     default:
-                    case mat::FACE_SIZE:
+                    case mat::face::val::SIZE:
                         utils::ASSERT(true, "face_val not set!");
                         return VK_FRONT_FACE_COUNTER_CLOCKWISE;
                 }
             }
-            VkBlendFactor blend_factor(mat::color_blend_val val) {
+            VkBlendFactor blend_factor(mat::color_blends::val val) {
                 switch (val) {
-                    case mat::SRC_ALPHA:
+                    case mat::color_blends::val::SRC_ALPHA:
                         return VK_BLEND_FACTOR_SRC_ALPHA;
-                    case mat::ONE_MINUS_SRC_ALPHA:
+                    case mat::color_blends::val::ONE_MINUS_SRC_ALPHA:
                         return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
                     default:
-                    case mat::BLEND_SIZE:
-                        utils::ASSERT(true, "color_blend_val not set!");
+                    case mat::color_blends::val::BLEND_SIZE:
+                        utils::ASSERT(true, "mat::color_blends::val not set!");
                         return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
                 }
             }
-            VkBlendOp blend_op(mat::color_op val) {
+            VkBlendOp blend_op(mat::color_op::val val) {
                 switch (val) {
-                    case mat::COLOR_OP_ADD:
+                    case mat::color_op::val::ADD:
                         return VK_BLEND_OP_ADD;
                     default:
-                    case mat::COLOR_OP_SIZE:
-                        utils::ASSERT(true, "color_op not set!");
+                    case mat::color_op::val::COLOR_OP_SIZE:
+                        utils::ASSERT(true, "mat::color_op::val not set!");
                         return VK_BLEND_OP_ADD;
                 }
             }
-            VkCompareOp depth_cmp(mat::depth_op val) {
+            VkCompareOp depth_cmp(mat::depth_op::val val) {
                 switch (val) {
-                    case mat::DEPTH_OP_LESS_OR_EQUAL:
+                    case mat::depth_op::DEPTH_OP_LESS_OR_EQUAL:
                         return VK_COMPARE_OP_LESS_OR_EQUAL;
-                    case mat::DEPTH_OP_GREATER:
+                    case mat::depth_op::DEPTH_OP_GREATER:
                         return VK_COMPARE_OP_GREATER;
                     default:
-                    case mat::DEPTH_OP_SIZE:
+                    case mat::depth_op::SIZE:
                         utils::ASSERT(true, "depth_op not set!");
                         return VK_COMPARE_OP_LESS_OR_EQUAL;
                 }

@@ -3,8 +3,9 @@ module;
 #include <vulkan/vulkan_core.h>
 
 export module aai.gfx.materials;
-import aai.gfx.vk.rt;
+export import aai.gfx.materials.types;
 import aai.gfx.vk.device;
+import aai.json;
 import glm;
 import std;
 export {
@@ -21,96 +22,29 @@ export {
                 vkDestroyPipeline(dev, pipeline, nullptr);
             }
         };
-        enum polygon_val {
-            MODE_LINE = 0,
-            MODE_FILL,
-            MODE_POINT,
-            MODE_SIZE
-        };
-        enum cull_val {
-            CULL_FRONT = 0,
-            CULL_BACK,
-            CULL_NONE,
-            CULL_SIZE
-        };
-        enum face_val {
-            CC = 0,
-            CCW,
-            FACE_SIZE
-        };
-        enum color_blend_val {
-            SRC_ALPHA = 0,
-            ONE_MINUS_SRC_ALPHA,
-            BLEND_SIZE
-        };
-        enum color_op {
-            COLOR_OP_ADD = 0,
-            COLOR_OP_SIZE
-        };
-        enum depth_op {
-            DEPTH_OP_LESS_OR_EQUAL =0,
-            DEPTH_OP_GREATER,
-            DEPTH_OP_SIZE
-        };
-        enum shader_type {
-            SHADER_FRAG = 0,
-            SHADER_VERT,
-            SHADER_COMPUTE
-        };
-        struct shader_module {
-            shader_type t;
-            std::string path;
-        };
-        struct color_blend_helper {
-            color_blend_val src_color_val = BLEND_SIZE;
-            color_blend_val dst_color_val = BLEND_SIZE;
-            color_blend_val src_alpha_val = BLEND_SIZE;
-            color_blend_val dst_alpha_val = BLEND_SIZE;
-            color_op c_op = COLOR_OP_SIZE; 
-            color_op a_op = COLOR_OP_SIZE; 
-            bool alpha_blend = false;
-        };
-        struct rasterizer_helper {
-            polygon_val polygon = MODE_SIZE;
-            cull_val cull = CULL_SIZE;
-            face_val face = FACE_SIZE;
-        };
-        struct depth_helper {
-            depth_op d_op = DEPTH_OP_SIZE;
-            bool depth_write = false;
-            bool depth_test = false;
-        };
-        struct info_helper {
-            std::string name;
-            rt::base::ref rt_ref;
-            glm::vec4 viewport = glm::vec4(0);
-            glm::vec4 scissor = glm::vec4(0);
-            bool dynamic_viewport = false;
-            rasterizer_helper rasterizer;            
-            color_blend_helper color_blend;
-            depth_helper depth_stencil;
-            std::vector<shader_module> shaders;
-            bool multisampling = false;
-            bool vertex_attributes = false;
-            bool bind_texture = false;
-            bool has_bones = false;
-        };
- 
+         
         class materials {
             public:
-                void add_material_info(info_helper d) { infos = d; } 
-                void set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r, bool dynamic_viewport) {
+                void parse_data() {
+                    aai::json::parse_material_data(infos_map);
+                }
+                uint32_t set_data(const std::string& n, VkPipeline pipe, VkPipelineLayout pipe_layout, const rt::base::ref& r, bool dynamic_viewport) {
                     std::shared_ptr<data> d(new data);
                     d->pipeline = pipe; 
                     d->pipeline_layout = pipe_layout; 
                     d->attachment_ref = r;
                     d->dynamic_viewport = dynamic_viewport;
                     d->name = n;
-                    mat_map[n] = d;
+                    ids++;
+                    mat_map[ids] = d;
+                    return ids;
                 }
-                const info_helper& get_info() { return infos; }
-                std::shared_ptr<data> get(const std::string& n) { 
-                	auto it = mat_map.find(n);
+                const info_helper& get_info(const std::string& name) { return infos_map[name]; }
+                void request_texture_use(const std::string& name, bool use) { infos_map[name].bind_texture = use; }
+                void request_rt_ref_change(const std::string& name, const rt::base::ref ref) { infos_map[name].rt_ref = ref; }
+                rt::name::val get_rt_ref_val(const std::string& name) { return infos_map[name].rt_ref_val;  }
+                std::shared_ptr<data> get(uint32_t id) { 
+                	auto it = mat_map.find(id);
                 	if (it == mat_map.end()) {
                 		return nullptr;
                 	}
@@ -125,8 +59,9 @@ export {
                     }
                 }
             private:
-                info_helper infos;
-                std::map<std::string, std::shared_ptr<data>> mat_map; 
+                material_infos_map infos_map;
+                std::map<uint32_t, std::shared_ptr<data>> mat_map;
+                uint32_t ids = 0;;
         };
     }
 };

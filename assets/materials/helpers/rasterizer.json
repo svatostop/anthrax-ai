@@ -1,0 +1,13 @@
+{
+    "no_cull_fill": {
+         "polygon": "fill",
+         "cull": "none",
+         "face": "cc",
+    },
+    "back_cull_fill": {
+         "polygon": "fill",
+         "cull": "back",
+         "face": "cc",
+    },
+
+}
