@@ -61,8 +61,6 @@ export {
                 renderer render;
                 glm::ivec2 window_size;
                 std::shared_ptr<keeper::camera> cam;
-                camera_data cam_data;
-                std::deque<instance_data> inst_data;
         };
    }
 };

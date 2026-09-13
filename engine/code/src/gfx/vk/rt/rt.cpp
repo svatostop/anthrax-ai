@@ -117,7 +117,8 @@ void rt::render_target::create_sampler(const vk::device::handlers& dev)
 	samplerinfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samplerinfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samplerinfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
+    // samplerinfo.anisotropyEnable = VK_TRUE;
+    // samplerinfo.maxAnisotropy = 16;
     utils::VK_ASSERT(vkCreateSampler(dev.dev, &samplerinfo, nullptr, &sampler), "failed to create sampler!");
 }
 

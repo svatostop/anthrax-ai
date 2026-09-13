@@ -15,6 +15,8 @@ export {
 #define COLOR_BLENDS_LOOKUP(X) \
             X(SRC_ALPHA, "src_alpha") \
             X(ONE_MINUS_SRC_ALPHA, "one_minus_src_alpha") \
+            X(ONE, "one") \
+            X(ZERO, "zero") \
             X(SIZE, "rts size")
 DECLARE_LOOKUP_TABLE(COLOR_BLENDS_LOOKUP, val)
         }

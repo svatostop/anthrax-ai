@@ -1,7 +1,6 @@
 module;
 #include "aai/io/win_defines.h"
 #include "aai/gfx/vk/backend/vk_defines.h"
-#include "glm/ext/matrix_transform.hpp"
 #include <string.h>
 
 module aai.gfx.vk;
@@ -67,17 +66,10 @@ void vk::base::execute()
     // todo : multithreading ENGINEEEE
     // todo : arena or some allocators !!! 
     // todo : imgui
-    // todo : json integration
-    cam_data.view = cam->get_view();
-    cam_data.proj = cam->get_reverse_proj();
-    // do something about it ?? todo
-    inst_data.clear();
-    for (const rq::data& data : rq) {
-        instance_data d{};
-        d.model = glm::translate(data.model_matrix, glm::vec3(0.0, -1.0, 1.0));
-        inst_data.push_back(d); 
-    }
-    gpu_mem.update(dev.get_devices(), cam_data, inst_data);
+    
+    gpu_mem.submit_camera(cam);
+    gpu_mem.submit_instance(rq);
+    gpu_mem.update(dev.get_devices());
 
     render.refresh_state();
     for (const rq::data& data : rq) {

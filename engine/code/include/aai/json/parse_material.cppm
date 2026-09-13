@@ -4,7 +4,7 @@ module;
 export module aai.json.materials;
 export import aai.json.helper;
 import aai.gfx.materials.types; 
-
+import aai.utils;
 import std;
 
 export {
@@ -14,8 +14,9 @@ export {
             mat::rasterizer_helper parse_rasterizer(const std::string& entry) {
                 std::ifstream f("materials/helpers/rasterizer.json");
                 njson data = njson::parse(f);
+                utils::ASSERT(!data.contains(entry), std::string("json::parse_rasterizer(): entry doesn't exist [") + entry + std::string("]"));
                 njson d = data[entry];
-                // todo make checks whether the entry acually exist
+
                 mat::rasterizer_helper helper; 
                 helper.polygon = mat::polygon::get_key(get<std::string>(d, aai::json::val::POLYGON, "entry_not_found").c_str());
                 helper.cull = mat::cull::get_key(get<std::string>(d,aai::json::val::CULL , "entry_not_found").c_str());        
@@ -26,8 +27,8 @@ export {
             mat::color_blend_helper parse_color_blend(const std::string& entry) {
                 std::ifstream f("materials/helpers/color_blends.json");
                 njson data = njson::parse(f);
+                utils::ASSERT(!data.contains(entry), std::string("json::parse_color_blend(): entry doesn't exist [") + entry + std::string("]"));
                 njson d = data[entry];
-                // todo make checks whether the entry acually exist
 
                 mat::color_blend_helper helper; 
                 helper.src_color_val = mat::color_blends::get_key(get<std::string>(d, aai::json::val::SRC_COLOR, "entry_not_found").c_str());
@@ -55,6 +56,7 @@ export {
             void parse_pipeline(mat::info_helper& helper, const std::string& entry) {
                 std::ifstream f("materials/helpers/pipeline.json");
                 njson data = njson::parse(f);
+                utils::ASSERT(!data.contains(entry), std::string("json::parse_pipeline(): entry doesn't exist [") + entry + std::string("]"));
                 njson d = data[entry];
                 
                 helper.rt_ref_val = rt::name::get_key(get<std::string>(d, json::val::RT_REF, "entry_not_found").c_str());

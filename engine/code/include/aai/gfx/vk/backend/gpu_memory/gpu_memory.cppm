@@ -6,6 +6,7 @@ export import aai.keeper.camera;
 export import aai.gfx.vk.gpu_data;
 export import aai.gfx.vk.buffer;
 export import aai.gfx.vk.device;
+export import aai.gfx.vk.rq;
 export import std;
 export import glm;
 export {
@@ -21,7 +22,9 @@ export {
 
                 VkDeviceAddress get_buffer_address(const gpu_data_type& t);
 
-                void update(vk::device::handlers dev, const camera_data& data, const std::deque<instance_data>& inst_data);
+                void submit_camera(std::shared_ptr<const keeper::camera> cam);
+                void submit_instance(const std::deque<rq::data>& rq);
+                void update(vk::device::handlers dev);
             private:
                 void init_descriptor_set(vk::device::handlers dev);
                 void init_buffers(vk::device::handlers dev);

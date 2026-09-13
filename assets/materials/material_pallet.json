@@ -4,13 +4,18 @@
         "vertex": "quad.vert",
         "fragment": "quad.frag"
     },
+    "material_grid": {
+        "pipeline_ref": "grid",
+        "vertex": "grid.vert",
+        "fragment": "grid.frag"
+    },
     "material_model": {
         "pipeline_ref": "test_model",
         "vertex": "mesh.vert",
         "fragment": "mesh.frag"
     },
     "material_model_anim": {
-        "pipeline_ref": "test_model_anim",
+        "pipeline_ref": "color_with_depth_test_no_alpha",
         "vertex": "mesh_anim.vert",
         "fragment": "mesh.frag"
     }

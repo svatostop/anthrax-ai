@@ -55,6 +55,10 @@ export {
                         return VK_BLEND_FACTOR_SRC_ALPHA;
                     case mat::color_blends::val::ONE_MINUS_SRC_ALPHA:
                         return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                    case mat::color_blends::val::ONE:
+                        return VK_BLEND_FACTOR_ONE;
+                    case mat::color_blends::val::ZERO:
+                        return VK_BLEND_FACTOR_ZERO;
                     default:
                     case mat::color_blends::val::SIZE:
                         utils::CHECK(true, "mat::color_blends::val not set!");

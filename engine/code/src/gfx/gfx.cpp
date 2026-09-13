@@ -35,16 +35,16 @@ void gfx::base::populate()
     uint32_t model_fox_id = create_model("./models/fox.glb");
     
     glm::vec4 viewport = glm::vec4(window_size.x, window_size.y ,0,0); 
-    // todo somehow check with objects
+    
     material_pallet.request_texture_use("material_sprite", true);
     material_pallet.request_rt_ref_change("material_sprite", vk.get_attachment_ref(material_pallet.get_rt_ref_val("material_sprite")));
     uint32_t sprite_mat_id = vk.create_material(material_pallet, "material_sprite");
     
-    vk.push_rq({
-            .tag = "test",
-            .material_handle = material_pallet.get(sprite_mat_id),
-            .texture_id = texture_id,
-    });
+    // vk.push_rq({
+    //         .tag = "test",
+    //         .material_handle = material_pallet.get(sprite_mat_id),
+    //         .texture_id = texture_id,
+    // });
 
     material_pallet.request_mesh_use("material_model", true);
     material_pallet.request_mesh_animation("material_model", model_mng.get(model_cube_id)->is_animated());
@@ -67,6 +67,16 @@ void gfx::base::populate()
             .texture_id = 0,
             .mesh_handle = model_mng.get(model_fox_id),
     });
+
+    material_pallet.request_rt_ref_change("material_grid", vk.get_attachment_ref(material_pallet.get_rt_ref_val("material_grid")));
+    sprite_mat_id = vk.create_material(material_pallet, "material_grid");
+    vk.push_rq({
+            .tag = "grid",
+            .material_handle = material_pallet.get(sprite_mat_id),
+            .texture_id = 0,
+    });
+
+
 }
 
 void gfx::base::clean_resources()

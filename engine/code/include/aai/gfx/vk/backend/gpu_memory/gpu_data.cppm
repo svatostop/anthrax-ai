@@ -1,4 +1,5 @@
 module;
+#include <strings.h>
 
 export module aai.gfx.vk.gpu_data;
 export import aai.gfx.vk.buffer;
@@ -21,6 +22,9 @@ export {
     template <typename T>
     struct gpu_data {
         T raw_data;
+        T* mapped_data = nullptr;
+        size_t buffer_size = 0;
+        size_t submitted_size = 0;
         vk::buffer::handlers data;
     };
 };
