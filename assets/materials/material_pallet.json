@@ -1,6 +1,6 @@
 {
     "material_sprite": {
-        "pipeline_ref": "test",
+        "pipeline_ref": "sprite",
         "vertex": "quad.vert",
         "fragment": "quad.frag"
     },
@@ -10,7 +10,7 @@
         "fragment": "grid.frag"
     },
     "material_model": {
-        "pipeline_ref": "test_model",
+        "pipeline_ref": "color_with_depth_test_no_alpha",
         "vertex": "mesh.vert",
         "fragment": "mesh.frag"
     },

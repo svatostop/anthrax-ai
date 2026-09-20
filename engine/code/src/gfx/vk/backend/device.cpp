@@ -13,10 +13,8 @@ void vk::device::init(bool validate, const std::vector<const char*>& layers)
 {
     init_physical_dev();
     init_logical_dev(validate, layers);
-    
-    window_size.x = 800;
-    window_size.y = 600;
-    init_swapchain();
+   
+    window_size = on_resize();
 }
 
 const glm::ivec2& vk::device::on_resize()

@@ -1,22 +1,5 @@
 {
-    "test": {
-        "color_blend": "no_alpha_blend",
-        "rt_ref": "one_quad",
-        "viewport": [
-            0,
-            0
-        ],
-        "scissor": [
-            0,
-            0
-        ],
-        "dynamic_viewport": true,
-        "rasterizer": "no_cull_fill",
-        "depth_test": false,
-        "depth_write": false,
-        "multisampling": false
-    },
-    "test_model": {
+    "sprite": {
         "color_blend": "no_alpha_blend",
         "rt_ref": "one_quad",
         "viewport": [
@@ -35,7 +18,7 @@
     },
     "grid": {
         "color_blend": "alpha_blend",
-        "rt_ref": "one_quad",
+        "rt_ref": "color_with_depth",
         "viewport": [
             0,
             0
@@ -47,7 +30,7 @@
         "dynamic_viewport": true,
         "rasterizer": "no_cull_fill",
         "depth_test": true,
-        "depth_write": true,
+        "depth_write": false,
         "depth_op": "greater",
         "multisampling": false
     },

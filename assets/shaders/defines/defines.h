@@ -15,6 +15,7 @@ layout(std430, buffer_reference, buffer_reference_align = 64) buffer Camera
 
     mat4 view;
     mat4 proj;
+    mat4 non_reverse_proj;
 };
 
 struct InstanceData {

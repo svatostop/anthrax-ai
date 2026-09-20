@@ -42,6 +42,7 @@ void vk::renderer::check_render_state(const rq::data& rq)
         state.attachment_ref = rq.material_handle->attachment_ref;
     }
     else {
+        rq.material_handle->attachment_ref.depth_types.rule = rt::helper::rule::LOAD;
         for (int i = 0;i < rq.material_handle->attachment_ref.color_types.size(); i++) {
             rq.material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::LOAD;
         }
@@ -167,6 +168,7 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::ty
             if (prim.index_count <= 0)
                 continue;
             vkCmdDrawIndexed(cmd, prim.index_count, 1, prim.first_index, 0, state.instance_ind);
+            state.instance_ind++;
         }
     }
     

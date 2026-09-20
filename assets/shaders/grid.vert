@@ -23,6 +23,6 @@ void main() {
     mat4 proj = push.cam.proj;
 
     outnear = UnprojectPos(vec3(pos.x, pos.y, 1.0), view, proj);
-    outfar = UnprojectPos(vec3(pos.x, pos.y, 0.0001), view, proj);
+    outfar = UnprojectPos(vec3(pos.x, pos.y, 0.00001), view, proj);
     gl_Position = vec4(pos, 1.0);
 }

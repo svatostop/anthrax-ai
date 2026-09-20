@@ -77,17 +77,19 @@ export {
                };
                typedef std::map<name::val, ref> ref_map;
                void fill_refs() {
+                   if (!rts[rt::helper::val::MAIN_COLOR])
+                       utils::ASSERT(true, "fill_reft: rts is null");
                    {
                         ref r;
-                        r.color_types.push_back({ rt::helper::rule::CLEAR, rt::helper::val::MAIN_COLOR, VK_FORMAT_R8G8B8A8_UNORM });
+                        r.color_types.push_back({ rt::helper::rule::CLEAR, rt::helper::val::MAIN_COLOR, rts[rt::helper::val::MAIN_COLOR]->get_format() });
                         r.color_count = r.color_types.size();
                         r.id = ++refs_counter;
                         refs[name::val::ONE_QUAD] = r;
                    }
                    {
                         ref r;
-                        r.color_types.push_back({ rt::helper::rule::CLEAR, rt::helper::val::MAIN_COLOR, VK_FORMAT_R8G8B8A8_UNORM });
-                        r.depth_types = { rt::helper::rule::CLEAR, rt::helper::val::MAIN_DEPTH, VK_FORMAT_D32_SFLOAT };
+                        r.color_types.push_back({ rt::helper::rule::CLEAR, rt::helper::val::MAIN_COLOR, rts[rt::helper::val::MAIN_COLOR]->get_format() });
+                        r.depth_types = { rt::helper::rule::CLEAR, rt::helper::val::MAIN_DEPTH, rts[rt::helper::val::MAIN_DEPTH]->get_format() };
                         r.color_count = r.color_types.size();
                         r.depth_count++;
                         r.id = ++refs_counter;
@@ -111,7 +113,7 @@ export {
                         rts[i] = nullptr;
                    }
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)] = new render_target(static_cast<int>(rt::helper::val::MAIN_COLOR));
-                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_format(VK_FORMAT_R8G8B8A8_UNORM);
+                   rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_format(VK_FORMAT_R16G16B16A16_SFLOAT);
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_dimensions({window_size.x, window_size.y});
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->set_sampler(true);
                    rts[static_cast<int>(rt::helper::val::MAIN_COLOR)]->create(dev);

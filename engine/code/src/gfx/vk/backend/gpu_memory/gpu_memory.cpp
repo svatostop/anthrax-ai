@@ -30,6 +30,7 @@ void vk::gpu_memory::submit_camera(std::shared_ptr<const keeper::camera> cam)
 {
     camera.raw_data.view = cam->get_view();
     camera.raw_data.proj = cam->get_reverse_proj();
+    camera.raw_data.non_reverse_proj = cam->get_proj();
 }
 
 void vk::gpu_memory::submit_instance(const std::deque<rq::data>& rq)
@@ -37,9 +38,11 @@ void vk::gpu_memory::submit_instance(const std::deque<rq::data>& rq)
     if (!instance.mapped_data)
         return;
     int ind = 0;
+    float shift_x = 1.0f;
     for (const rq::data& data : rq) {
         instance_data d{};
-        d.model = glm::translate(data.model_matrix, glm::vec3(0.0, -1.0, 1.0));
+        d.model = glm::translate(data.model_matrix, glm::vec3(0.0 + shift_x, -1.0 + shift_x, 1.0));
+        shift_x+= 2;
         utils::ASSERT(ind > instance.buffer_size, "gpu_memory::submit_instance: buffer overflow");
         memcpy(&instance.mapped_data[ind], &d, sizeof(instance_data));
         ind++;

@@ -16,16 +16,14 @@ vec4 grid(vec3 pos, float scale, float div, vec3 col) {
     float minimumz = min(derivative.y, 1);
     float minimumx = min(derivative.x, 1);
 
-    vec4 color = vec4(col, 1 - min(line, 1.0));
+    vec4 color = vec4(col, 1.0 - min(line, 1.0));
     if (scale >= 10.0) {
     // z axis
     if(pos.x > -0.2 * minimumx && pos.x < 0.2 * minimumx ) {
-        color.rg = vec2(0);
         color.b = (0.3);
     }
     // x axis
     if(pos.z > -0.2 * minimumz && pos.z < 0.2 * minimumz) {
-        color.bg = vec2(0);
         color.r = (0.3);
     }
     }
@@ -42,16 +40,18 @@ void main()
     vec3 clippos = innear + y * (infar - innear);
 
     if (y < 0) {
-        discard;
+        out_frag_color = vec4(0);
+        return ;
     }
     gl_FragDepth = clamp(ClipSpaceDepth(clippos, proj, view), 0, 1);
 
     float lineardepth = clamp(LinearDepth(clippos, proj, view), 0, 1);
-    float fading = smoothstep(0, 1, lineardepth);
+    float fading = smoothstep(1, 0, lineardepth);
 
-    out_frag_color.rgba = (grid(clippos, 0.1, 0.4, vec3(0.05, 0.05, 0.05))).rgba;
-    out_frag_color.rgba += (grid(clippos, 1, 0.3, vec3(0.3, 0.3, 0.3))).rgba;
-    out_frag_color.rgba += (grid(clippos, 10, 0.2, vec3(1.0))).rgba;
+    out_frag_color.rgba = (grid(clippos, 0.1, 0.4, vec3(0.01, 0.01, 0.01))).rgba;
+    out_frag_color.rgba += (grid(clippos, 1, 0.3, vec3(0.04, 0.04, 0.04))).rgba;
+    out_frag_color.rgba += (grid(clippos, 10, 0.2, vec3(0.005, 0.005, 0.005))).rgba;
     out_frag_color.a *= 0.7;
     out_frag_color.a *= fading;
 }
+

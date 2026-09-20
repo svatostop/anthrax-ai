@@ -15,6 +15,7 @@ export {
 
         glm::mat4 view;
         glm::mat4 proj;
+        glm::mat4 non_reverse_proj;
     };
     struct instance_data {
         glm::mat4 model;
