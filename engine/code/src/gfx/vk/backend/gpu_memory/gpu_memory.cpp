@@ -12,13 +12,13 @@ void vk::gpu_memory::init(vk::device::handlers dev)
     init_buffers(dev);
 }
 
-VkDeviceAddress vk::gpu_memory::get_buffer_address(const gpu_data_type& t)
+const VkDeviceAddress vk::gpu_memory::get_buffer_address(const gpu_data_type& t, const uint32_t frame) const
 {
    switch (t) {
        case gpu_data_type::CAMERA:
-           return camera.data.gpu_address;
+           return camera[frame].data.gpu_address;
        case gpu_data_type::INSTANCE:
-           return instance.data.gpu_address;
+           return instance[frame].data.gpu_address;
        default:
            return 0;
            break;
@@ -26,16 +26,17 @@ VkDeviceAddress vk::gpu_memory::get_buffer_address(const gpu_data_type& t)
    return 0;
 }
 
-void vk::gpu_memory::submit_camera(std::shared_ptr<const keeper::camera> cam)
+void vk::gpu_memory::submit_camera(std::shared_ptr<const keeper::camera> cam, const std::uint32_t frame)
 {
-    camera.raw_data.view = cam->get_view();
-    camera.raw_data.proj = cam->get_reverse_proj();
-    camera.raw_data.non_reverse_proj = cam->get_proj();
+    camera[frame].raw_data.view = cam->get_view();
+    camera[frame].raw_data.proj = cam->get_reverse_proj();
+    camera[frame].raw_data.non_reverse_proj = cam->get_proj();
+    camera[frame].submitted = true;
 }
 
-void vk::gpu_memory::submit_instance(const std::deque<rq::data>& rq)
+void vk::gpu_memory::submit_instance(const std::deque<rq::data>& rq, const std::uint32_t frame)
 {
-    if (!instance.mapped_data)
+    if (!instance[frame].mapped_data)
         return;
     int ind = 0;
     float shift_x = 1.0f;
@@ -43,17 +44,18 @@ void vk::gpu_memory::submit_instance(const std::deque<rq::data>& rq)
         instance_data d{};
         d.model = glm::translate(data.model_matrix, glm::vec3(0.0 + shift_x, -1.0 + shift_x, 1.0));
         shift_x+= 2;
-        utils::ASSERT(ind > instance.buffer_size, "gpu_memory::submit_instance: buffer overflow");
-        memcpy(&instance.mapped_data[ind], &d, sizeof(instance_data));
+        utils::ASSERT(ind > instance[frame].buffer_size, "gpu_memory::submit_instance: buffer overflow");
+        memcpy(&instance[frame].mapped_data[ind], &d, sizeof(instance_data));
         ind++;
     }
-    instance.submitted_size = ind;
 }
 
-void vk::gpu_memory::update(vk::device::handlers dev)
+void vk::gpu_memory::update(vk::device::handlers dev, const std::uint32_t frame)
 {
-    size_t buffer_size = sizeof(camera_data);
-    vk::buffer::map_memory(camera.data, dev.dev, buffer_size, 0, &camera.raw_data);
+    if (camera[frame].submitted) {
+        size_t buffer_size = sizeof(camera_data);
+        vk::buffer::map_memory(camera[frame].data, dev.dev, buffer_size, 0, &camera[frame].raw_data);
+    }
 }
 
 void vk::gpu_memory::update_texture(VkDevice dev, const std::string& name, VkImageView view, VkSampler sampler)
@@ -145,23 +147,25 @@ void vk::gpu_memory::init_buffers(vk::device::handlers dev)
 {
     // todo - tripple buffer buffers
     size_t buffer_size = sizeof(camera_data);
-    vk::buffer::allocate(camera.data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    vk::buffer::get_gpu_address(camera.data, dev.dev);
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, camera.data.buffer, nullptr); });
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, camera.data.device_memory, nullptr); });
+    for (int i = 0; i < MAX_FRAMES; i++) {
+        vk::buffer::allocate(camera[i].data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        vk::buffer::get_gpu_address(camera[i].data, dev.dev);
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, camera[i].data.buffer, nullptr); });
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, camera[i].data.device_memory, nullptr); });
 
-    // todo - instance size hardcoded
-    buffer_size = sizeof(instance_data) * 1000;
-    vk::buffer::allocate(instance.data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    vk::buffer::get_gpu_address(instance.data, dev.dev);
-    instance.buffer_size = buffer_size;
+        // todo - instance size hardcoded
+        buffer_size = sizeof(instance_data) * 1000;
+        vk::buffer::allocate(instance[i].data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        vk::buffer::get_gpu_address(instance[i].data, dev.dev);
+        instance[i].buffer_size = buffer_size;
 
-    void* ptr_data;
-    vkMapMemory(dev.dev , instance.data.device_memory, 0, buffer_size, 0, (void**)&ptr_data);
-    instance.mapped_data = (instance_data*)ptr_data;
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, instance.data.buffer, nullptr); });
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, instance.data.device_memory, nullptr); });
-    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() {vkUnmapMemory(dev.dev, instance.data.device_memory);});
+        void* ptr_data;
+        vkMapMemory(dev.dev , instance[i].data.device_memory, 0, buffer_size, 0, (void**)&ptr_data);
+        instance[i].mapped_data = (instance_data*)ptr_data;
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, instance[i].data.buffer, nullptr); });
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, instance[i].data.device_memory, nullptr); });
+        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() {vkUnmapMemory(dev.dev, instance[i].data.device_memory);});
+    }
 }
 
 

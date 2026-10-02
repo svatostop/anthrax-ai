@@ -37,54 +37,32 @@ link_directories(${Vulkan_LIBRARY_DIRS})
 link_libraries(${Vulkan_LIBRARIES})
 message(STATUS "Vulkan libraries: ${Vulkan_LIBRARIES}")
 
-# find_package( Vulkan REQUIRED )
-#
-# # Require Vulkan version ≥ 1.3.256 (earliest version when the Vulkan module was available)
-# if( ${Vulkan_VERSION} VERSION_LESS "1.3.256" )
-#   message( FATAL_ERROR "Minimum required Vulkan version for C++ modules is 1.3.256. "
-#            "Found ${Vulkan_VERSION}."
-#   )
-# endif()
-#
-# # set up Vulkan C++ module as a library
-# add_library( VulkanHppModule )
-# target_sources( VulkanHppModule PRIVATE
-#   FILE_SET CXX_MODULES
-#   BASE_DIRS ${Vulkan_INCLUDE_DIR}
-#   FILES ${Vulkan_INCLUDE_DIR}/vulkan/vulkan.cppm
-# )
-# target_compile_features( VulkanHppModule PRIVATE   cxx_std_23
-#   INTERFACE cxx_std_20)
-# target_link_libraries( VulkanHppModule PUBLIC Vulkan::Vulkan )
-#find_package(Vulkan REQUIRED COMPONENTS shaderc_combined)
-
 #======================================= glfw  =======================================#
 find_package(glfw3 3.4 REQUIRED)
 list(APPEND _libraries glfw)
 #======================================= imgui =======================================#
+FetchContent_Populate(imgui
+  URL https://github.com/ocornut/imgui/archive/docking.zip
+  SOURCE_DIR ${_path}/imgui
+)
 
 file(GLOB imgui_sources CONFIGURE_DEPENDS
-	${_path}/imgui/*.cpp
-	${_path}/imgui/*.h
-	${_path}/imgui/misc/cpp/imgui_stdlib.cpp
-	${_path}/imgui/misc/cpp/imgui_stdlib.h
+    ${_path}/imgui/*.h
+    ${_path}/imgui/backends/*.h
+
+    ${_path}/imgui/*.cpp
+    ${_path}/imgui/backends/imgui_impl_glfw.cpp
+    ${_path}/imgui/backends/imgui_impl_vulkan.cpp
 )
-if (WIN32)
-	list(REMOVE_ITEM imgui_sources
-		${_path}/imgui/imgui_impl_x11.cpp
-		${_path}/imgui/imgui_impl_x11.h
-	)
-	list(APPEND imgui_sources
-		${_path}/imgui/backends/imgui_impl_win32.cpp
-		${_path}/imgui/backends/imgui_impl_win32.h
-	)
-endif()
 make_library(imgui)
-# imgui requires the Vulkan ans X11 libraries, so we need to link them here
-target_link_libraries(imgui PRIVATE ${_libraries})
-if (WIN32)
-target_link_libraries(imgui dwmapi)
-endif()
+set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(imgui PUBLIC ${_libraries})
+# # imgui requires the Vulkan ans X11 libraries, so we need to link them here
+# target_link_libraries(imgui PRIVATE glfw) 
+# target_link_libraries(imgui INTERFACE ${_libraries})
+# if (WIN32)
+# target_link_libraries(imgui dwmapi)
+# endif()
 list(APPEND _libraries lib::imgui)
 
 #======================================== GLM ========================================#
@@ -203,6 +181,7 @@ endif()
 
 target_link_libraries(libraries INTERFACE shaderc_shared )
 
+# target_link_libraries(libraries INTERFACE lib::imgui )
 target_link_libraries(libraries INTERFACE Tracy::TracyClient )
 target_include_directories(libraries SYSTEM INTERFACE ${_includes})
 

@@ -42,9 +42,9 @@ void keeper::camera::update_matrices()
 
 void keeper::camera::update_movement()
 {
-    float speed_factor = 0.001f;
+    float speed_factor = 0.005f;
     if (aai::io::key::is_state(aai::io::key::val::SHIFT)) {
-        speed_factor = 0.005f;
+        speed_factor = 0.05f;
     }
     float delta = speed_factor * utils::timer::delta_ms;
     if (aai::io::key::is_state(aai::io::key::val::W)) {
@@ -63,7 +63,12 @@ void keeper::camera::update_movement()
 
 void keeper::camera::update_directions()
 {
-    float delta = 0.00005 * utils::timer::delta_ms;
+    float speed_factor = 0.00005f;
+    if (aai::io::key::is_state(aai::io::key::val::SHIFT)) {
+        speed_factor = 0.0001f;
+    }
+
+    float delta = speed_factor * utils::timer::delta_ms;
     glm::vec2 pos_delta = aai::io::mouse::get_delta();
     if (!aai::io::mouse::is_state(aai::io::mouse::val::LEFT_PRESSED) || !aai::io::mouse::was_moved())
         return;

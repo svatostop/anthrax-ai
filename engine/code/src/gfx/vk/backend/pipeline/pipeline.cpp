@@ -219,6 +219,9 @@ VkPipelineRenderingCreateInfoKHR get_rendering_info(const rt::base::ref& attachm
 
 uint32_t vk::pipeline::create_material(VkDevice dev, mat::materials& m, const std::string& name)
 {
+    if (m.exists(name))
+    return m.get_id(name);
+    
     vertex_input_info = vertex_input_create_info(m.get_info(name));
     VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
     convert_and_apply_viewport(viewport, m.get_info(name).viewport);

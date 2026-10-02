@@ -34,7 +34,7 @@ void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w, 
     pipe.set_layout(gpu_mem.get_bindless_layout());
 
     render.set_window_size(window_size);
-    render.init(inst.get_instance(), dev.get_devices(), gpu_mem.get_bindless_set(), gpu_mem.get_buffer_address(gpu_data_type::CAMERA), gpu_mem.get_buffer_address(gpu_data_type::INSTANCE));
+    render.init(inst.get_instance(), dev.get_devices(), gpu_mem.get_bindless_set());
 
     init_rt_states();
 
@@ -42,10 +42,23 @@ void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w, 
     vk::buffer::set_submit_callback(f, dev.get_queue(vk::queues::type::GRAPHICS));
 }
 
+void vk::base::init_editor(GLFWwindow* window, aai::editor& editor)
+{
+    editor.init(window, inst.get_instance(), dev.get_devices().physical_dev, dev.get_devices().dev, dev.get_queue(vk::queues::type::GRAPHICS), dev.get_graphics_index());
+    editor_render_callback = std::bind(&aai::editor::backend_render_data, &editor, std::placeholders::_1);
+}
+
 bool vk::base::begin_frame()
 {
     if (!frame.sync_frames(dev.get_device(), dev.get_swapchain()))
         on_resize();
+
+    gpu_mem.submit_camera(cam, frame.get_frame_index());
+    gpu_mem.submit_instance(rq, frame.get_frame_index());
+    gpu_mem.update(dev.get_devices(), frame.get_frame_index());
+
+    render.set_camera_bind(gpu_mem.get_buffer_address(gpu_data_type::CAMERA, frame.get_frame_index()));
+    render.set_instance_bind(gpu_mem.get_buffer_address(gpu_data_type::INSTANCE, frame.get_frame_index()));
     return frame.is_swapchain_index_valid();
 }
 
@@ -65,12 +78,7 @@ void vk::base::execute()
 {
     // todo : multithreading ENGINEEEE
     // todo : arena or some allocators !!! 
-    // todo : imgui
     
-    gpu_mem.submit_camera(cam);
-    gpu_mem.submit_instance(rq);
-    gpu_mem.update(dev.get_devices());
-
     render.refresh_state();
     for (const rq::data& data : rq) {
         // todo - the animations should be updated separately from the mesh object, since different models can have the same animation
@@ -80,6 +88,9 @@ void vk::base::execute()
         render.block(frame.get_cmd(), data);
         unset_debug_render_pass_name(frame.get_cmd());
     }
+    set_debug_render_pass_name(frame.get_cmd(), "editor");
+    render.block_t(frame.get_cmd(), editor_render_callback);
+    unset_debug_render_pass_name(frame.get_cmd());
 }
 
 void vk::base::create_model(const char* path, std::shared_ptr<model::base> m)

@@ -8,6 +8,7 @@ export import aai.gfx.vk;
 export import aai.gfx.assets;
 export import aai.gfx.vk.rt;
 export import aai.gfx.materials;
+import aai.editor;
 import std;
 import glm;
 export {
@@ -27,6 +28,8 @@ export {
                 void clean() { vk.wait_timeline(); clean_resources(); }
 
                 mat::material_infos_map& get_material_info_data() { return material_pallet.get_material_info_data(); }
+
+                void init_editor(GLFWwindow* glfw_win, aai::editor& editor) { vk.init_editor(glfw_win, editor); }
             private:
                 void clean_resources();
                 vk::base vk;

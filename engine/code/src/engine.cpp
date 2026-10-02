@@ -1,5 +1,5 @@
 module aai;
-import aai.json;
+import aai.utils.json;
 import aai.utils.mem;
 import aai.utils.timer;
 
@@ -11,20 +11,23 @@ void aai::core::init()
     gfx.init(win.get_glfw_win(), win.get_display(), win.get_x11_win());
     aai::json::parse(gfx);
     gfx.populate();
+    gfx.init_editor(win.get_glfw_win(), editor);
 }
 
 void aai::core::run()
 {
     while (!win.closed()) {
         win.poll_events();
+        utils::timer::update();
         keeper.update();
-        utils::timer::next_frame();
+        editor.run();
         gfx.run();
+        utils::timer::next_frame();
     }
 }
 
 void aai::core::clean()
 {
-    utils::mem::get()->flush_all(utils::mem::event::DELETE);//, utils::mem::type::VK);       
+    utils::mem::get()->flush_all(utils::mem::event::DELETE);
     win.clean();
 }

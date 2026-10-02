@@ -15,6 +15,7 @@ export import aai.gfx.vk.rq;
 export import aai.gfx.vk.renderer;
 import aai.gfx.vk.device.helper;
 export import aai.gfx.vk.model;
+export import aai.editor;
 import std;
 
 export {
@@ -41,7 +42,9 @@ export {
 
                 const glm::ivec2& get_window_size() { return window_size; }
 
-                void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; } 
+                void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; }
+
+                void init_editor(GLFWwindow* window, aai::editor& editor);
            private:
                 void init_rt_states();
                 void on_resize();
@@ -61,6 +64,8 @@ export {
                 renderer render;
                 glm::ivec2 window_size;
                 std::shared_ptr<keeper::camera> cam;
+
+                std::function<void(VkCommandBuffer cmd)> editor_render_callback;
         };
    }
 };

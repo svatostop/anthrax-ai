@@ -38,6 +38,8 @@ export {
 
                 VkCommandBufferBeginInfo cmd_begin_info(VkCommandBufferUsageFlags flags);
                 VkSubmitInfo submit_info(VkCommandBuffer* cmd);
+
+                const uint32_t get_frame_index() const { return frame_index; }
                 
                 uint32_t get_swapchain_index() const { return sync.get_swapchain_index(); }
                 bool is_swapchain_index_valid() const { return sync.is_swapchain_index_valid(); }

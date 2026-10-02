@@ -5,12 +5,11 @@ module;
 
 module aai.gfx.vk.renderer;
 import aai.gfx.vk.pipeline;
+import aai.utils;
 import std;
-void vk::renderer::init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless, VkDeviceAddress buffer_addr, VkDeviceAddress instance_addr)
+void vk::renderer::init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless)
 {
     bindless_set = bindless;
-    camera_buffer_address = buffer_addr;
-    instance_buffer_address = instance_addr;
 
     vkCmdBeginRenderingKHR = (PFN_vkCmdBeginRenderingKHR) vkGetInstanceProcAddr(inst, "vkCmdBeginRenderingKHR");
 	vkCmdEndRenderingKHR = (PFN_vkCmdEndRenderingKHR) vkGetInstanceProcAddr(inst, "vkCmdEndRenderingKHR");
@@ -72,6 +71,17 @@ void vk::renderer::block(VkCommandBuffer cmd, const rq::data& rq)
     }
     else
         draw(cmd, rq);
+    end_render(cmd);
+}
+
+void vk::renderer::block_t(VkCommandBuffer cmd, std::function<void(VkCommandBuffer cmd)> callback)
+{
+    if (!callback)
+        return;
+    rt::base::ref attachment_ref = rts.get_ref(rt::name::val::ONE_QUAD);
+    attachment_ref.color_types[0].rule = rt::helper::rule::LOAD;
+    start_render(cmd, attachment_ref);
+    callback(cmd);
     end_render(cmd);
 }
 
@@ -153,7 +163,9 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::ty
             }
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline);
         }
-    
+        
+        utils::ASSERT(camera_buffer_address == 0, "camera buffer address is invalid!");
+        utils::ASSERT(instance_buffer_address == 0, "instance buffer address is invalid!");
         vk::pipeline::push_range constants;
         constants.camera_gpu_address = camera_buffer_address;
         constants.instance_gpu_address = instance_buffer_address;
@@ -187,6 +199,7 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq)
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline);
     }
     
+    utils::ASSERT(camera_buffer_address == 0, "camera buffer address is invalid!");
 	vk::pipeline::push_range constants;
     constants.camera_gpu_address = camera_buffer_address;
     constants.texture_id = rq.texture_id;

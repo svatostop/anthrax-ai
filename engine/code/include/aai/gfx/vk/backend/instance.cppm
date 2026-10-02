@@ -32,9 +32,9 @@ export {
             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
             void* pUserData)
         {
-            if (pCallbackData->messageIdNumber != 3357201678) {
+            // if (pCallbackData->messageIdNumber != 3357201678) {
                 std::cerr << "validation layer: " << pCallbackData->pMessage << "\n----------------------------------\n" << std::endl;
-            }
+            // }
             return VK_FALSE;
         }
 

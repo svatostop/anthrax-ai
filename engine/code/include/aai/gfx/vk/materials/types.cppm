@@ -1,4 +1,5 @@
 module;
+#include "aai/gfx/vk/backend/vk_defines.h"
 #include "aai/utils/lookup_table.h"
 
 export module aai.gfx.materials.types;
@@ -11,6 +12,19 @@ import glm;
     
 export {
     namespace mat {
+        struct data {
+            std::string name;
+            VkPipelineLayout pipeline_layout;
+            VkPipeline pipeline;
+            rt::base::ref attachment_ref;
+            bool dynamic_viewport;
+
+            void clean(VkDevice dev) {
+                vkDestroyPipelineLayout(dev, pipeline_layout, nullptr);
+                vkDestroyPipeline(dev, pipeline, nullptr);
+            }
+        };
+
         namespace color_blends {
 #define COLOR_BLENDS_LOOKUP(X) \
             X(SRC_ALPHA, "src_alpha") \
@@ -102,7 +116,8 @@ DECLARE_LOOKUP_TABLE(DEPTH_OP_LOOKUP, val)
         };
 
         using material_infos_map = std::map<std::string, info_helper>; 
-
+        using material_map = std::map<std::uint32_t, std::shared_ptr<data>>;
+        using material_ids_map = std::map<std::string, std::uint32_t>;
 
     }
 

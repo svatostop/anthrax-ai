@@ -25,7 +25,7 @@ export {
         T raw_data;
         T* mapped_data = nullptr;
         size_t buffer_size = 0;
-        size_t submitted_size = 0;
+        bool submitted = false;
         vk::buffer::handlers data;
     };
 };

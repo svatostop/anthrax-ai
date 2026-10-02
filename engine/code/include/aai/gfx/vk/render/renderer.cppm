@@ -15,9 +15,10 @@ export {
     namespace vk {
         class renderer {
             public:
-                void init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless, VkDeviceAddress buffer_addr, VkDeviceAddress instance_addr);
+                void init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless);
                 
                 void block(VkCommandBuffer cmd, const rq::data& rq);
+                void block_t(VkCommandBuffer cmd, std::function<void(VkCommandBuffer cmd)> callback);
 
                 rt::render_target* get_rt(rt::helper::val v)  { return rts.get_rt(v); }
                 const rt::base::ref_map& get_rt_ref_map() const { return rts.get_rt_ref_map(); }
@@ -26,6 +27,9 @@ export {
                 void clean_rts(const vk::device::handlers& dev) { rts.clean(dev); }
                 void recreate_rts(const vk::device::handlers& dev) { rts.create(dev, window_size); }
                 void set_window_size(glm::ivec2 w) { window_size = w; }
+
+                void set_instance_bind(VkDeviceAddress buffer_addr) { instance_buffer_address = buffer_addr; }
+                void set_camera_bind(VkDeviceAddress buffer_addr) { camera_buffer_address = buffer_addr; }
 
                 void refresh_state();
             private:
@@ -53,8 +57,8 @@ export {
         	    PFN_vkCmdEndRenderingKHR   vkCmdEndRenderingKHR{VK_NULL_HANDLE};
 
                 VkDescriptorSet bindless_set;
-                VkDeviceAddress camera_buffer_address;
-                VkDeviceAddress instance_buffer_address;
+                VkDeviceAddress camera_buffer_address ;
+                VkDeviceAddress instance_buffer_address ;
 
                 rt::base rts;
                 render_state state;
