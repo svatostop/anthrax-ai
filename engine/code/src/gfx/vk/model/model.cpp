@@ -31,15 +31,15 @@ void model::base::load(const std::string& path, vk::device::handlers devices)
     }
 }
 
-void model::base::update_animation(const vk::device::handlers& devices)
+void model::base::update_animation(float delta_ms, const vk::device::handlers& devices)
 {
     if (animations.empty())
         return;
     if (active_anim > animations.size() - 1)
         return;
-    float delta_ms = utils::timer::delta_ms / 1000.0f;
+    float delta = delta_ms / 1000.0f;
     model::animation::base& anim = animations[active_anim];
-    anim.current_time += delta_ms;
+    anim.current_time += delta;
     if (anim.current_time > anim.end)
         anim.current_time -= anim.end;
     for (model::animation::channel& c : anim.channels) {

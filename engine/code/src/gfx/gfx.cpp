@@ -7,6 +7,7 @@ module aai.gfx;
 import aai.gfx.vk.rt.helper;
 import aai.gfx.vk.model;
 import aai.utils;
+import aai.utils.threads.job_sys;
 import glm;
 import std;
 void gfx::base::init(GLFWwindow* glfw_win, Display* di, Window w)
@@ -15,12 +16,10 @@ void gfx::base::init(GLFWwindow* glfw_win, Display* di, Window w)
     window_size = vk.get_window_size();
 }
 
-void gfx::base::run()
+void gfx::base::run(float delta_ms)
 {
-    cam->update();
-
     if (vk.begin_frame()) {
-        vk.execute(); 
+        vk.execute(delta_ms); 
         vk.end_frame();
     } 
     window_size = vk.get_window_size();
@@ -33,7 +32,9 @@ void gfx::base::populate()
     uint32_t texture_id = create_texture("./textures/kote-v-bote.jpg");
     uint32_t model_cube_id = create_model("./models/cube.glb");
     uint32_t model_fox_id = create_model("./models/fox.glb");
-    
+   
+    utils::job_sys::wait();
+
     glm::vec4 viewport = glm::vec4(window_size.x, window_size.y ,0,0); 
     
     material_pallet.request_texture_use("material_sprite", true);
@@ -47,6 +48,7 @@ void gfx::base::populate()
     // });
 
     material_pallet.request_mesh_use("material_model", true);
+    utils::ASSERT(!model_mng.get(model_cube_id), "-");
     material_pallet.request_mesh_animation("material_model", model_mng.get(model_cube_id)->is_animated());
     material_pallet.request_rt_ref_change("material_model", vk.get_attachment_ref(material_pallet.get_rt_ref_val("material_model")));
     uint32_t mat_id = vk.create_material(material_pallet, "material_model");
@@ -76,7 +78,6 @@ void gfx::base::populate()
             .texture_id = 0,
     });
 
-
 }
 
 void gfx::base::clean_resources()
@@ -86,22 +87,20 @@ void gfx::base::clean_resources()
     material_pallet.clean(vk.get_devices());
 }
 
-uint32_t gfx::base::create_texture(const char* path)
+uint32_t gfx::base::create_texture(const std::string& path)
 {
-    auto future = asset_mng.load_async(path, [&](std::shared_ptr<rt::render_target> r, const char*){
-        vk.create_texture(path, r);
+    uint32_t id = asset_mng.load(path, [&, path](std::shared_ptr<rt::render_target> r, const std::string&){
+        vk.create_texture(path.c_str(), r);
     });
-    uint32_t id = future.get();
     printf("texture value !!! %d\n", id);
     return id;
 }
 
-uint32_t gfx::base::create_model(const char* path)
+uint32_t gfx::base::create_model(const std::string& path)
 {
-    auto future = model_mng.load_async(path, [&](std::shared_ptr<model::base> m, const char*) {
-        vk.create_model(path, m);
+    uint32_t id = model_mng.load(path, [&, path](std::shared_ptr<model::base> m, const std::string&) {
+        vk.create_model(path.c_str(), m);
     });
-    uint32_t id = future.get();
     printf("model value !!! %d\n", id);
     return id;
 }

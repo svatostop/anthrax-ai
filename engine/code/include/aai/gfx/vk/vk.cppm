@@ -26,13 +26,13 @@ export {
                 
                 bool begin_frame();
                 void end_frame();
-                void execute();
+                void execute(float delta_ms);
 
                 void clean_rts() { render.clean_rts(dev.get_devices()); }
-                void create_texture(const char* path, std::shared_ptr<rt::render_target> target);
+                void create_texture(const std::string& path, std::shared_ptr<rt::render_target> target);
                 void create_model(const char* path, std::shared_ptr<model::base> m);
                 uint32_t create_material(mat::materials& m, const std::string& name) { return pipe.create_material(dev.get_device(), m, name); } 
-                void push_rq(const rq::data& r) { rq.push_back(r); }
+                void push_rq(rq::data&& r) { rq.push_back(std::move(r)); }
 
                 rt::render_target* get_last_target() { return render.get_last_target(); } 
                 const rt::base::ref& get_attachment_ref(const rt::name::val r) { return render.get_attachment_ref(r); }

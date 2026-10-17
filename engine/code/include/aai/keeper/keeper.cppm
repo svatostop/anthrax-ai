@@ -14,9 +14,9 @@ export {
 
                 std::shared_ptr<entity> get(const entity_id id) { return entities[id]; }
 
-                void update() {
+                void update(float delta_ms) {
                     for (entity_map::iterator it = entities.begin(); it != entities.end(); ++it) {
-                        it->second->update();
+                        it->second->update(delta_ms);
                     }
                 }
             private:

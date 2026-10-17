@@ -2,6 +2,7 @@ module;
 #include <cstdint>
 
 import aai.gfx.vk.device;
+import aai.utils.threads.job_sys;
 export module aai.gfx.assets;
 import std;
 export {
@@ -9,24 +10,21 @@ export {
         template<typename T>
         class base {
             public:
-                std::future<uint32_t> load_async(const std::string& path, std::function<void (std::shared_ptr<T>, const char*)> callback) {
-                // uint32_t load_async(const char* path, std::function<void (std::shared_ptr<T>, const char*)> callback) {
-                    return std::async(std::launch::async, [this, path, callback]() {
-                        return load(path, callback);
-                    });
-                }                
-                uint32_t load(const std::string& path, std::function<void (std::shared_ptr<T>, const char*)> callback) 
+                uint32_t load(const std::string& path, std::function<void (std::shared_ptr<T>, const std::string&)> callback) 
                 {
-                    std::lock_guard<std::mutex> lock(cache_mutex);
+                    uint32_t id;
                     auto it = paths_id_map.find(path);
                     if (it != paths_id_map.end()) {
                         return it->second;
                     }
-                    std::shared_ptr<T> resource(new T);
-                    callback(resource, path.c_str());
-                    counter++;
-                    cache[counter] = resource;
+                    id = ++counter;
                     paths_id_map[path] = counter;
+                    utils::job_sys::execute([this, id, path = std::move(path), callback = std::move(callback)] {
+                        std::shared_ptr<T> resource(new T);
+                        callback(resource, path);        
+                        std::lock_guard<std::mutex> lock(cache_mutex);
+                        cache[id] = std::move(resource);
+                    });
                     return counter;
                 }
                 void unload(uint32_t id) 
@@ -50,7 +48,7 @@ export {
                         }
                     }
                 }
-                std::shared_ptr<T> get(uint32_t n) { if (cache.find(n) != cache.end()) return cache[n]; return nullptr; }
+                std::shared_ptr<T> get(uint32_t n) { std::lock_guard<std::mutex> lock(cache_mutex);if (cache.find(n) != cache.end()) return cache[n]; return nullptr; }
             private:
                 uint32_t counter = 0;
                 std::map<uint32_t, std::shared_ptr<T>> cache;

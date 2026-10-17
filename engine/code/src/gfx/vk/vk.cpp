@@ -11,6 +11,7 @@ import aai.gfx.vk.rt;
 import aai.gfx.vk.loader.texture;
 import aai.gfx.vk.rt.helper;
 import aai.gfx.vk.rt.cmd;
+import aai.utils.threads.job_sys;
 import aai.utils;
 import std;
 
@@ -74,7 +75,7 @@ void vk::base::end_frame()
         on_resize();
 }
 
-void vk::base::execute()
+void vk::base::execute(float delta_ms)
 {
     // todo : multithreading ENGINEEEE
     // todo : arena or some allocators !!! 
@@ -83,7 +84,7 @@ void vk::base::execute()
     for (const rq::data& data : rq) {
         // todo - the animations should be updated separately from the mesh object, since different models can have the same animation
         if (data.mesh_handle)
-            data.mesh_handle->update_animation(dev.get_devices());
+            data.mesh_handle->update_animation(delta_ms, dev.get_devices());
         set_debug_render_pass_name(frame.get_cmd(),  data.tag);
         render.block(frame.get_cmd(), data);
         unset_debug_render_pass_name(frame.get_cmd());
@@ -102,10 +103,10 @@ void vk::base::create_model(const char* path, std::shared_ptr<model::base> m)
     set_debug_name(path, reinterpret_cast<uint64_t>(m->get_index_buffer()), VK_OBJECT_TYPE_BUFFER);
 }
 
-void vk::base::create_texture(const char* path, std::shared_ptr<rt::render_target> target)
+void vk::base::create_texture(const std::string& path, std::shared_ptr<rt::render_target> target)
 {
     vk::buffer::handlers stagingbuffer;
-    loader::texture::load(target, path, dev.get_devices(), stagingbuffer);
+    loader::texture::load(target, path.c_str(), dev.get_devices(), stagingbuffer);
 
     set_debug_name(path, reinterpret_cast<uint64_t>(target->get_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
     set_debug_name(path, reinterpret_cast<uint64_t>(target->get_image()), VK_OBJECT_TYPE_IMAGE);

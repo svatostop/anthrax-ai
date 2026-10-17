@@ -17,13 +17,13 @@ export {
             public:
                 void init(GLFWwindow* glfw_win, Display* di, Window w);
                 
-                void run();
+                void run(float delta_ms);
                 void populate();
 
                 void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; cam->set_position(glm::vec3(0.0f, 0.0f, 10.0f)); }
 
-                uint32_t create_texture(const char* path);
-                uint32_t create_model(const char* path);
+                uint32_t create_texture(const std::string& path);
+                uint32_t create_model(const std::string& path);
 
                 void clean() { vk.wait_timeline(); clean_resources(); }
 

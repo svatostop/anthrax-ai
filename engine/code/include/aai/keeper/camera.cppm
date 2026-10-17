@@ -25,11 +25,11 @@ export {
                 float get_pitch() const { return pitch; }
                 const glm::vec3& get_up() const { return up; }
 
-                void update() override { update_movement(); update_directions(); update_matrices(); };
+                void update(float delta_ms) override { update_movement(delta_ms); update_directions(delta_ms); update_matrices(); };
             private:
                 void set_directions();
-                void update_movement();
-                void update_directions();
+                void update_movement(float delta_ms);
+                void update_directions(float delta_ms);
                 void update_matrices();
                 type t;
 

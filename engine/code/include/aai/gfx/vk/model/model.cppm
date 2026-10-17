@@ -20,7 +20,7 @@ export {
                 const VkBuffer get_index_buffer() { return data.indices.buffer; }
                 const VkDeviceMemory get_index_device_memory() { return data.indices.device_memory; }
                
-                void update_animation(const vk::device::handlers& devices);
+                void update_animation(float delta_ms, const vk::device::handlers& devices);
                 struct vk_data {
                     vk::buffer::handlers vertices;
                     vk::buffer::handlers indices;

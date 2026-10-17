@@ -1,7 +1,6 @@
 module aai;
 import aai.utils.json;
 import aai.utils.mem;
-import aai.utils.timer;
 
 void aai::core::init()
 {
@@ -12,18 +11,30 @@ void aai::core::init()
     aai::json::parse(gfx);
     gfx.populate();
     gfx.init_editor(win.get_glfw_win(), editor);
+
+    thread.start(std::bind(&aai::core::render_update_callback, this, std::placeholders::_1), std::bind(&aai::core::logic_update_callback, this, std::placeholders::_1));
+}
+
+void aai::core::render_update_callback(float delta_ms)
+{
+    editor.run();
+    gfx.run(delta_ms);
+}
+
+void aai::core::logic_update_callback(float delta_ms)
+{
+    keeper.update(delta_ms);
 }
 
 void aai::core::run()
 {
     while (!win.closed()) {
+        time.update();
         win.poll_events();
-        utils::timer::update();
-        keeper.update();
-        editor.run();
-        gfx.run();
-        utils::timer::next_frame();
+        time.next_frame();
     }
+
+    thread.stop();
 }
 
 void aai::core::clean()
