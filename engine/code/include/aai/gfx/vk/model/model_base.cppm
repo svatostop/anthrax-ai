@@ -19,8 +19,12 @@ export {
                 
                 const VkBuffer get_index_buffer() { return data.indices.buffer; }
                 const VkDeviceMemory get_index_device_memory() { return data.indices.device_memory; }
-               
+              
                 // void update_animation(float delta_ms, const vk::device::handlers& devices);
+                //
+                // todo_vulkan -- vk::buffer for vertex/index are the same and never chasnges - might be kept here
+                // ssbo for skin changes every frame and must probably go to the model::inst member
+
                 struct vk_data {
                     vk::buffer::handlers vertices;
                     vk::buffer::handlers indices;
