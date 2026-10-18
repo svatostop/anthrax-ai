@@ -27,55 +27,56 @@ namespace model {
         };
 
         struct node {
-            node* parent;
-            std::vector<node*> children;
+            std::string name;
+            int32_t parent = -1;
+            std::vector<int32_t> children;
             meshes mesh;
-            glm::mat4 matrix;
-            std::string name;
-            bool visible = true;
-            glm::vec3 translation{};
-            glm::vec3 scale{1.0f};
-            glm::quat rotation{};
-            int32_t   skin_id = -1;
-            int32_t   index = -1;
-            glm::mat4 get_local_matrix() {
-	            return glm::translate(glm::mat4(1.0f), translation) * glm::mat4(rotation) * glm::scale(glm::mat4(1.0f), scale) * matrix;
-            }
-            ~node() {
-                for (auto& child : children) {
-                    delete child;
-                }
-            }
+            int32_t skin_id = -1;
+            glm::vec3 default_translation = glm::vec3(0,0,0);
+            glm::quat default_rotation = glm::quat(1, 0, 0, 0);
+            glm::vec3 default_scale = glm::vec3(0,0,0);
+            glm::mat4 default_matrix = glm::mat4(1.0f);
+            bool use_matrix = false;
         };
-        struct skin {
+        struct skeleton {
             std::string name;
-            node* skeleton_root = nullptr;
+            int32_t root_node_ind = -1;
             std::vector<glm::mat4> inv_matrices;
-            std::vector<glm::mat4> fin_bone_transforms;
-            std::vector<node*> bones;
+            std::vector<int32_t> bones;
         };
     }
 
+
     namespace animation {
-        struct sampler {
-            std::string interpolation;
+        struct sampler {    
+            enum class interpolation_t { linear, step, cubic_spline };
+            interpolation_t interpolation = interpolation_t::linear;
             std::vector<float> inputs;
             std::vector<glm::vec4> outputs;
         } ;
         struct channel {
-            std::string path;
-            types::node* n;
+            enum class path_t { translation, rotation, scale };
+            path_t path = path_t::translation;
+            int32_t node_ind = -1;
             uint32_t sampler_index;
         };
-        struct base {
+        struct clip {
             std::string name;
             std::vector<sampler> samplers;
             std::vector<channel> channels;
             float start = FLT_MAX;
             float end = FLT_MIN;
-            float current_time = 0.0f;
         };
     }
 
+    struct info {
+        std::vector<types::node> nodes;
+        std::vector<types::skeleton> skeletons;
+        std::vector<animation::clip> clips;
+        std::vector<int32_t> root_nodes;
+        std::vector<types::vertex> vertex_buffer;
+        std::vector<uint16_t> index_buffer;
+    };
+    
 }
 

@@ -66,7 +66,7 @@ void vk::renderer::block(VkCommandBuffer cmd, const rq::data& rq)
             vkCmdBindVertexBuffers(cmd, 0, 1, &vert_buf, offsets);
             vkCmdBindIndexBuffer(cmd, rq.mesh_handle->get_index_buffer(), 0, VK_INDEX_TYPE_UINT16);
         }
-        for (const model::types::node* n : rq.mesh_handle->get_nodes())    
+        for (const model::types::node& n : rq.mesh_handle->get_nodes())    
             draw(cmd, rq, n);
     }
     else
@@ -153,9 +153,9 @@ void vk::renderer::end_render(VkCommandBuffer cmd)
 {
     vkCmdEndRenderingKHR(cmd);
 }
-void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::types::node* n)
+void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::types::node& n)
 {
-    if (n->mesh.primitives.size() > 0) {
+    if (n.mesh.primitives.size() > 0) {
         check_bindings(rq.material_handle, rq.mesh_handle);
         if (state.bind_pipeline) {
             if (rq.texture_id > 0) {
@@ -171,12 +171,13 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::ty
         constants.instance_gpu_address = instance_buffer_address;
         constants.texture_id = rq.texture_id;
         constants.skin_gpu_address = 0;
-        if (n->skin_id > -1) {
-            constants.skin_gpu_address = rq.mesh_handle->get_skin_gpu_address(n->skin_id); 
-        }
+        // todo_vulkan return back for anim
+        // if (n.skin_id > -1) {
+        //     constants.skin_gpu_address = rq.mesh_handle->get_skin_gpu_address(n.skin_id); 
+        // }
         vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
 
-        for (const model::types::primitive& prim : n->mesh.primitives) {
+        for (const model::types::primitive& prim : n.mesh.primitives) {
             if (prim.index_count <= 0)
                 continue;
             vkCmdDrawIndexed(cmd, prim.index_count, 1, prim.first_index, 0, state.instance_ind);
@@ -184,8 +185,9 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq, const model::ty
         }
     }
     
-    for (model::types::node* child : n->children) {
-        draw(cmd, rq, child);
+    for (int32_t child : n.children) {
+        const model::types::node& ch_n = rq.mesh_handle->get_nodes()[child];
+        draw(cmd, rq, ch_n);
     }
 }
 

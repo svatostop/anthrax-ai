@@ -51,7 +51,7 @@ export {
                 void start_render(VkCommandBuffer cmd, const rt::base::ref& attachment_ref);
                 void end_render(VkCommandBuffer cmd);
                 void draw(VkCommandBuffer cmd, const rq::data& rq);
-                void draw(VkCommandBuffer cmd, const rq::data& rq, const model::types::node* n);
+                void draw(VkCommandBuffer cmd, const rq::data& rq, const model::types::node& n);
 
                 PFN_vkCmdBeginRenderingKHR vkCmdBeginRenderingKHR{VK_NULL_HANDLE};
         	    PFN_vkCmdEndRenderingKHR   vkCmdEndRenderingKHR{VK_NULL_HANDLE};

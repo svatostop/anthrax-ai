@@ -20,21 +20,17 @@ export {
                 const VkBuffer get_index_buffer() { return data.indices.buffer; }
                 const VkDeviceMemory get_index_device_memory() { return data.indices.device_memory; }
                
-                void update_animation(float delta_ms, const vk::device::handlers& devices);
+                // void update_animation(float delta_ms, const vk::device::handlers& devices);
                 struct vk_data {
                     vk::buffer::handlers vertices;
                     vk::buffer::handlers indices;
                     std::vector<vk::buffer::handlers> skin;
                 };
-                const std::vector<model::types::node*>& get_nodes() const { return nodes; }
+                const std::vector<model::types::node>& get_nodes() const { return info.nodes; }
 
-                bool is_animated() { return !animations.empty(); }
+                bool is_animated() { return !info.clips.empty(); }
+                model::info info;
             private:
-                std::vector<model::types::node*> nodes;
-                std::vector<model::types::skin> skins;
-                // todo - separate from model - some models can have the same animation
-                std::vector<model::animation::base> animations;	
-                uint32_t active_anim = 0;
                 vk_data data;
         };
     }

@@ -59,10 +59,11 @@ void gfx::base::populate()
             .mesh_handle = model_mng.get(model_cube_id),
     });
 
-    material_pallet.request_mesh_use("material_model_anim", true);
-    material_pallet.request_mesh_animation("material_model_anim", model_mng.get(model_fox_id)->is_animated());
-    material_pallet.request_rt_ref_change("material_model_anim", vk.get_attachment_ref(material_pallet.get_rt_ref_val("material_model_anim")));
-    mat_id = vk.create_material(material_pallet, "material_model_anim");
+        // todo_vulkan return back for anim
+    material_pallet.request_mesh_use("material_model", true);
+    material_pallet.request_mesh_animation("material_model", false);// model_mng.get(model_fox_id)->is_animated());
+    material_pallet.request_rt_ref_change("material_model", vk.get_attachment_ref(material_pallet.get_rt_ref_val("material_model")));
+    mat_id = vk.create_material(material_pallet, "material_model");
     vk.push_rq({
             .tag = "test_model_anim",
             .material_handle = material_pallet.get(mat_id),
