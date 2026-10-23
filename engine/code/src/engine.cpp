@@ -9,7 +9,12 @@ void aai::core::init()
     gfx.set_camera(std::static_pointer_cast<keeper::camera>(keeper.get(id)));
     gfx.init(win.get_glfw_win(), win.get_display(), win.get_x11_win());
     aai::json::parse(gfx);
-    gfx.populate();
+
+    // gfx.populate_inst(keeper.get_test(0));
+    // gfx.populate_inst(keeper.get_test(1));
+    // gfx.populate_inst(keeper.get_test(2));
+
+    gfx.populate_base();
     gfx.init_editor(win.get_glfw_win(), editor);
 
     thread.start(std::bind(&aai::core::render_update_callback, this, std::placeholders::_1), std::bind(&aai::core::logic_update_callback, this, std::placeholders::_1));

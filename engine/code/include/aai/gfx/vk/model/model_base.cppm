@@ -14,9 +14,7 @@ export {
 
                 const VkBuffer get_vertex_buffer() { return data.vertices.buffer; }
                 const VkDeviceMemory get_vertex_device_memory() { return data.vertices.device_memory; }
-                
-                const VkDeviceAddress get_skin_gpu_address(const uint32_t id) { return data.skin[id].gpu_address; }
-                
+                 
                 const VkBuffer get_index_buffer() { return data.indices.buffer; }
                 const VkDeviceMemory get_index_device_memory() { return data.indices.device_memory; }
               
@@ -28,7 +26,6 @@ export {
                 struct vk_data {
                     vk::buffer::handlers vertices;
                     vk::buffer::handlers indices;
-                    std::vector<vk::buffer::handlers> skin;
                 };
                 const std::vector<model::types::node>& get_nodes() const { return info.nodes; }
 

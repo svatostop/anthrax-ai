@@ -15,6 +15,7 @@ export import aai.gfx.vk.rq;
 export import aai.gfx.vk.renderer;
 import aai.gfx.vk.device.helper;
 export import aai.gfx.vk.model;
+export import aai.gfx.vk.model.inst;
 export import aai.editor;
 import std;
 

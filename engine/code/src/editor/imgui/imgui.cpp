@@ -38,6 +38,32 @@ void imgui_backend::backend_render_data(VkCommandBuffer cmd)
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
 }
 
+void imgui_backend::process()
+{
+    const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 650, main_viewport->WorkPos.y + 20), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+
+    ImGui::Begin("new engine");
+
+    if (!watch_vec.empty()) {
+        int idx = 0;
+        static std::string tag = watch_vec[0]; 
+        if (ImGui::BeginCombo("robot clips", tag.c_str()))
+        {
+            for (int n = 0; n < watch_vec.size(); n++)
+                if (ImGui::Selectable(watch_vec[n].c_str(), idx == n)) {
+                    idx = n;
+                    tag = watch_vec[n]; 
+                }
+            ImGui::EndCombo();
+        }
+        watch_callback(tag);
+    }
+
+    ImGui::End();
+}
+
 static void check_vk_result(VkResult err)
 {
     if (err == 0)

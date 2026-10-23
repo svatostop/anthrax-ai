@@ -1,3 +1,6 @@
+module;
+#include <stdio.h>
+
 export module aai.utils.timer;
 import std;
 export {

@@ -18,7 +18,8 @@ export {
                 void init(GLFWwindow* glfw_win, Display* di, Window w);
                 
                 void run(float delta_ms);
-                void populate();
+                void populate_base();
+                void populate_inst(model::inst& inst);
 
                 void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; cam->set_position(glm::vec3(0.0f, 0.0f, 10.0f)); }
 
@@ -29,12 +30,23 @@ export {
 
                 mat::material_infos_map& get_material_info_data() { return material_pallet.get_material_info_data(); }
 
-                void init_editor(GLFWwindow* glfw_win, aai::editor& editor) { vk.init_editor(glfw_win, editor); }
+                void init_editor(GLFWwindow* glfw_win, aai::editor& editor) { 
+                    vk.init_editor(glfw_win, editor);
+                    editor.watch(robot_test.get_clip_names(), [&](const std::string& s) {
+                        if (s != robot_test.get_current_clip())
+                            robot_test.update_clip(s);
+                    });
+                }
             private:
                 void clean_resources();
                 vk::base vk;
                 assets::base<rt::render_target> asset_mng;
                 assets::base<model::base> model_mng;
+
+                model::inst anim_test;
+                model::inst robot_test;
+                model::inst cube_test;
+
                 mat::materials material_pallet;
 
                 glm::ivec2 window_size;

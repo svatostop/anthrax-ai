@@ -28,9 +28,9 @@ static glm::vec4 sample_sampler(const model::animation::sampler& s, float t, boo
 
 void anim::base::update(float dt, std::vector<glm::vec3>& translation, std::vector<glm::quat>& rotation, std::vector<glm::vec3>& scale)
 {
-    if (!asset || clip < 0 || clip >= static_cast<int32_t>(asset->info.clips.size())) 
+    if (!raw_model || clip < 0 || clip >= static_cast<int32_t>(raw_model->info.clips.size())) 
         return;
-    const auto& c = asset->info.clips[clip];
+    const auto& c = raw_model->info.clips[clip];
 
     time += dt * speed;
     const float duration = c.end - c.start;
@@ -45,7 +45,7 @@ void anim::base::update(float dt, std::vector<glm::vec3>& translation, std::vect
         }
     }
     for (const auto& ch : c.channels) {
-        if (ch.node_ind < 0 || ch.node_ind >= static_cast<int32_t>(asset->info.nodes.size())) 
+        if (ch.node_ind < 0 || ch.node_ind >= static_cast<int32_t>(raw_model->info.nodes.size())) 
             continue;
 
         const auto& s = c.samplers[ch.sampler_index];

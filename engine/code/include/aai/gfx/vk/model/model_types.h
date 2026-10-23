@@ -34,7 +34,7 @@ namespace model {
             int32_t skin_id = -1;
             glm::vec3 default_translation = glm::vec3(0,0,0);
             glm::quat default_rotation = glm::quat(1, 0, 0, 0);
-            glm::vec3 default_scale = glm::vec3(0,0,0);
+            glm::vec3 default_scale = glm::vec3(1);
             glm::mat4 default_matrix = glm::mat4(1.0f);
             bool use_matrix = false;
         };
@@ -73,6 +73,7 @@ namespace model {
         std::vector<types::node> nodes;
         std::vector<types::skeleton> skeletons;
         std::vector<animation::clip> clips;
+        std::vector<std::string> clip_names;
         std::vector<int32_t> root_nodes;
         std::vector<types::vertex> vertex_buffer;
         std::vector<uint16_t> index_buffer;

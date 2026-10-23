@@ -16,17 +16,6 @@ void model::base::load(const std::string& path, vk::device::handlers devices)
 	VkBufferUsageFlags flags2[2] = {VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT};
     vk::buffer::create(data.indices, devices, flags2, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, sizeof(info.index_buffer[0]) * info.index_buffer.size(), info.index_buffer.data());
     
-    data.skin.resize(info.skeletons.size());
-    // todo - tripple buffer buffers
-    int i = -1;
-    for (model::types::skeleton& s : info.skeletons) {
-        i++;
-        if (s.inv_matrices.empty())
-            continue;
-        VkBufferUsageFlags flags_sk[2] = {VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT};
-        vk::buffer::create(data.skin[i], devices, flags_sk, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, sizeof(glm::mat4) * s.inv_matrices.size(), s.inv_matrices.data());
-        vk::buffer::get_gpu_address(data.skin[i], devices.dev);
-    }
 }
 
 // void model::base::update_animation(float delta_ms, const vk::device::handlers& devices)

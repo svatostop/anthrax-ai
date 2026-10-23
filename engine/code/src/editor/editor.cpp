@@ -7,7 +7,8 @@ void aai::editor::run()
 {
     imgui.new_frame();
 
-    imgui.show_demo_window();
+    imgui.process();
+    // imgui.show_demo_window();
 
     imgui.render();
 }

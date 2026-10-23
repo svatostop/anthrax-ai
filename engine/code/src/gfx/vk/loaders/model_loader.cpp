@@ -56,9 +56,11 @@ void load_skeletons(const tinygltf::Model& gltf_model, model::info& m) {
 
 void load_animations(const tinygltf::Model& gltf_model, model::info& m) {
     m.clips.resize(gltf_model.animations.size());
+    m.clip_names.resize(m.clips.size());
     int i =0;
     for (const tinygltf::Animation& anim : gltf_model.animations) {
         m.clips[i].name = anim.name;
+        m.clip_names[i] = anim.name;
         m.clips[i].samplers.resize(anim.samplers.size());
         int j = 0;
         for (const tinygltf::AnimationSampler& sampler : anim.samplers) {
@@ -322,8 +324,7 @@ void loader::gltf::load(const std::string& path, model::info& m)
         for (int32_t r : gltf_model.scenes[0].nodes)
             m.root_nodes.push_back(r);
 
-        // todo_vulkan return back for anim
-    // load_skeletons(gltf_model, m);
-    // load_animations(gltf_model, m);
+    load_skeletons(gltf_model, m);
+    load_animations(gltf_model, m);
 }
 
