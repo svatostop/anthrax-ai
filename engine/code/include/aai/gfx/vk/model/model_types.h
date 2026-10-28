@@ -8,7 +8,7 @@
 
 namespace model {
     using skin_data_array = std::vector<std::vector<glm::mat4>>;
-    struct skin_group {
+    struct skin_groups {
         uint32_t skin_id = 0;
         model::skin_data_array d;
     };

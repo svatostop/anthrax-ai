@@ -2,6 +2,7 @@ module;
 #include "aai/io/win_defines.h"
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <memory>
+#include "aai/gfx/vk/model/model_types.h"
 #include <stdio.h>
 
 export module aai.gfx.vk;
@@ -47,6 +48,9 @@ export {
                 void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; }
 
                 void init_editor(GLFWwindow* window, aai::editor& editor);
+
+                uint32_t get_skin_id() { return gpu_mem.get_skin_id(); }
+                std::vector<VkDeviceAddress>& get_skin_gpu_address(const std::shared_ptr<model::skin_groups> group) { return gpu_mem.get_skin_gpu_address(group, dev.get_devices()); }
            private:
                 void init_rt_states();
                 void on_resize();

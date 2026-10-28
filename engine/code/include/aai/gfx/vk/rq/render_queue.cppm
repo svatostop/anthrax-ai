@@ -16,7 +16,7 @@ export {
                 std::shared_ptr<mat::data> material_handle = nullptr;
                 uint32_t texture_id = 0;
                 std::shared_ptr<model::base> mesh_handle = nullptr;
-                std::vector<VkDeviceAddress> skin_gpu_addresses;
+                std::vector<VkDeviceAddress>& skin_gpu_addresses;
                 glm::mat4 model_matrix = glm::mat4(1);
             };
         }

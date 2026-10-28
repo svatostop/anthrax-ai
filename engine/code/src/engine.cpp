@@ -32,7 +32,7 @@ void aai::core::render_update_callback(float delta_ms)
 
 void aai::core::logic_update_callback(float delta_ms)
 {
-    keeper.update(delta_ms, gfx.get_devices());
+    keeper.update(delta_ms);
 
     thread.submit_data(keeper.get_back_data());
 }

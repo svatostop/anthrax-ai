@@ -33,7 +33,7 @@ void gfx::base::consume_back_data(std::deque<keeper::back_datas>& d)
             .material_handle = material_pallet.get(val.material_id),
             .texture_id = 0,  
             .mesh_handle = model_mng.get(val.model_id),
-            .skin_gpu_addresses = std::move(val.skin_gpu_addresses)
+            .skin_gpu_addresses = vk.get_skin_gpu_address(val.skin_group)
         });
         d.pop_front();
     }
@@ -53,7 +53,8 @@ void gfx::base::populate_inst(model::inst& inst)
     material_pallet.request_mesh_use(material_name, true);
     utils::ASSERT(!model_mng.get(model_id), "-");
 
-    inst.init(model_mng.get(model_id), vk.get_devices());
+    uint32_t skin_id = model_mng.get(model_id)->is_animated() ? vk.get_skin_id() : 0;
+    inst.init(model_mng.get(model_id), skin_id);
             
     material_pallet.request_mesh_animation(material_name, model_mng.get(model_id)->is_animated());
     material_pallet.request_rt_ref_change(material_name, vk.get_attachment_ref(material_pallet.get_rt_ref_val(material_name)));
@@ -87,6 +88,7 @@ void gfx::base::populate_base()
             .tag = "grid",
             .material_handle = material_pallet.get(sprite_mat_id),
             .texture_id = 0,
+            .skin_gpu_addresses = vk.get_skin_gpu_address(0)
     });
 
 }

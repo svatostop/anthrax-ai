@@ -32,8 +32,6 @@ export {
                 mat::material_infos_map& get_material_info_data() { return material_pallet.get_material_info_data(); }
 
                 void consume_back_data(std::deque<keeper::back_datas>& d);
-                //todo remove get_devices
-                vk::device::handlers get_devices() { return vk.get_devices(); }
 
                 void init_editor(GLFWwindow* glfw_win, aai::editor& editor) { 
                     vk.init_editor(glfw_win, editor);

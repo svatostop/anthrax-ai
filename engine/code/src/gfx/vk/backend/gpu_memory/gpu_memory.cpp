@@ -1,6 +1,7 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include "glm/ext/matrix_transform.hpp"
+#include "aai/gfx/vk/model/model_types.h"
 #include <string.h>
 
 module aai.gfx.vk.gpu_memory;
@@ -49,6 +50,41 @@ void vk::gpu_memory::submit_instance(const std::deque<rq::data>& rq, const std::
         ind++;
     }
 }
+
+std::vector<VkDeviceAddress>& vk::gpu_memory::get_skin_gpu_address(const std::shared_ptr<model::skin_groups> group, vk::device::handlers devices)
+{
+    if (!group || group->skin_id <= 0)
+        return dummy_skin_address;
+
+    if (skin_ssbos.find(group->skin_id) == skin_ssbos.end()) {
+        size_t data_size = group->d.size();
+        skin_ssbos[group->skin_id].buffer.reserve(data_size);
+        skin_ssbos[group->skin_id].gpu_addresses.reserve(data_size);
+        // todo - tripple buffer buffers
+        for (size_t i = 0; i < data_size; i++) {
+            if (group->d[i].empty())
+                continue;
+            vk::buffer::handlers& vk_buffer = skin_ssbos[group->skin_id].buffer.emplace_back();
+            VkDeviceAddress& vk_address = skin_ssbos[group->skin_id].gpu_addresses.emplace_back();
+            VkBufferUsageFlags flags_sk[2] = {VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT};
+            vk::buffer::create(vk_buffer, devices, flags_sk, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, sizeof(glm::mat4) * group->d[i].size(), group->d[i].data());
+            vk::buffer::get_gpu_address(vk_buffer, devices.dev);
+            vk_address = vk_buffer.gpu_address;
+        }
+        return skin_ssbos[group->skin_id].gpu_addresses;
+    }
+    else {
+        int i = -1;
+        for (const std::vector<glm::mat4>& s : group->d) {
+            i++;
+            if (s.empty() || skin_ssbos[group->skin_id].buffer.empty() || skin_ssbos[group->skin_id].buffer.size() < i)
+                continue;
+            vk::buffer::map_memory(skin_ssbos[group->skin_id].buffer[i],devices.dev, s.size() * sizeof(glm::mat4), 0, s.data());
+        }
+        return skin_ssbos[group->skin_id].gpu_addresses;
+    }
+}
+
 
 void vk::gpu_memory::update(vk::device::handlers dev, const std::uint32_t frame)
 {

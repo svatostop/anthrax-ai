@@ -1,5 +1,6 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include "aai/gfx/vk/model/model_types.h"
 
 export module aai.gfx.vk.gpu_memory;
 export import aai.keeper.camera;
@@ -25,6 +26,9 @@ export {
                 void submit_camera(std::shared_ptr<const keeper::camera> cam, const std::uint32_t frame);
                 void submit_instance(const std::deque<rq::data>& rq, const std::uint32_t frame);
                 void update(vk::device::handlers dev, const std::uint32_t frame);
+                
+                uint32_t get_skin_id() { return available_skin_id++; }
+                std::vector<VkDeviceAddress>& get_skin_gpu_address(const std::shared_ptr<model::skin_groups> group, vk::device::handlers devices);
             private:
                 void init_descriptor_set(vk::device::handlers dev);
                 void init_buffers(vk::device::handlers dev);
@@ -38,6 +42,14 @@ export {
 
                 std::map<std::string, uint32_t> texture_bindings;
                 uint32_t texture_handle = 0;
+
+                struct skin_ssbo_data {
+                    std::vector<vk::buffer::handlers> buffer;
+                    std::vector<VkDeviceAddress> gpu_addresses;
+                };
+                std::map<uint32_t, skin_ssbo_data> skin_ssbos;
+                std::vector<VkDeviceAddress> dummy_skin_address;
+                uint32_t available_skin_id = 1;
         };
     }
 };

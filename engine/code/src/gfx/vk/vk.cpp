@@ -1,6 +1,7 @@
 module;
 #include "aai/io/win_defines.h"
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include "aai/gfx/vk/model/model_types.h"
 #include <string.h>
 
 module aai.gfx.vk;
