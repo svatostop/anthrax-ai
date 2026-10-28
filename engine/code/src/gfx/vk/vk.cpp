@@ -55,7 +55,7 @@ bool vk::base::begin_frame()
         on_resize();
 
     gpu_mem.submit_camera(cam, frame.get_frame_index());
-    gpu_mem.submit_instance(rq, frame.get_frame_index());
+    gpu_mem.submit_instance(rq_test, frame.get_frame_index());
     gpu_mem.update(dev.get_devices(), frame.get_frame_index());
 
     render.set_camera_bind(gpu_mem.get_buffer_address(gpu_data_type::CAMERA, frame.get_frame_index()));
@@ -81,6 +81,17 @@ void vk::base::execute(float delta_ms)
     // todo : arena or some allocators !!! 
     
     render.refresh_state();
+
+    for (const rq::data& data : rq_test) {
+        // todo - the animations should be updated separately from the mesh object, since different models can have the same animation
+        // if (data.mesh_handle)
+        //     data.mesh_handle->update_animation(delta_ms, dev.get_devices());
+        set_debug_render_pass_name(frame.get_cmd(),  data.tag);
+        render.block(frame.get_cmd(), data);
+        unset_debug_render_pass_name(frame.get_cmd());
+    }
+    rq_test.clear();
+
     for (const rq::data& data : rq) {
         // todo - the animations should be updated separately from the mesh object, since different models can have the same animation
         // if (data.mesh_handle)

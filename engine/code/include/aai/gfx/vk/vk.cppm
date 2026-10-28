@@ -33,7 +33,8 @@ export {
                 void create_texture(const std::string& path, std::shared_ptr<rt::render_target> target);
                 void create_model(const char* path, std::shared_ptr<model::base> m);
                 uint32_t create_material(mat::materials& m, const std::string& name) { return pipe.create_material(dev.get_device(), m, name); } 
-                void push_rq(rq::data&& r) { rq.push_back(std::move(r)); }
+                void push_static_render_data(rq::data&& r) { rq.push_back(std::move(r)); }
+                void push_render_data(rq::data&& r) { rq_test.push_back(std::move(r)); }
 
                 rt::render_target* get_last_target() { return render.get_last_target(); } 
                 const rt::base::ref& get_attachment_ref(const rt::name::val r) { return render.get_attachment_ref(r); }
@@ -55,6 +56,7 @@ export {
                 void unset_debug_render_pass_name(VkCommandBuffer cmd);
             
                 std::deque<rq::data> rq;
+                std::deque<rq::data> rq_test;
                 
                 instance inst;
                 device dev;

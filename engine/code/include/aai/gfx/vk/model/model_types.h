@@ -7,6 +7,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace model {
+    using skin_data_array = std::vector<std::vector<glm::mat4>>;
+    struct skin_group {
+        uint32_t skin_id = 0;
+        model::skin_data_array d;
+    };
+
     namespace types {
         struct vertex {
             glm::vec4 position = glm::vec4(0);

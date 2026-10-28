@@ -10,25 +10,31 @@ void aai::core::init()
     gfx.init(win.get_glfw_win(), win.get_display(), win.get_x11_win());
     aai::json::parse(gfx);
 
-    // gfx.populate_inst(keeper.get_test(0));
-    // gfx.populate_inst(keeper.get_test(1));
-    // gfx.populate_inst(keeper.get_test(2));
+    gfx.populate_inst(keeper.get_test(0));
+    gfx.populate_inst(keeper.get_test(1));
+    gfx.populate_inst(keeper.get_test(2));
 
     gfx.populate_base();
     gfx.init_editor(win.get_glfw_win(), editor);
+
+    keeper.watch(keeper.get_test(2), editor);
 
     thread.start(std::bind(&aai::core::render_update_callback, this, std::placeholders::_1), std::bind(&aai::core::logic_update_callback, this, std::placeholders::_1));
 }
 
 void aai::core::render_update_callback(float delta_ms)
 {
+    gfx.consume_back_data(thread.get_back_data());
+
     editor.run();
     gfx.run(delta_ms);
 }
 
 void aai::core::logic_update_callback(float delta_ms)
 {
-    keeper.update(delta_ms);
+    keeper.update(delta_ms, gfx.get_devices());
+
+    thread.submit_data(keeper.get_back_data());
 }
 
 void aai::core::run()

@@ -7,6 +7,7 @@ import std;
 
 void utils::threads::stop() 
 {
+    back_data->stop();
     logic_thread.stop();
     render_thread.stop();
     job_sys::wait();
@@ -36,6 +37,7 @@ void utils::threads::init()
 
 void utils::threads::start(std::function<void(float delta_ms)>&& render_loop_callback, std::function<void(float delta_ms)>&& logic_loop_callback)
 {
+    back_data = std::make_unique<back_data_swapchain>();
     render_thread.start(std::move(render_loop_callback));
     logic_thread.start(std::move(logic_loop_callback));
 }
@@ -51,7 +53,6 @@ void utils::render_threads::run()
 void utils::render_threads::stop()
 {
     running = false;
-    backdata_changed.notify_all();
 
     if (local_thread.joinable())
         local_thread.join();

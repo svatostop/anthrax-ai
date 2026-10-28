@@ -3,6 +3,7 @@ module;
 
 export module aai.gfx;
 
+export import aai.keeper.types;
 export import aai.keeper.camera;
 export import aai.gfx.vk;
 export import aai.gfx.assets;
@@ -30,22 +31,18 @@ export {
 
                 mat::material_infos_map& get_material_info_data() { return material_pallet.get_material_info_data(); }
 
+                void consume_back_data(std::deque<keeper::back_datas>& d);
+                //todo remove get_devices
+                vk::device::handlers get_devices() { return vk.get_devices(); }
+
                 void init_editor(GLFWwindow* glfw_win, aai::editor& editor) { 
                     vk.init_editor(glfw_win, editor);
-                    editor.watch(robot_test.get_clip_names(), [&](const std::string& s) {
-                        if (s != robot_test.get_current_clip())
-                            robot_test.update_clip(s);
-                    });
                 }
             private:
                 void clean_resources();
                 vk::base vk;
                 assets::base<rt::render_target> asset_mng;
                 assets::base<model::base> model_mng;
-
-                model::inst anim_test;
-                model::inst robot_test;
-                model::inst cube_test;
 
                 mat::materials material_pallet;
 

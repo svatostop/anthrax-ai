@@ -1,4 +1,5 @@
 module;
+#include <cstdint>
 #include <vulkan/vulkan_core.h>
 #include "aai/gfx/vk/model/model_types.h"
 
@@ -11,7 +12,7 @@ export {
         class inst {
             public:
                 inst() {}
-                inst(const std::string& n, const std::string& m) { requested_model = n; material_name = m; }
+                inst(const std::string& n, const std::string& m, const std::string& t = "") { requested_model = n; material_name = m; if (t.empty()) tag = n + m; }
                 void init(const std::shared_ptr<model::base> m, vk::device::handlers devices);
                 void update(float dt, vk::device::handlers devices);
                 
@@ -27,6 +28,13 @@ export {
                 void update_clip(const std::string& clip_name) { 
                     anim.play(anim.find_clip_by_name(clip_name));
                 }
+
+                uint32_t get_model_id() { return model_id; }
+                uint32_t get_material_id() { return material_id; }
+                const std::string& get_tag() { return tag; }
+
+                void set_model_id(uint32_t id) { model_id = id; }
+                void set_material_id(uint32_t id) { material_id = id; }
             private:
                 void compute_globals(int32_t i);
                 
@@ -44,7 +52,11 @@ export {
                 std::vector<vk::buffer::handlers> skin_ssbo;
                 std::vector<VkDeviceAddress> skin_gpu_addresses;
                     
-                uint32_t raw_model_id = 0;
+                uint32_t model_id = 0;
+                uint32_t texture_id = 0;
+                uint32_t material_id = 0;
+                std::string tag;
+
                 std::string requested_model;
                 std::string material_name;
                 anim::base anim;
