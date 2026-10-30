@@ -7,6 +7,8 @@ layout (location = 0) out vec4 out_frag_color;
 
 void main()
 {
-    vec4 color = texture(textures[push.texture_id], incoord.xy);
+    vec4 color = vec4(1);
+    if (push.texture_id > 0)
+        color = texture(textures[push.texture_id], incoord.xy);
     out_frag_color = vec4(color.xyz, 1);
 }

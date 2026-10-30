@@ -2125,7 +2125,7 @@ static void ImGui_ImplVulkan_CreateWindow(ImGuiViewport* viewport)
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
     VkResult err = (VkResult)platform_io.Platform_CreateVkSurface(viewport, (ImU64)v->Instance, (const void*)v->Allocator, (ImU64*)&wd->Surface);
     check_vk_result(err);
-    
+
     // Check if surface creation failed
     if (err != VK_SUCCESS || wd->Surface == VK_NULL_HANDLE)
     {

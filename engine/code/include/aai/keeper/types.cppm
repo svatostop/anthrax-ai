@@ -11,6 +11,7 @@ export {
             uint32_t model_id = 0;
             uint32_t texture_id = 0;
             uint32_t material_id = 0;
+            glm::mat4 model_matrix;
             std::string tag;
         };
  

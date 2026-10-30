@@ -1,6 +1,7 @@
 module;
 #include <stdio.h>
 #include <bits/stdint-uintn.h>
+#include <string>
 
 module aai.utils.threads;
 import std;
@@ -18,16 +19,23 @@ void utils::threads::init()
 	auto num_cores = std::thread::hardware_concurrency();
 	num_threads = std::max(1u, num_cores - 2);
 	for (uint32_t thread_id = 0; thread_id < num_threads; ++thread_id) {
-		std::thread worker([] {
+		std::thread worker([thread_id] {
 			std::function<void()> job;
-			while (true) {
+            using clock = std::chrono::steady_clock;
+            while (true) {
 				if (job_sys::job_pool.pop_front(job)) {
+                    auto frame_start = clock::now();
 					job();
+                    auto frame_end = clock::now();
                     job_sys::finished_label.fetch_add(1);
+                    thread_dbg::get()->set_time("JOB_" + std::to_string(thread_id), std::chrono::duration<float, std::milli>(frame_end - frame_start).count());
+                    thread_dbg::get()->set_state("JOB_" + std::to_string(thread_id), thread_state::val::RUNNING);
                 }
 				else {
 					std::unique_lock<std::mutex> lock(job_sys::wake_mutex);
 					job_sys::wake_condition.wait(lock);
+                    thread_dbg::get()->set_state("JOB_" + std::to_string(thread_id), thread_state::val::IDLE);
+                    thread_dbg::get()->set_time("JOB_" + std::to_string(thread_id),0.0f);
 				}
 			}
 		});
@@ -48,6 +56,8 @@ void utils::render_threads::run()
         time.update();
         callback(time.delta_ms);
         time.next_frame();
+        thread_dbg::get()->set_state("RENDER", thread_state::RUNNING);
+        thread_dbg::get()->set_time("RENDER", time.delta_ms);
     }
 }
 void utils::render_threads::stop()
@@ -64,5 +74,7 @@ void utils::logic_threads::run()
         time.update();
         callback(time.delta_ms);
         time.next_frame();
+        thread_dbg::get()->set_state("LOGIC", thread_state::RUNNING);
+        thread_dbg::get()->set_time("LOGIC", time.delta_ms);
     }
 }

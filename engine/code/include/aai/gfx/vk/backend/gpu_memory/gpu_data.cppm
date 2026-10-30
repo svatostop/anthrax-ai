@@ -20,6 +20,20 @@ export {
     struct instance_data {
         glm::mat4 model;
     };
+    
+    namespace gfx::dbg {
+        struct point {
+            glm::vec4 p;
+            glm::mat4 model;
+
+            point() {}
+            point(const glm::vec3& d) : p(glm::vec4(d.x, d.y, d.z, 1)) {}
+            point(const glm::vec4& d) : p(d) {}
+            point(const glm::vec3& d, const glm::mat4& m) : p(glm::vec4(d.x, d.y, d.z, 1)), model(m) {}
+            point(const glm::vec4& d, const glm::mat4& m) : p(d), model(m) {}
+        };
+    }
+
     template <typename T>
     struct gpu_data {
         T raw_data;

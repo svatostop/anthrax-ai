@@ -33,7 +33,7 @@ class timer {
         frame_end = time.now();
         delta = (frame_end - frame_start);
         delta_ms = delta.count();
-        printf("fps: %f\n", delta_ms);
+        // printf("fps: %f\n", delta_ms);
     }
 };
 }

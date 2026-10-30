@@ -43,7 +43,7 @@ void vk::gpu_memory::submit_instance(const std::deque<rq::data>& rq, const std::
     float shift_x = 1.0f;
     for (const rq::data& data : rq) {
         instance_data d{};
-        d.model = glm::translate(data.model_matrix, glm::vec3(0.0 + shift_x, -1.0 + shift_x, 1.0));
+        d.model = data.model_matrix;
         shift_x+= 2;
         utils::ASSERT(ind > instance[frame].buffer_size, "gpu_memory::submit_instance: buffer overflow");
         memcpy(&instance[frame].mapped_data[ind], &d, sizeof(instance_data));
@@ -85,6 +85,15 @@ std::vector<VkDeviceAddress>& vk::gpu_memory::get_skin_gpu_address(const std::sh
     }
 }
 
+void vk::gpu_memory::submit_debug(std::map<gfx::dbg::primitive_t, std::vector<gfx::dbg::point>>& debug_data, vk::device::handlers devices)
+{
+    if ( !debug_data[gfx::dbg::primitive_t::POINT].empty()) { 
+        vk::buffer::map_memory(dbg_points.data, devices.dev, debug_data[gfx::dbg::primitive_t::POINT].size() * sizeof(gfx::dbg::point), 0, debug_data[gfx::dbg::primitive_t::POINT].data());
+    }
+    if ( !debug_data[gfx::dbg::primitive_t::LINE].empty()){
+        vk::buffer::map_memory(dbg_line.data, devices.dev, debug_data[gfx::dbg::primitive_t::LINE].size() * sizeof(gfx::dbg::point), 0, debug_data[gfx::dbg::primitive_t::LINE].data());
+    }
+}
 
 void vk::gpu_memory::update(vk::device::handlers dev, const std::uint32_t frame)
 {
@@ -92,6 +101,7 @@ void vk::gpu_memory::update(vk::device::handlers dev, const std::uint32_t frame)
         size_t buffer_size = sizeof(camera_data);
         vk::buffer::map_memory(camera[frame].data, dev.dev, buffer_size, 0, &camera[frame].raw_data);
     }
+
 }
 
 void vk::gpu_memory::update_texture(VkDevice dev, const std::string& name, VkImageView view, VkSampler sampler)
@@ -179,29 +189,39 @@ void vk::gpu_memory::init_descriptor_set(vk::device::handlers dev)
     utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDescriptorSetLayout(dev.dev, bindless_texture_layout, nullptr); });
     utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyDescriptorPool(dev.dev, texture_pool, nullptr); });
 }
+
+void create_buffer(vk::device::handlers dev, vk::buffer::handlers& data, VkBufferUsageFlagBits usage, VkMemoryPropertyFlags properties, size_t buffer_size)
+{
+    vk::buffer::allocate(data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | usage, properties);
+    vk::buffer::get_gpu_address(data, dev.dev);
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=]() { vkDestroyBuffer(dev.dev, data.buffer, nullptr); });
+    utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=]() { vkFreeMemory(dev.dev, data.device_memory, nullptr); });
+}
+
 void vk::gpu_memory::init_buffers(vk::device::handlers dev)
 {
     // todo - tripple buffer buffers
     size_t buffer_size = sizeof(camera_data);
     for (int i = 0; i < MAX_FRAMES; i++) {
-        vk::buffer::allocate(camera[i].data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        vk::buffer::get_gpu_address(camera[i].data, dev.dev);
-        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, camera[i].data.buffer, nullptr); });
-        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, camera[i].data.device_memory, nullptr); });
+        create_buffer(dev, camera[i].data, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer_size);
 
         // todo - instance size hardcoded
         buffer_size = sizeof(instance_data) * 1000;
-        vk::buffer::allocate(instance[i].data, dev, buffer_size, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        vk::buffer::get_gpu_address(instance[i].data, dev.dev);
+        create_buffer(dev, instance[i].data, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
         instance[i].buffer_size = buffer_size;
 
         void* ptr_data;
         vkMapMemory(dev.dev , instance[i].data.device_memory, 0, buffer_size, 0, (void**)&ptr_data);
         instance[i].mapped_data = (instance_data*)ptr_data;
-        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkDestroyBuffer(dev.dev, instance[i].data.buffer, nullptr); });
-        utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() { vkFreeMemory(dev.dev, instance[i].data.device_memory, nullptr); });
         utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() {vkUnmapMemory(dev.dev, instance[i].data.device_memory);});
     }
+    
+    buffer_size = sizeof(gfx::dbg::point) * 1000;
+    create_buffer(dev, dbg_points.data, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
+    buffer_size = sizeof(gfx::dbg::point) * 1000;
+    create_buffer(dev, dbg_line.data, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
+    gfx::dbg::draw::get()->set_vk_bind(gfx::dbg::primitive_t::LINE, dbg_line.data.gpu_address);
+    gfx::dbg::draw::get()->set_vk_bind(gfx::dbg::primitive_t::POINT, dbg_points.data.gpu_address);
 }
 
 

@@ -15,6 +15,7 @@ export {
                     loop = l;
                     time = (raw_model && clip >= 0) ? raw_model->info.clips[clip].start : 0.0f;
                 }
+                void set_model_matrix(const glm::mat4& m) { model_matrix = m; }
                 void update(float dt, std::vector<glm::vec3>& translation, std::vector<glm::quat>& rotation, std::vector<glm::vec3>& scale);
 
                 uint32_t find_clip_by_name(const std::string& name) {
@@ -36,6 +37,7 @@ export {
                 float speed = 1.0f;
                 bool loop  = true;
             private:
+                glm::mat4 model_matrix = glm::mat4(1.0f);
                 std::shared_ptr<model::base> raw_model = nullptr;
         };
     }

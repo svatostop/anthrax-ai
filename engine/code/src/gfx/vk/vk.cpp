@@ -14,6 +14,7 @@ import aai.gfx.vk.rt.helper;
 import aai.gfx.vk.rt.cmd;
 import aai.utils.threads.job_sys;
 import aai.utils;
+import aai.gfx.debug;
 import std;
 
 void vk::base::init(bool validate, GLFWwindow* glfw_win, Display* di, Window w, std::shared_ptr<keeper::camera> c)
@@ -55,12 +56,18 @@ bool vk::base::begin_frame()
     if (!frame.sync_frames(dev.get_device(), dev.get_swapchain()))
         on_resize();
 
+    if (gfx::dbg::draw::get()->enabled()) {
+        gfx::dbg::draw::get()->take(debug_data);
+        gpu_mem.submit_debug(debug_data, dev.get_devices());
+    }
+
     gpu_mem.submit_camera(cam, frame.get_frame_index());
-    gpu_mem.submit_instance(rq_test, frame.get_frame_index());
+    gpu_mem.submit_instance(rq_render_data, frame.get_frame_index());
     gpu_mem.update(dev.get_devices(), frame.get_frame_index());
 
     render.set_camera_bind(gpu_mem.get_buffer_address(gpu_data_type::CAMERA, frame.get_frame_index()));
     render.set_instance_bind(gpu_mem.get_buffer_address(gpu_data_type::INSTANCE, frame.get_frame_index()));
+
     return frame.is_swapchain_index_valid();
 }
 
@@ -74,6 +81,8 @@ void vk::base::end_frame()
     );
     if (!frame.submit_and_present(dev.get_queue(vk::queues::type::GRAPHICS), dev.get_swapchain()))
         on_resize();
+
+    gfx::dbg::draw::get()->reset();
 }
 
 void vk::base::execute(float delta_ms)
@@ -83,26 +92,43 @@ void vk::base::execute(float delta_ms)
     
     render.refresh_state();
 
-    for (const rq::data& data : rq_test) {
-        // todo - the animations should be updated separately from the mesh object, since different models can have the same animation
-        // if (data.mesh_handle)
-        //     data.mesh_handle->update_animation(delta_ms, dev.get_devices());
+    for (const rq::data& data : rq_render_data) {
         set_debug_render_pass_name(frame.get_cmd(),  data.tag);
         render.block(frame.get_cmd(), data);
         unset_debug_render_pass_name(frame.get_cmd());
     }
-    rq_test.clear();
+    rq_render_data.clear();
 
-    for (const rq::data& data : rq) {
-        // todo - the animations should be updated separately from the mesh object, since different models can have the same animation
-        // if (data.mesh_handle)
-        //     data.mesh_handle->update_animation(delta_ms, dev.get_devices());
+    for (const rq::data& data : rq_static) {
         set_debug_render_pass_name(frame.get_cmd(),  data.tag);
         render.block(frame.get_cmd(), data);
         unset_debug_render_pass_name(frame.get_cmd());
     }
+
+    if (gfx::dbg::draw::get()->enabled()) {
+        if (!debug_data[gfx::dbg::primitive_t::LINE].empty()) {
+            rq::data& data = rq_debug[gfx::dbg::primitive_t::LINE];
+            data.instance_count = debug_data[gfx::dbg::primitive_t::LINE].size() / 2;
+            data.buffer_bind = gfx::dbg::draw::get()->get_vk_bind(gfx::dbg::primitive_t::LINE);
+            set_debug_render_pass_name(frame.get_cmd(),  data.tag);
+            render.block(frame.get_cmd(), data);
+            unset_debug_render_pass_name(frame.get_cmd());
+        }
+        if (!debug_data[gfx::dbg::primitive_t::POINT].empty()) {
+            rq::data& data = rq_debug[gfx::dbg::primitive_t::POINT];
+            data.vertex_count_mult = debug_data[gfx::dbg::primitive_t::POINT].size();
+            data.instance_count = 1;
+            data.buffer_bind = gfx::dbg::draw::get()->get_vk_bind(gfx::dbg::primitive_t::POINT);
+            set_debug_render_pass_name(frame.get_cmd(),  data.tag);
+            render.block(frame.get_cmd(), data);
+            unset_debug_render_pass_name(frame.get_cmd());
+        }
+
+    }
+
+
     set_debug_render_pass_name(frame.get_cmd(), "editor");
-    render.block_t(frame.get_cmd(), editor_render_callback);
+    render.block_callback(frame.get_cmd(), editor_render_callback);
     unset_debug_render_pass_name(frame.get_cmd());
 }
 

@@ -10,7 +10,7 @@ export {
         class inst {
             public:
                 inst() {}
-                inst(const std::string& n, const std::string& m, const std::string& t = "") { requested_model = n; material_name = m; if (t.empty()) tag = n + m; }
+                inst(const std::string& n, const std::string& m, const glm::mat4& mtx = glm::mat4(1), const std::string& t = "") { model_matrix  = mtx;  requested_model = n; material_name = m; if (t.empty()) tag = n + m; }
 
                 void init(const std::shared_ptr<model::base> m, uint32_t skin_id = 0 );
                 void update(float dt);
@@ -34,6 +34,7 @@ export {
                 void set_material_id(uint32_t id) { material_id = id; }
 
                 std::shared_ptr<skin_groups> get_skin_group() { return skin_group; }
+                const glm::mat4& get_model_matrix() { return model_matrix; }
             private:
                 void compute_globals(int32_t i);
                 
@@ -43,10 +44,11 @@ export {
                 std::vector<glm::vec3> translation;
                 std::vector<glm::quat> rotation;
                 std::vector<glm::vec3> scale;
-                std::vector<glm::mat4> matrix;
+                std::vector<glm::mat4> gltf_matrix;
                 std::vector<glm::mat4> local;
                 std::vector<glm::mat4> global;
 
+                glm::mat4 model_matrix;
                 std::shared_ptr<skin_groups> skin_group;
                     
                 uint32_t model_id = 0;

@@ -1,6 +1,7 @@
 module;
 #include <stdio.h>
 #include <bits/stdint-uintn.h>
+#include "aai/utils/lookup_table.h"
 
 export module aai.utils.threads;
 export import aai.utils;
@@ -12,6 +13,39 @@ import std;
 
 export {
     namespace utils {
+
+        namespace thread_state {
+#define THREAD_STATE_LOOKUP(X) \
+            X(IDLE, "idle") \
+            X(RUNNING, "running") \
+            X(STOPPED, "stopped") \
+            X(SIZE, "thread size")
+DECLARE_LOOKUP_TABLE(THREAD_STATE_LOOKUP, val)
+        }
+        class thread_dbg : public utils::singleton<thread_dbg> {
+                public:
+                    struct info {
+                        thread_state::val st;
+                        float ms;
+                    };
+                    void set_state(const std::string& tag, thread_state::val st) {
+                        std::lock_guard<std::mutex> lock(datas_mtx);
+                        stats[tag].st = st;    
+                    }
+                    void set_time(const std::string& tag, float ms) {
+                        std::lock_guard<std::mutex> lock(datas_mtx);
+                        stats[tag].ms = ms;    
+                    }
+                    std::map<std::string, thread_dbg::info>& take() {
+                        std::lock_guard<std::mutex> lock(datas_mtx);
+                        return stats; 
+                    }
+                    
+                private:                    
+                    std::map<std::string, thread_dbg::info> stats;
+                    mutable std::mutex datas_mtx;
+        };
+
         class threads_interface {
             public:
                 void start(std::function<void(float delta_ms)>&& loop_callback) {

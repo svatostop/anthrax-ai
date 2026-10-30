@@ -75,13 +75,13 @@ VkPipelineVertexInputStateCreateInfo vk::pipeline::vertex_input_create_info(cons
     info.vertexBindingDescriptionCount = vert_desc_info.bindings.size();
     return info;
 }
-VkPipelineInputAssemblyStateCreateInfo input_assembly_create_info()
+VkPipelineInputAssemblyStateCreateInfo convert_and_apply_input_assembly(mat::topology::val topol)
 {
     VkPipelineInputAssemblyStateCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	info.pNext = nullptr;
 
-	info.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	info.topology = vk::convert::topology(topol);
 	info.primitiveRestartEnable = VK_FALSE;
 	return info;
 }
@@ -223,7 +223,7 @@ uint32_t vk::pipeline::create_material(VkDevice dev, mat::materials& m, const st
         return m.get_id(name);
     
     vertex_input_info = vertex_input_create_info(m.get_info(name));
-    VkPipelineInputAssemblyStateCreateInfo 	input_assembly = input_assembly_create_info();
+    VkPipelineInputAssemblyStateCreateInfo 	input_assembly = convert_and_apply_input_assembly(m.get_info(name).topology);
     convert_and_apply_viewport(viewport, m.get_info(name).viewport);
     convert_and_apply_scissor(scissor, m.get_info(name).scissor);
     VkPipelineRasterizationStateCreateInfo 	rasterizer = convert_and_apply_rasterizer(m.get_info(name).rasterizer);

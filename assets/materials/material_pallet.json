@@ -9,6 +9,16 @@
         "vertex": "grid.vert",
         "fragment": "grid.frag"
     },
+    "material_debug_draw_line": {
+        "pipeline_ref": "debug_draw_line",
+        "vertex": "debug_draw_line.vert",
+        "fragment": "debug_draw.frag"
+    },
+    "material_debug_draw_point": {
+        "pipeline_ref": "debug_draw_point",
+        "vertex": "debug_draw_point.vert",
+        "fragment": "debug_draw.frag"
+    },
     "material_model": {
         "pipeline_ref": "color_with_depth_test_no_alpha",
         "vertex": "mesh.vert",

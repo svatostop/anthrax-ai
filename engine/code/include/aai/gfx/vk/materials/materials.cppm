@@ -20,6 +20,7 @@ export {
                     d->attachment_ref = r;
                     d->dynamic_viewport = dynamic_viewport;
                     d->name = n;
+                    d->info = infos_map[n];
                     ids++;
                     mat_map[ids] = d;
                     mat_id_map[n] = ids;

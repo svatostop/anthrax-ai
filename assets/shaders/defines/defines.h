@@ -30,11 +30,25 @@ layout(std430, buffer_reference, buffer_reference_align = 256) buffer Skins
     mat4 transforms[];
 };
 
+struct point {
+    vec4 p;
+    mat4 model;
+};
+
+layout(std430, buffer_reference, buffer_reference_align = 128) buffer DebugDraw
+{
+    point data[];
+};
+
 layout( push_constant ) uniform constants
 {
     Camera cam;
     Instance inst;
     Skins skin;
+    DebugDraw debug;
     uint texture_id;
+    uint pad0;
+    uint pad1;
+    uint pad2;
 } push;
 

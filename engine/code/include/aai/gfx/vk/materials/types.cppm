@@ -12,19 +12,6 @@ import glm;
     
 export {
     namespace mat {
-        struct data {
-            std::string name;
-            VkPipelineLayout pipeline_layout;
-            VkPipeline pipeline;
-            rt::base::ref attachment_ref;
-            bool dynamic_viewport;
-
-            void clean(VkDevice dev) {
-                vkDestroyPipelineLayout(dev, pipeline_layout, nullptr);
-                vkDestroyPipeline(dev, pipeline, nullptr);
-            }
-        };
-
         namespace color_blends {
 #define COLOR_BLENDS_LOOKUP(X) \
             X(SRC_ALPHA, "src_alpha") \
@@ -47,7 +34,7 @@ DECLARE_LOOKUP_TABLE(COLOR_OP_LOOKUP, val)
             X(POINT, "point") \
             X(SIZE, "polygon size")
 DECLARE_LOOKUP_TABLE(POLYGON_LOOKUP, val)
-        }
+        } 
         namespace cull {
 #define CULL_LOOKUP(X) \
             X(FRONT, "front") \
@@ -62,6 +49,14 @@ DECLARE_LOOKUP_TABLE(CULL_LOOKUP, val)
             X(CCW, "ccw") \
             X(SIZE, "face size") 
 DECLARE_LOOKUP_TABLE(FACE_LOOKUP, val)
+        }
+        namespace topology {
+#define TOPOLOGY_LOOKUP(X) \
+            X(TRIANGLE_LIST, "triangle_list") \
+            X(LINE_LIST, "line_list") \
+            X(POINT_LIST, "point_list") \
+            X(SIZE, "topology size")
+DECLARE_LOOKUP_TABLE(TOPOLOGY_LOOKUP, val)
         }
         namespace depth_op {
 #define DEPTH_OP_LOOKUP(X) \
@@ -105,6 +100,7 @@ DECLARE_LOOKUP_TABLE(DEPTH_OP_LOOKUP, val)
             glm::vec4 viewport = glm::vec4(0);
             glm::vec4 scissor = glm::vec4(0);
             bool dynamic_viewport = false;
+            topology::val topology;            
             rasterizer_helper rasterizer;            
             color_blend_helper color_blend;
             depth_helper depth_stencil;
@@ -114,6 +110,20 @@ DECLARE_LOOKUP_TABLE(DEPTH_OP_LOOKUP, val)
             bool bind_texture = false;
             bool has_bones = false;
         };
+        struct data {
+            std::string name;
+            VkPipelineLayout pipeline_layout;
+            VkPipeline pipeline;
+            rt::base::ref attachment_ref;
+            info_helper info;            
+            bool dynamic_viewport;
+
+            void clean(VkDevice dev) {
+                vkDestroyPipelineLayout(dev, pipeline_layout, nullptr);
+                vkDestroyPipeline(dev, pipeline, nullptr);
+            }
+        };
+
 
         using material_infos_map = std::map<std::string, info_helper>; 
         using material_map = std::map<std::uint32_t, std::shared_ptr<data>>;

@@ -26,6 +26,7 @@ export {
             X(POLYGON, "polygon") \
             X(CULL, "cull") \
             X(FACE, "face") \
+            X(TOPOLOGY, "topology") \
             X(SRC_COLOR, "src_color") \
             X(DST_COLOR, "dst_color") \
             X(SRC_ALPHA, "src_alpha") \

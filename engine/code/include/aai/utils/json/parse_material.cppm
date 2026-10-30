@@ -65,6 +65,7 @@ export {
                 helper.dynamic_viewport = json::get<bool>(d, json::val::DYNAMIC_VIEWPORT, false);
                 helper.rasterizer = parse_rasterizer(get<std::string>(d, json::val::RASTERIZER, "entry_not_found" ));         
                 helper.color_blend = parse_color_blend(get<std::string>(d, json::val::COLOR_BLEND , "entry_not_found"));;
+                helper.topology = mat::topology::get_key(get<std::string>(d, json::val::TOPOLOGY, "entry_not_found").c_str());
                 helper.depth_stencil = parse_depth_stencil(d);
                 helper.multisampling = json::get<bool>(d, json::val::MULTISAMPLING, false);
                 helper.vertex_attributes = false;

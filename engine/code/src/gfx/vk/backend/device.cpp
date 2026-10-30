@@ -161,6 +161,7 @@ void vk::device::init_logical_dev(bool validate, const std::vector<const char*>&
     devicefeatures.fragmentStoresAndAtomics = VK_TRUE;
     devicefeatures.multiDrawIndirect = VK_TRUE;
     devicefeatures.drawIndirectFirstInstance = VK_TRUE;
+    devicefeatures.largePoints = VK_TRUE;
     
     VkPhysicalDeviceVulkan12Features features12{};
     features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;

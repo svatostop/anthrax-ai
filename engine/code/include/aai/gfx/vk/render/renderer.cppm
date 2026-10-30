@@ -18,7 +18,7 @@ export {
                 void init(VkInstance inst, const vk::device::handlers& dev, VkDescriptorSet bindless);
                 
                 void block(VkCommandBuffer cmd, const rq::data& rq);
-                void block_t(VkCommandBuffer cmd, std::function<void(VkCommandBuffer cmd)> callback);
+                void block_callback(VkCommandBuffer cmd, std::function<void(VkCommandBuffer cmd)> callback);
 
                 rt::render_target* get_rt(rt::helper::val v)  { return rts.get_rt(v); }
                 const rt::base::ref_map& get_rt_ref_map() const { return rts.get_rt_ref_map(); }

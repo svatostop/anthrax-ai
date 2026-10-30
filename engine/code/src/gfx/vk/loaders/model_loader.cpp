@@ -10,27 +10,6 @@
 // #define TINYGLTF_NO_EXTERNAL_IMAGE
 #include "tiny_gltf.h"
 
-// model::types::node* find_node(uint32_t ind, model::types::node* parent) {
-//     model::types::node* n = nullptr;
-//     if (parent->index == ind) {
-//         return parent;
-//     } 
-//     for (auto& c : parent->children) {
-//         n = find_node(ind, c);
-//         if (n)
-//             break;
-//     }
-//     return n;
-// }
-// model::types::node* node_from_index(uint32_t ind, std::vector<model::types::node*>& nodes) {
-//     model::types::node* n = nullptr;
-//     for (auto& d : nodes) {
-//         n = find_node(ind, d);
-//         if (n)
-//             break;
-//     }
-//     return n;
-// }
 
 void load_skeletons(const tinygltf::Model& gltf_model, model::info& m) {
     m.skeletons.resize(gltf_model.skins.size());
@@ -135,33 +114,7 @@ void load_animations(const tinygltf::Model& gltf_model, model::info& m) {
     }
 }
 
-// glm::mat4 get_node_matrix(model::types::node* n) {
-//     glm::mat4 m = n->get_local_matrix();
-//     model::types::node* parent = n->parent;
-//     while (parent) {
-//         m = parent->get_local_matrix() * m;
-//         parent = parent->parent; 
-//     }
-//     return m;
-// }
-//
-// void loader::gltf::update_bones(model::types::node* n, std::vector<model::types::skin>& skins) {
-//     if (n->skin_id > -1) {
-//         glm::mat4 inv_transofrm = glm::inverse(get_node_matrix(n));
-//         model::types::skin& s = skins[n->skin_id];
-//         size_t num_bone = s.bones.size();
-//         s.fin_bone_transforms.resize(num_bone);
-//         int i = 0;
-//         for (glm::mat4& m : s.fin_bone_transforms) {
-//             m = get_node_matrix(s.bones[i]) * s.inv_matrices[i];
-//             m = inv_transofrm * m;
-//             i++;
-//         }
-//     }
-//     for (auto& child : n->children) {
-//         update_bones(child, skins);
-//     }
-// }
+
 //
 void load_node(const tinygltf::Node& input_node, int32_t node_ind, model::info& m, const tinygltf::Model& gltf_model)
 {

@@ -7,6 +7,8 @@ module;
 #include "backends/imgui_impl_vulkan.h"
 
 module aai.editor.imgui;
+import aai.gfx.debug;
+import aai.utils.threads;
 
 void imgui_backend::shutdown(VkDevice device) 
 {
@@ -45,22 +47,68 @@ void imgui_backend::process()
     ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("new engine");
-
-    if (!watch_vec.empty()) {
-        int idx = 0;
-        static std::string tag = watch_vec[0]; 
-        if (ImGui::BeginCombo("robot clips", tag.c_str()))
+    if (ImGui::BeginTabBar("MyTabBar")) {
+        if (ImGui::BeginTabItem("animations"))
         {
-            for (int n = 0; n < watch_vec.size(); n++)
-                if (ImGui::Selectable(watch_vec[n].c_str(), idx == n)) {
-                    idx = n;
-                    tag = watch_vec[n]; 
+            if (!watch_vec.empty()) {
+                int idx = 0;
+                static std::string tag = watch_vec[0]; 
+                if (ImGui::BeginCombo("robot clips", tag.c_str()))
+                {
+                    for (int n = 0; n < watch_vec.size(); n++)
+                        if (ImGui::Selectable(watch_vec[n].c_str(), idx == n)) {
+                            idx = n;
+                            tag = watch_vec[n]; 
+                        }
+                    ImGui::EndCombo();
                 }
-            ImGui::EndCombo();
-        }
-        watch_callback(tag);
-    }
+                watch_callback(tag);
+            }
 
+            ImGui::Separator();
+            bool enable = gfx::dbg::draw::get()->enabled();
+            ImGui::Checkbox("enable debug draw", &enable);
+            gfx::dbg::draw::get()->set_enabled(enable);
+
+            float anim_mult = gfx::dbg::draw::get()->get_global_anim_mult();
+            ImGui::DragFloat("global anim time mult", &anim_mult, 0.1, 0.0f, 2.0f, "%.1f");
+            gfx::dbg::draw::get()->set_global_anim_mult(anim_mult);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("threads")) {
+            std::map<std::string, utils::thread_dbg::info> stats = utils::thread_dbg::get()->take();
+            {
+                for (auto& it : stats) {
+                    ImGui::Columns(5);
+                    ImGui::Text("%s", it.first.c_str());
+                    ImGui::NextColumn();
+                    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
+                    ImGui::Text("state: ");
+                    ImGui::PopStyleColor();
+                    ImGui::NextColumn();
+                    if (it.second.st == utils::thread_state::val::RUNNING) {
+                        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+                    }
+                    ImGui::Text("%s", utils::thread_state::get_value(it.second.st).c_str());
+                    if (it.second.st == utils::thread_state::val::RUNNING) {
+                        ImGui::PopStyleColor();
+                    }
+                    ImGui::NextColumn();
+                    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
+                    ImGui::Text("time: ");
+                    ImGui::PopStyleColor();
+                    ImGui::NextColumn();
+                    ImGui::Text("%.2fms", it.second.ms);
+                    ImGui::NextColumn();
+                    ImGui::Separator();
+                }
+            }
+            ImGui::Columns(1);
+            ImGui::EndTabItem(); 
+        }
+        ImGui::EndTabBar();
+    }
+    
     ImGui::End();
 }
 
@@ -113,7 +161,7 @@ void imgui_backend::init(GLFWwindow* window, VkInstance instance, VkPhysicalDevi
 	init_info.Queue = queue;
 	init_info.QueueFamily = queue_family;
 	init_info.DescriptorPool = pool;
-    init_info.PipelineCache = pipeline_cache; 
+    init_info.PipelineCache = VK_NULL_HANDLE; 
 	init_info.MinImageCount = 2;
 	init_info.ImageCount = 3;
     init_info.UseDynamicRendering = true;

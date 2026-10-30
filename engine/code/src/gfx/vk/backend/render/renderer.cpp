@@ -74,7 +74,7 @@ void vk::renderer::block(VkCommandBuffer cmd, const rq::data& rq)
     end_render(cmd);
 }
 
-void vk::renderer::block_t(VkCommandBuffer cmd, std::function<void(VkCommandBuffer cmd)> callback)
+void vk::renderer::block_callback(VkCommandBuffer cmd, std::function<void(VkCommandBuffer cmd)> callback)
 {
     if (!callback)
         return;
@@ -204,10 +204,28 @@ void vk::renderer::draw(VkCommandBuffer cmd, const rq::data& rq)
 	vk::pipeline::push_range constants;
     constants.camera_gpu_address = camera_buffer_address;
     constants.texture_id = rq.texture_id;
-	vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
+   
+    uint32_t vert_count = 6;
+    switch (rq.material_handle->info.topology) {
+        case mat::topology::val::LINE_LIST: {
+            constants.debug_gpu_address = rq.buffer_bind; 
+            vert_count = 2 ;
+            break;
+        }
+        case mat::topology::val::POINT_LIST: {
+            constants.debug_gpu_address = rq.buffer_bind; 
+            vert_count = 1 * rq.vertex_count_mult;
+            break;
+        }
+        case mat::topology::val::TRIANGLE_LIST:
+        default:
+            vert_count = 6;
+            break;
+    }
+	
+    vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
     
-    vkCmdDraw(cmd, 6, 1, 0, 0);
-    
+    vkCmdDraw(cmd, vert_count, rq.instance_count, 0, 0);
 }
 
 void vk::renderer::check_bindings(std::shared_ptr<mat::data> material, std::shared_ptr<model::base> mesh)

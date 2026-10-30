@@ -34,8 +34,9 @@ export {
                 void create_texture(const std::string& path, std::shared_ptr<rt::render_target> target);
                 void create_model(const char* path, std::shared_ptr<model::base> m);
                 uint32_t create_material(mat::materials& m, const std::string& name) { return pipe.create_material(dev.get_device(), m, name); } 
-                void push_static_render_data(rq::data&& r) { rq.push_back(std::move(r)); }
-                void push_render_data(rq::data&& r) { rq_test.push_back(std::move(r)); }
+                void push_debug_render_data(rq::data&& r) { rq_debug.push_back(std::move(r)); }
+                void push_static_render_data(rq::data&& r) { rq_static.push_back(std::move(r)); }
+                void push_render_data(rq::data&& r) { rq_render_data.push_back(std::move(r)); }
 
                 rt::render_target* get_last_target() { return render.get_last_target(); } 
                 const rt::base::ref& get_attachment_ref(const rt::name::val r) { return render.get_attachment_ref(r); }
@@ -59,8 +60,10 @@ export {
                 void set_debug_render_pass_name(VkCommandBuffer cmd, const std::string& name);
                 void unset_debug_render_pass_name(VkCommandBuffer cmd);
             
-                std::deque<rq::data> rq;
-                std::deque<rq::data> rq_test;
+                std::deque<rq::data> rq_static;
+                std::deque<rq::data> rq_render_data;
+                // debug for points and lines
+                std::deque<rq::data> rq_debug;
                 
                 instance inst;
                 device dev;
@@ -71,6 +74,8 @@ export {
                 renderer render;
                 glm::ivec2 window_size;
                 std::shared_ptr<keeper::camera> cam;
+
+                std::map<gfx::dbg::primitive_t, std::vector<gfx::dbg::point>> debug_data;
 
                 std::function<void(VkCommandBuffer cmd)> editor_render_callback;
         };

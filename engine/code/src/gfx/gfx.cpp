@@ -33,7 +33,8 @@ void gfx::base::consume_back_data(std::deque<keeper::back_datas>& d)
             .material_handle = material_pallet.get(val.material_id),
             .texture_id = 0,  
             .mesh_handle = model_mng.get(val.model_id),
-            .skin_gpu_addresses = vk.get_skin_gpu_address(val.skin_group)
+            .skin_gpu_addresses = vk.get_skin_gpu_address(val.skin_group),
+            .model_matrix = val.model_matrix
         });
         d.pop_front();
     }
@@ -91,6 +92,22 @@ void gfx::base::populate_base()
             .skin_gpu_addresses = vk.get_skin_gpu_address(0)
     });
 
+    material_pallet.request_rt_ref_change("material_debug_draw_point", vk.get_attachment_ref(material_pallet.get_rt_ref_val("material_debug_draw_point")));
+    sprite_mat_id = vk.create_material(material_pallet, "material_debug_draw_point");
+    vk.push_debug_render_data({
+            .tag = "debug_draw_point",
+            .material_handle = material_pallet.get(sprite_mat_id),
+            .texture_id = 0,
+            .skin_gpu_addresses = vk.get_skin_gpu_address(0),
+    });
+    material_pallet.request_rt_ref_change("material_debug_draw_line", vk.get_attachment_ref(material_pallet.get_rt_ref_val("material_debug_draw_line")));
+    sprite_mat_id = vk.create_material(material_pallet, "material_debug_draw_line");
+    vk.push_debug_render_data({
+            .tag = "debug_draw_line",
+            .material_handle = material_pallet.get(sprite_mat_id),
+            .texture_id = 0,
+            .skin_gpu_addresses = vk.get_skin_gpu_address(0),
+    });
 }
 
 void gfx::base::clean_resources()

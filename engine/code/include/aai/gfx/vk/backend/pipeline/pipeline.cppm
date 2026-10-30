@@ -25,7 +25,11 @@ export {
                     VkDeviceAddress camera_gpu_address = 0;
                     VkDeviceAddress instance_gpu_address = 0;
                     VkDeviceAddress skin_gpu_address = 0;
+                    VkDeviceAddress debug_gpu_address = 0;
                     uint32_t texture_id = 0;
+                    uint32_t pad0 = 0;
+                    uint32_t pad1 = 0;
+                    uint32_t pad2 = 0;
                 };
             private:
                 VkPipelineVertexInputStateCreateInfo vertex_input_create_info(const mat::info_helper& mat_info);

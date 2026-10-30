@@ -1,3 +1,6 @@
+module;
+#include "glm/ext/matrix_transform.hpp"
+
 export module aai.keeper;
 import aai.keeper.types;
 import aai.keeper.camera;
@@ -5,6 +8,7 @@ import aai.keeper.entity;
 import aai.gfx.vk.model.inst;
 import aai.utils.threads.job_sys;
 import aai.editor;
+import aai.gfx.debug;
 import std;
 import glm;
 export {
@@ -16,8 +20,8 @@ export {
                 base() {
                     instances.reserve(3);
                     model::inst& cube = instances.emplace_back("./models/cube.glb", "material_model");
-                    model::inst& fox = instances.emplace_back("./models/fox.glb", "material_model_anim");
-                    model::inst& robot = instances.emplace_back("./models/robot.glb", "material_model_anim");
+                    model::inst& fox = instances.emplace_back("./models/fox.glb", "material_model_anim", glm::translate(glm::mat4(1), glm::vec3(0.0, 1.0, 1.0)));
+                    model::inst& robot = instances.emplace_back("./models/robot.glb", "material_model_anim", glm::translate(glm::mat4(1), glm::vec3(2.0, 2.0, 1.0)));
                 }
 
                 template<typename T>
@@ -38,6 +42,7 @@ export {
                             data.material_id = it->get_material_id();
                             data.tag = it->get_tag();
                             data.skin_group = it->get_skin_group();
+                            data.model_matrix = it->get_model_matrix();
                         });
                     }
                     utils::job_sys::wait();

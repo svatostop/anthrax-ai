@@ -3,7 +3,8 @@ module;
 
 module aai.gfx.vk.model.anim;
 
-static glm::vec4 sample_sampler(const model::animation::sampler& s, float t, bool is_rotation)
+import aai.gfx.debug;
+static glm::vec4 sample_sampler(const model::animation::sampler& s, float t, bool is_rotation, const glm::mat4& model_matrix)
 {
     if (s.inputs.empty()) return glm::vec4(0);
     if (t <= s.inputs.front()) return s.outputs.front();
@@ -23,6 +24,7 @@ static glm::vec4 sample_sampler(const model::animation::sampler& s, float t, boo
         glm::quat q = glm::slerp(q0, q1, a);
         return glm::vec4(q.x, q.y, q.z, q.w);
     }
+    
     return glm::mix(s.outputs[k - 1], s.outputs[k], a);
 }
 
@@ -30,9 +32,10 @@ void anim::base::update(float dt, std::vector<glm::vec3>& translation, std::vect
 {
     if (!raw_model || clip < 0 || clip >= static_cast<int32_t>(raw_model->info.clips.size())) 
         return;
+
     const auto& c = raw_model->info.clips[clip];
 
-    time += dt * speed;
+    time += dt * gfx::dbg::draw::get()->get_global_anim_mult();
     const float duration = c.end - c.start;
     if (duration > 0.0f) {
         if (loop) {
@@ -50,7 +53,7 @@ void anim::base::update(float dt, std::vector<glm::vec3>& translation, std::vect
 
         const auto& s = c.samplers[ch.sampler_index];
         const bool is_rot = (ch.path == model::animation::channel::path_t::rotation);
-        const glm::vec4 v = sample_sampler(s, time, is_rot);
+        const glm::vec4 v = sample_sampler(s, time, is_rot, model_matrix);
         const int32_t i = ch.node_ind;
 
         switch (ch.path) {

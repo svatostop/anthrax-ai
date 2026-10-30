@@ -18,6 +18,9 @@ export {
                 std::shared_ptr<model::base> mesh_handle = nullptr;
                 std::vector<VkDeviceAddress>& skin_gpu_addresses;
                 glm::mat4 model_matrix = glm::mat4(1);
+                VkDeviceAddress buffer_bind = 0;
+                size_t instance_count = 1;
+                size_t vertex_count_mult = 1;
             };
         }
     }

@@ -23,6 +23,21 @@ export {
                         return VK_POLYGON_MODE_FILL;
                 }
             }
+            VkPrimitiveTopology topology(mat::topology::val val) {
+                switch (val) {
+                    case mat::topology::val::TRIANGLE_LIST:
+                        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                    case mat::topology::val::LINE_LIST:
+                        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+                    case mat::topology::val::POINT_LIST:
+                        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+                    default:
+                    case mat::topology::val::SIZE:
+                        utils::CHECK(true, "topology_val not set!");
+                        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                }
+
+            }
             VkCullModeFlagBits cull(mat::cull::val val) {
                 switch (val) {
                     case mat::cull::val::FRONT:
