@@ -63,6 +63,8 @@ void keeper::camera::update_movement(float delta_ms)
 
 void keeper::camera::update_directions(float delta_ms)
 {
+    if (aai::io::mouse::is_in_editor())
+        return;
     float speed_factor = 0.00005f;
     if (aai::io::key::is_state(aai::io::key::val::SHIFT)) {
         speed_factor = 0.0001f;

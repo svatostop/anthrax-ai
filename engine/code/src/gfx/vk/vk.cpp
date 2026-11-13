@@ -58,7 +58,7 @@ bool vk::base::begin_frame()
 
     if (gfx::dbg::draw::get()->enabled()) {
         gfx::dbg::draw::get()->take(debug_data);
-        gpu_mem.submit_debug(debug_data, dev.get_devices());
+        gpu_mem.submit_debug(debug_data, dev.get_devices(), frame.get_frame_index());
     }
 
     gpu_mem.submit_camera(cam, frame.get_frame_index());
@@ -109,7 +109,7 @@ void vk::base::execute(float delta_ms)
         if (!debug_data[gfx::dbg::primitive_t::LINE].empty()) {
             rq::data& data = rq_debug[gfx::dbg::primitive_t::LINE];
             data.instance_count = debug_data[gfx::dbg::primitive_t::LINE].size() / 2;
-            data.buffer_bind = gfx::dbg::draw::get()->get_vk_bind(gfx::dbg::primitive_t::LINE);
+            data.buffer_bind = gfx::dbg::draw::get()->get_vk_bind(frame.get_frame_index(), gfx::dbg::primitive_t::LINE);
             set_debug_render_pass_name(frame.get_cmd(),  data.tag);
             render.block(frame.get_cmd(), data);
             unset_debug_render_pass_name(frame.get_cmd());
@@ -118,7 +118,7 @@ void vk::base::execute(float delta_ms)
             rq::data& data = rq_debug[gfx::dbg::primitive_t::POINT];
             data.vertex_count_mult = debug_data[gfx::dbg::primitive_t::POINT].size();
             data.instance_count = 1;
-            data.buffer_bind = gfx::dbg::draw::get()->get_vk_bind(gfx::dbg::primitive_t::POINT);
+            data.buffer_bind = gfx::dbg::draw::get()->get_vk_bind(frame.get_frame_index(), gfx::dbg::primitive_t::POINT);
             set_debug_render_pass_name(frame.get_cmd(),  data.tag);
             render.block(frame.get_cmd(), data);
             unset_debug_render_pass_name(frame.get_cmd());

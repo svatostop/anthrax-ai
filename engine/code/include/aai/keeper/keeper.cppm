@@ -47,10 +47,10 @@ export {
                     }
                     utils::job_sys::wait();
                 }
-                void watch(model::inst& inst, aai::editor& editor) {
-                    editor.watch(inst.get_clip_names(), [&](const std::string& s) {
-                        if (s != inst.get_current_clip())
-                            inst.update_clip(s);
+                void watch(uint32_t val, model::inst& inst, aai::editor& editor) {
+                    editor.watch(val, inst.get_clip_names(), [&](uint32_t slot, const std::string& s) {
+                        if (s != inst.get_current_clip(slot))
+                            inst.update_clip(slot, s);
                     });
                 }
 

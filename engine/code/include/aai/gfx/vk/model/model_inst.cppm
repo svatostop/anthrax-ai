@@ -19,11 +19,11 @@ export {
                 const std::string& get_requested_model_name() { return requested_model; }
                 const std::string& get_material_name() { return material_name; }
 
-                const std::string& get_current_clip() { return anim.get_current_clip(); }
+                const std::string& get_current_clip(uint32_t slot) { return anim.get_current_clip(slot); }
                 const std::vector<std::string>& get_clip_names() { return anim.get_clip_names(); }
 
-                void update_clip(const std::string& clip_name) { 
-                    anim.play(anim.find_clip_by_name(clip_name));
+                void update_clip(uint32_t slot, const std::string& clip_name) { 
+                    anim.play(slot, anim.find_clip_by_name(clip_name));
                 }
 
                 uint32_t get_model_id() { return model_id; }
@@ -40,10 +40,8 @@ export {
                 
                 std::shared_ptr<model::base> raw_model = nullptr;
                 glm::mat4 world{1.0f};
-
-                std::vector<glm::vec3> translation;
-                std::vector<glm::quat> rotation;
-                std::vector<glm::vec3> scale;
+                
+                skeleton_state states;
                 std::vector<glm::mat4> gltf_matrix;
                 std::vector<glm::mat4> local;
                 std::vector<glm::mat4> global;

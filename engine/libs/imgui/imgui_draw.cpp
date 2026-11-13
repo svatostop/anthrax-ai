@@ -1,4 +1,4 @@
-// dear imgui, v1.93.0 WIP
+// dear imgui, v1.93.1 WIP
 // (drawing and font code)
 
 /*
@@ -190,15 +190,15 @@ void ImGui::StyleColorsDark(ImGuiStyle* dst)
     ImVec4* colors = style->Colors;
 
     colors[ImGuiCol_Text]                   = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    colors[ImGuiCol_TextDisabled]           = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-    colors[ImGuiCol_WindowBg]               = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
+    colors[ImGuiCol_TextDisabled]           = ImVec4(0.58f, 0.58f, 0.58f, 1.00f);
+    colors[ImGuiCol_WindowBg]               = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
     colors[ImGuiCol_ChildBg]                = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     colors[ImGuiCol_PopupBg]                = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
     colors[ImGuiCol_Border]                 = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
     colors[ImGuiCol_BorderShadow]           = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-    colors[ImGuiCol_FrameBg]                = ImVec4(0.16f, 0.29f, 0.48f, 0.54f);
-    colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-    colors[ImGuiCol_FrameBgActive]          = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+    colors[ImGuiCol_FrameBg]                = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.19f, 0.25f, 0.31f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]          = ImVec4(0.21f, 0.33f, 0.47f, 1.00f);
     colors[ImGuiCol_TitleBg]                = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
     colors[ImGuiCol_TitleBgActive]          = ImVec4(0.16f, 0.29f, 0.48f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
@@ -232,14 +232,14 @@ void ImGui::StyleColorsDark(ImGuiStyle* dst)
     colors[ImGuiCol_TabDimmedSelected]      = ImLerp(colors[ImGuiCol_TabSelected],  colors[ImGuiCol_TitleBg], 0.40f);
     colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.50f, 0.50f, 0.50f, 0.00f);
     colors[ImGuiCol_DockingPreview]         = colors[ImGuiCol_HeaderActive] * ImVec4(1.0f, 1.0f, 1.0f, 0.7f);
-    colors[ImGuiCol_DockingEmptyBg]         = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_DockingEmptyBg]         = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
     colors[ImGuiCol_PlotLines]              = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
     colors[ImGuiCol_PlotLinesHovered]       = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
     colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
     colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-    colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
-    colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);   // Prefer using Alpha=1.0 here
-    colors[ImGuiCol_TableBorderLight]       = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);   // Prefer using Alpha=1.0 here
+    colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
+    colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.40f, 0.40f, 0.45f, 1.00f);   // Prefer using Alpha=1.0 here
+    colors[ImGuiCol_TableBorderLight]       = ImVec4(0.32f, 0.32f, 0.34f, 1.00f);   // Prefer using Alpha=1.0 here
     colors[ImGuiCol_TableRowBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     colors[ImGuiCol_TableRowBgAlt]          = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
     colors[ImGuiCol_TextLink]               = colors[ImGuiCol_HeaderActive];
@@ -2286,7 +2286,7 @@ void ImDrawList::_AddRectTinyRounding(const ImVec2& p_min, const ImVec2& p_max, 
         const float stem_y = outer_y + corner_offset[corner].y * stem_offset;
         const float inner_x = outer_x + corner_offset[corner].x * thickness;
         const float inner_y = outer_y + corner_offset[corner].y * thickness;
-        const bool is_rounded = (flags & corner_flags[corner]);
+        const bool is_rounded = (flags & corner_flags[corner]) != 0;
 
         const int arc_idx = (int)_VtxCurrentIdx;
         if (is_rounded)
@@ -2767,13 +2767,14 @@ void ImDrawList::AddCircleFilled(const ImVec2& center, float radius, ImU32 col, 
     if ((col & IM_COL32_A_MASK) == 0)
         return;
 
-    const float diameter = radius * 2.0f;
-    if (diameter < _FringeScale) IM_UNLIKELY
+    // Minimum radius, before the edge-AA will overlap.
+    const float min_radius = _FringeScale * 1.41421356f * 0.5f;
+    if (radius < min_radius) IM_UNLIKELY
     {
-        if (diameter < (1.0f / 255.0f) * _FringeScale)
+        if (radius < (1.0f / 255.0f) * min_radius)
             return;
-        col = ImAlphaMultiply(col, diameter * _InvFringeScale);
-        radius = _FringeScale * 0.5f;
+        col = ImAlphaMultiply(col, radius / min_radius);
+        radius = min_radius;
     }
 
     if (num_segments <= 0 && radius <= _Data->ArcFastRadiusCutoff)
@@ -6161,7 +6162,7 @@ static ImFontGlyph* ImFontBaked_BuildLoadGlyph(ImFontBaked* baked, ImWchar codep
     return NULL;
 }
 
-static float ImFontBaked_BuildLoadGlyphAdvanceX(ImFontBaked* baked, ImWchar codepoint)
+float ImFontBaked_BuildLoadGlyphAdvanceX(ImFontBaked* baked, ImWchar codepoint)
 {
     if (baked->Size >= IMGUI_FONT_SIZE_THRESHOLD_FOR_LOADADVANCEXONLYMODE || baked->LoadNoRenderOnLayout)
     {
@@ -7557,7 +7558,6 @@ begin:
 // - RenderBullet()
 // - RenderCheckMark()
 // - RenderArrowDockMenu()
-// - RenderArrowPointingAt()
 // - RenderRectFilledInRangeH()
 // - RenderRectFilledWithHole()
 //-----------------------------------------------------------------------------
@@ -7565,36 +7565,47 @@ begin:
 // - RenderColorRectWithAlphaCheckerboard()
 //-----------------------------------------------------------------------------
 
-// Render an arrow aimed to be aligned with text (p_min is a position in the same space text would be positioned). To e.g. denote expanded/collapsed state
+static const ImVec2 g_ImGuiDirCosSin[4] = { { -1.0f, 0.0f }, { +1.0f, 0.0f }, { 0.0f, -1.0f }, { 0.0f, +1.0f } };
+
+// arrow_h, arrow_w, arrow_th are normalized: 0.0f..1.0f
+// arrow_th: 0.0f == fill, >0.0f == stroke weight.
+void ImGui::RenderArrowEx(ImDrawList* draw_list, ImVec2 pos, ImU32 col, float cos_a, float sin_a, float scale, ImVec2 arrow_sizes, float arrow_th)
+{
+    const bool is_fill = (arrow_th <= 0.0f);
+    const float r = draw_list->_Data->FontSize * 0.50f * scale;
+    const float thickness = is_fill ? 0.0f : IM_ROUND(ImClamp(r * arrow_th, 1.0f, r * 0.5f));
+
+    // Bias for shape to feel more centered
+    const float bias = is_fill ? (r * 0.05f) : (thickness * 0.8f * 0.7071f);
+    const ImVec2 center = ImVec2(pos.x + r + bias * cos_a, pos.y + r + bias * sin_a);
+
+    const float arrow_h = arrow_sizes.y * r;
+    const float arrow_w = arrow_sizes.x * r;
+    ImVec2 p[3];
+    p[0] = ImVec2(center.x - arrow_h * cos_a - arrow_w * -sin_a, center.y - arrow_h * sin_a - arrow_w * cos_a);
+    p[1] = ImVec2(center.x + arrow_h * cos_a,                    center.y + arrow_h * sin_a);
+    p[2] = ImVec2(center.x - arrow_h * cos_a + arrow_w * -sin_a, center.y - arrow_h * sin_a + arrow_w * cos_a);
+
+    // Pixel align when at a right angle
+    if (is_fill && (cos_a * sin_a >= -FLT_EPSILON) && (cos_a * sin_a <= FLT_EPSILON))
+    {
+        p[0] = ImRoundSigned(p[0]);
+        p[1] = ImRoundSigned(p[1]);
+        p[2] = ImRoundSigned(p[2]);
+    }
+
+    if (is_fill)
+        draw_list->AddConvexPolyFilled(p, 3, col);
+    else
+        draw_list->_AddPolyline(p, 3, col, thickness, ImDrawFlags_StrokeInside | ImDrawFlags_AALineEnds, FLT_MAX); // FIXME-OPT: baked filled shape?
+}
+
+// Render an arrow aimed to be aligned with text.
 void ImGui::RenderArrow(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImGuiDir dir, float scale)
 {
-    const float h = draw_list->_Data->FontSize * 1.00f;
-    float r = h * 0.40f * scale;
-    ImVec2 center = pos + ImVec2(h * 0.50f, h * 0.50f * scale);
-
-    ImVec2 a, b, c;
-    switch (dir)
-    {
-    case ImGuiDir_Up:
-    case ImGuiDir_Down:
-        if (dir == ImGuiDir_Up) r = -r;
-        a = ImVec2(+0.000f, +0.750f) * r;
-        b = ImVec2(-0.866f, -0.750f) * r;
-        c = ImVec2(+0.866f, -0.750f) * r;
-        break;
-    case ImGuiDir_Left:
-    case ImGuiDir_Right:
-        if (dir == ImGuiDir_Left) r = -r;
-        a = ImVec2(+0.750f, +0.000f) * r;
-        b = ImVec2(-0.750f, +0.866f) * r;
-        c = ImVec2(-0.750f, -0.866f) * r;
-        break;
-    case ImGuiDir_None:
-    case ImGuiDir_COUNT:
-        IM_ASSERT(0);
-        break;
-    }
-    draw_list->AddTriangleFilled(center + a, center + b, center + c, col);
+    ImGuiContext& g = *GImGui;
+    ImVec2 cos_sin = g_ImGuiDirCosSin[dir];
+    RenderArrowEx(draw_list, pos, col, cos_sin.x, cos_sin.y, scale, g.Style.SymbolArrowSizeFactor, g.Style.SymbolArrowThicknessFactor);
 }
 
 void ImGui::RenderBullet(ImDrawList* draw_list, ImVec2 pos, ImU32 col)
@@ -7619,25 +7630,12 @@ void ImGui::RenderCheckMark(ImDrawList* draw_list, ImVec2 pos, ImU32 col, float 
     draw_list->PathStroke(col, thickness, ImDrawFlags_AALineEnds);
 }
 
-// Render an arrow. 'pos' is position of the arrow tip. half_sz.x is length from base to tip. half_sz.y is length on each side.
-void ImGui::RenderArrowPointingAt(ImDrawList* draw_list, ImVec2 pos, ImVec2 half_sz, ImGuiDir direction, ImU32 col)
-{
-    switch (direction)
-    {
-    case ImGuiDir_Left:  draw_list->AddTriangleFilled(ImVec2(pos.x + half_sz.x, pos.y - half_sz.y), ImVec2(pos.x + half_sz.x, pos.y + half_sz.y), pos, col); return;
-    case ImGuiDir_Right: draw_list->AddTriangleFilled(ImVec2(pos.x - half_sz.x, pos.y + half_sz.y), ImVec2(pos.x - half_sz.x, pos.y - half_sz.y), pos, col); return;
-    case ImGuiDir_Up:    draw_list->AddTriangleFilled(ImVec2(pos.x + half_sz.x, pos.y + half_sz.y), ImVec2(pos.x - half_sz.x, pos.y + half_sz.y), pos, col); return;
-    case ImGuiDir_Down:  draw_list->AddTriangleFilled(ImVec2(pos.x - half_sz.x, pos.y - half_sz.y), ImVec2(pos.x + half_sz.x, pos.y - half_sz.y), pos, col); return;
-    case ImGuiDir_None: case ImGuiDir_COUNT: break; // Fix warnings
-    }
-}
-
 // This is less wide than RenderArrow() and we use in dock nodes instead of the regular RenderArrow() to denote a change of functionality,
 // and because the saved space means that the left-most tab label can stay at exactly the same position as the label of a loose window.
 void ImGui::RenderArrowDockMenu(ImDrawList* draw_list, ImVec2 p_min, float sz, ImU32 col)
 {
     draw_list->AddRectFilled(p_min + ImVec2(sz * 0.20f, sz * 0.15f), p_min + ImVec2(sz * 0.80f, sz * 0.30f), col);
-    RenderArrowPointingAt(draw_list, p_min + ImVec2(sz * 0.50f, sz * 0.85f), ImVec2(sz * 0.30f, sz * 0.40f), ImGuiDir_Down, col);
+    draw_list->AddTriangleFilled(p_min + ImVec2(sz * 0.20f, sz * 0.45f), p_min + ImVec2(sz * 0.80f, sz * 0.45f), p_min + ImVec2(sz * 0.50f, sz * 0.85f), col);
 }
 
 static inline float ImAcos01(float x)

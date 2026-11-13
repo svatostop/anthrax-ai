@@ -22,8 +22,8 @@ export {
                 void run();
                 void backend_render_data(VkCommandBuffer cmd) { imgui.backend_render_data(cmd); }
 
-                void watch(const std::vector<std::string>& vec, std::function<void(const std::string& s)>&& callback) {
-                    imgui.watch(vec, std::move(callback));
+                void watch(uint32_t val, const std::vector<std::string>& vec, std::function<void(uint32_t slot, const std::string& s)>&& callback) {
+                    imgui.watch(val, vec, std::move(callback));
                 }
             private:
                 bool is_init = false;

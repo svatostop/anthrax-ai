@@ -1,5 +1,6 @@
-// dear imgui: FreeType font builder (used as a replacement for the stb_truetype builder)
+// dear imgui: FreeType font builder
 // (code)
+// (used as a replacement for the stb_truetype builder)
 
 // Get the latest version at https://github.com/ocornut/imgui/tree/master/misc/freetype
 // Original code by @vuhdo (Aleksei Skriabin) in 2017, with improvements by @mikesart.
@@ -294,7 +295,7 @@ static void ImGui_ImplFreeType_BlitGlyph(const FT_Bitmap* ft_bitmap, uint32_t* d
     case FT_PIXEL_MODE_BGRA:
         {
             // FIXME: Converting pre-multiplied alpha to straight. Doesn't smell good.
-            #define DE_MULTIPLY(color, alpha) ImMin((ImU32)(255.0f * (float)color / (float)(alpha + FLT_MIN) + 0.5f), 255u)
+            #define DE_MULTIPLY(color, alpha) (ImU32)ImMin(255.0f * (float)color / (float)(alpha + FLT_MIN) + 0.5f, 255.0f)
             for (uint32_t y = 0; y < h; y++, src += src_pitch, dst += dst_pitch)
                 for (uint32_t x = 0; x < w; x++)
                 {

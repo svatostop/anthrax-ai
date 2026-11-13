@@ -40,20 +40,23 @@ export {
                         std::lock_guard<std::mutex> lock(datas_mtx);
                         out.swap(datas);
                     }
-                    void set_vk_bind(primitive_t type, VkDeviceAddress addr) { binds[type] = addr; }
-                    VkDeviceAddress get_vk_bind(primitive_t type) { return binds[type]; }
+                    void set_vk_bind(uint32_t frame, primitive_t type, VkDeviceAddress addr) { binds[frame][type] = addr; }
+                    VkDeviceAddress get_vk_bind(uint32_t frame, primitive_t type) { return binds[frame][type]; }
 
                     bool enabled() { return is_enabled; }
                     void set_enabled(bool b) { is_enabled = b; }
                     float get_global_anim_mult() { return global_anim_mult; }
                     void set_global_anim_mult(float f) { global_anim_mult = f; }
 
+                    float get_blend_factor() { return blend_factor; }
+                    void set_blend_factor(float blend) { blend_factor = blend; } 
                 private:                    
-                    std::map<primitive_t, VkDeviceAddress> binds;
+                    std::map<primitive_t, VkDeviceAddress> binds[MAX_FRAMES];
                     mutable std::mutex datas_mtx;
                     std::map<primitive_t, std::vector<point>> datas;
                     bool is_enabled = false;
                     float global_anim_mult = 1.0f;
+                    float blend_factor = 0.0f;
             };
         }
     }

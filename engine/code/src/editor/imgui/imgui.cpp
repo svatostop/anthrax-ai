@@ -1,14 +1,17 @@
 module;
+#include <glm/geometric.hpp>
 #include <stdlib.h>
 #include <stdio.h>
 #include <vulkan/vulkan_core.h>
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
+#include "aai/gfx/vk/model/model_types.h"
 
 module aai.editor.imgui;
 import aai.gfx.debug;
 import aai.utils.threads;
+import aai.io;
 
 void imgui_backend::shutdown(VkDevice device) 
 {
@@ -43,26 +46,39 @@ void imgui_backend::backend_render_data(VkCommandBuffer cmd)
 void imgui_backend::process()
 {
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+    
     ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 650, main_viewport->WorkPos.y + 20), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+    ImVec2 win_pos = ImGui::GetWindowPos();
+    ImVec2 win_size = ImGui::GetWindowSize();
+
+    aai::io::mouse::set_in_editor(false);
+    if (aai::io::mouse::get_pos().x > win_pos.x && aai::io::mouse::get_pos().x < win_pos.x + win_size.x  &&
+    aai::io::mouse::get_pos().y > win_pos.y && aai::io::mouse::get_pos().y < win_pos.y + win_size.y)
+       aai::io::mouse::set_in_editor(true);
 
     ImGui::Begin("new engine");
     if (ImGui::BeginTabBar("MyTabBar")) {
         if (ImGui::BeginTabItem("animations"))
         {
             if (!watch_vec.empty()) {
-                int idx = 0;
-                static std::string tag = watch_vec[0]; 
-                if (ImGui::BeginCombo("robot clips", tag.c_str()))
-                {
-                    for (int n = 0; n < watch_vec.size(); n++)
-                        if (ImGui::Selectable(watch_vec[n].c_str(), idx == n)) {
-                            idx = n;
-                            tag = watch_vec[n]; 
-                        }
-                    ImGui::EndCombo();
+                int v1 = glm::clamp((int)watch_initial_val , 0, (int)watch_vec.size());
+                int v2 = glm::clamp((int)watch_initial_val + 1, 0, (int)watch_vec.size());
+                static std::string tag[MAX_BLEND_SIZE] = { watch_vec[v1], watch_vec[v2] } ;
+                for (int i = 0; i < MAX_BLEND_SIZE; i++) {
+                    int idx = 0;
+                    std::string label = "robot blend [" + std::to_string(i) + "]";
+                    if (ImGui::BeginCombo(label.c_str(), tag[i].c_str()))
+                    {
+                        for (int n = 0; n < watch_vec.size(); n++)
+                            if (ImGui::Selectable(watch_vec[n].c_str(), idx == n)) {
+                                idx = n;
+                                tag[i] = watch_vec[n]; 
+                            }
+                        ImGui::EndCombo();
+                    }
+                    watch_callback(i, tag[i]);
                 }
-                watch_callback(tag);
             }
 
             ImGui::Separator();
@@ -73,6 +89,12 @@ void imgui_backend::process()
             float anim_mult = gfx::dbg::draw::get()->get_global_anim_mult();
             ImGui::DragFloat("global anim time mult", &anim_mult, 0.1, 0.0f, 2.0f, "%.1f");
             gfx::dbg::draw::get()->set_global_anim_mult(anim_mult);
+
+            ImGui::Separator();
+            float blend = gfx::dbg::draw::get()->get_blend_factor();
+            ImGui::DragFloat("blend", &blend, 0.001, 0.0f, 1.0f, "%.3f");
+            gfx::dbg::draw::get()->set_blend_factor(blend);
+
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("threads")) {

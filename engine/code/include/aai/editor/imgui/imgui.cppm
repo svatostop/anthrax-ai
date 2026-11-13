@@ -17,7 +17,7 @@ export {
 
             void backend_render_data(VkCommandBuffer cmd);
 
-            void watch(const std::vector<std::string>& vec, std::function<void(const std::string& s)>&& callback) { watch_vec = vec, watch_callback = callback; }
+            void watch(uint32_t init_val, const std::vector<std::string>& vec, std::function<void(uint32_t slot, const std::string& s)>&& callback) { watch_initial_val = init_val; watch_vec = vec, watch_callback = callback; }
 
             void process();
         private:
@@ -29,7 +29,8 @@ export {
             bool is_init = false;
 
             std::vector<std::string> watch_vec;
-            std::function<void(const std::string& s)> watch_callback;
+            uint32_t watch_initial_val = 0;
+            std::function<void(uint32_t slot, const std::string& s)> watch_callback;
     };
 };
 

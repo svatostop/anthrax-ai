@@ -26,7 +26,7 @@ export {
 
                 void submit_camera(std::shared_ptr<const keeper::camera> cam, const std::uint32_t frame);
                 void submit_instance(const std::deque<rq::data>& rq, const std::uint32_t frame);
-                void submit_debug(std::map<gfx::dbg::primitive_t, std::vector<gfx::dbg::point>>& debug_data, vk::device::handlers devices);
+                void submit_debug(std::map<gfx::dbg::primitive_t, std::vector<gfx::dbg::point>>& debug_data, vk::device::handlers devices, const std::uint32_t frame);
                 void update(vk::device::handlers dev, const std::uint32_t frame);
                 
                 uint32_t get_skin_id() { return available_skin_id++; }
@@ -42,8 +42,8 @@ export {
                 gpu_data<camera_data> camera[MAX_FRAMES];
                 gpu_data<instance_data> instance[MAX_FRAMES];
 
-                gpu_data<gfx::dbg::point> dbg_points;
-                gpu_data<gfx::dbg::point> dbg_line;
+                gpu_data<gfx::dbg::point> dbg_points[MAX_FRAMES];
+                gpu_data<gfx::dbg::point> dbg_line[MAX_FRAMES];
 
                 std::map<std::string, uint32_t> texture_bindings;
                 uint32_t texture_handle = 0;

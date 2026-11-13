@@ -1,10 +1,13 @@
 #pragma once
+#include <vector>
 #include <string>
 #include "aai/gfx/vk/backend/vk_defines.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#define MAX_BLEND_SIZE 2
 
 namespace model {
     using skin_data_array = std::vector<std::vector<glm::mat4>>;
@@ -46,9 +49,8 @@ namespace model {
         };
         struct skeleton {
             std::string name;
-            int32_t root_node_ind = -1;
             std::vector<glm::mat4> inv_matrices;
-            std::vector<int32_t> bones;
+            std::vector<int32_t> joints;
         };
     }
 
@@ -84,6 +86,21 @@ namespace model {
         std::vector<types::vertex> vertex_buffer;
         std::vector<uint16_t> index_buffer;
     };
-    
+   
+    struct skeleton_state {
+        std::vector<glm::vec3> translation; 
+        std::vector<glm::quat> rotation;
+        std::vector<glm::vec3> scale;
+        void resize(size_t n) {
+            translation.resize(n, glm::vec3(0));
+            rotation.resize(n, {});
+            scale.resize(n, glm::vec3(0));
+        }
+        void clear() {
+            std::fill(translation.begin(), translation.end(), glm::vec3(0));
+            std::fill(rotation.begin(), rotation.end(), glm::quat(0,0,0,0));
+            std::fill(scale.begin(), scale.end(), glm::vec3(0));
+        }
+    };
 }
 

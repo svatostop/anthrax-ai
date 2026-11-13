@@ -5,10 +5,11 @@ module aai.gfx.vk.model;
 import aai.utils;
 import aai.utils.timer;
 
-void model::base::load(const std::string& path, vk::device::handlers devices)
+void model::base::load(const std::string& p, vk::device::handlers devices)
 {
-    loader::gltf::load(path, info);
-    
+    loader::gltf::load(p, info);
+   
+    path = p;
     utils::ASSERT(info.vertex_buffer.empty(), "loader::gltf::load(): returned emprty vertex buffer");
     utils::ASSERT(info.index_buffer.empty(), "loader::gltf::load(): returned emprty index buffer");
     VkBufferUsageFlags flags[2] = {VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT};
@@ -17,5 +18,4 @@ void model::base::load(const std::string& path, vk::device::handlers devices)
     vk::buffer::create(data.indices, devices, flags2, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, sizeof(info.index_buffer[0]) * info.index_buffer.size(), info.index_buffer.data());
     
 }
-
 

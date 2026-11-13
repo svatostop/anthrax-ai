@@ -16,11 +16,10 @@ void load_skeletons(const tinygltf::Model& gltf_model, model::info& m) {
     int i = 0;
     for (const tinygltf::Skin& s : gltf_model.skins) {
         m.skeletons[i].name = s.name;
-        m.skeletons[i].root_node_ind = (s.skeleton >= 0) ? s.skeleton : -1;
     
-        m.skeletons[i].bones.reserve(s.joints.size());
-        for (int bone_ind : s.joints) {
-            m.skeletons[i].bones.push_back(bone_ind);
+        m.skeletons[i].joints.reserve(s.joints.size());
+        for (int join_ind : s.joints) {
+            m.skeletons[i].joints.push_back(join_ind);
         }
         if (s.inverseBindMatrices > -1) {
             const tinygltf::Accessor& accessor = gltf_model.accessors[s.inverseBindMatrices];

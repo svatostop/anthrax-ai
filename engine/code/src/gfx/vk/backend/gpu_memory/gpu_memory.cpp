@@ -85,13 +85,13 @@ std::vector<VkDeviceAddress>& vk::gpu_memory::get_skin_gpu_address(const std::sh
     }
 }
 
-void vk::gpu_memory::submit_debug(std::map<gfx::dbg::primitive_t, std::vector<gfx::dbg::point>>& debug_data, vk::device::handlers devices)
+void vk::gpu_memory::submit_debug(std::map<gfx::dbg::primitive_t, std::vector<gfx::dbg::point>>& debug_data, vk::device::handlers devices, const std::uint32_t frame)
 {
     if ( !debug_data[gfx::dbg::primitive_t::POINT].empty()) { 
-        vk::buffer::map_memory(dbg_points.data, devices.dev, debug_data[gfx::dbg::primitive_t::POINT].size() * sizeof(gfx::dbg::point), 0, debug_data[gfx::dbg::primitive_t::POINT].data());
+        vk::buffer::map_memory(dbg_points[frame].data, devices.dev, debug_data[gfx::dbg::primitive_t::POINT].size() * sizeof(gfx::dbg::point), 0, debug_data[gfx::dbg::primitive_t::POINT].data());
     }
     if ( !debug_data[gfx::dbg::primitive_t::LINE].empty()){
-        vk::buffer::map_memory(dbg_line.data, devices.dev, debug_data[gfx::dbg::primitive_t::LINE].size() * sizeof(gfx::dbg::point), 0, debug_data[gfx::dbg::primitive_t::LINE].data());
+        vk::buffer::map_memory(dbg_line[frame].data, devices.dev, debug_data[gfx::dbg::primitive_t::LINE].size() * sizeof(gfx::dbg::point), 0, debug_data[gfx::dbg::primitive_t::LINE].data());
     }
 }
 
@@ -214,14 +214,14 @@ void vk::gpu_memory::init_buffers(vk::device::handlers dev)
         vkMapMemory(dev.dev , instance[i].data.device_memory, 0, buffer_size, 0, (void**)&ptr_data);
         instance[i].mapped_data = (instance_data*)ptr_data;
         utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() {vkUnmapMemory(dev.dev, instance[i].data.device_memory);});
+
+        buffer_size = sizeof(gfx::dbg::point) * 1000;
+        create_buffer(dev, dbg_points[i].data, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
+        buffer_size = sizeof(gfx::dbg::point) * 1000;
+        create_buffer(dev, dbg_line[i].data, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
+        gfx::dbg::draw::get()->set_vk_bind(i, gfx::dbg::primitive_t::LINE, dbg_line[i].data.gpu_address);
+        gfx::dbg::draw::get()->set_vk_bind(i, gfx::dbg::primitive_t::POINT, dbg_points[i].data.gpu_address);
     }
-    
-    buffer_size = sizeof(gfx::dbg::point) * 1000;
-    create_buffer(dev, dbg_points.data, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
-    buffer_size = sizeof(gfx::dbg::point) * 1000;
-    create_buffer(dev, dbg_line.data, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
-    gfx::dbg::draw::get()->set_vk_bind(gfx::dbg::primitive_t::LINE, dbg_line.data.gpu_address);
-    gfx::dbg::draw::get()->set_vk_bind(gfx::dbg::primitive_t::POINT, dbg_points.data.gpu_address);
 }
 
 

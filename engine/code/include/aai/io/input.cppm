@@ -84,8 +84,11 @@ export {
                     glm::vec2 delta;
                     glm::vec2 tmp_delta;
                     bool mouse_moved = false;
+                    bool in_editor = false;
                 };
                 data info;
+                void set_in_editor(bool set) { info.in_editor = set; }
+                bool is_in_editor() { return info.in_editor; } 
                 const glm::vec2& get_delta() { return info.delta; }
                 const glm::vec2& get_pos() { return info.pos; }
                 inline bool is_state(val bit) { return (info.state & static_cast<int>(bit)) != 0; }
