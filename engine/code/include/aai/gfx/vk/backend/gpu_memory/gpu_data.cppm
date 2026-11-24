@@ -1,4 +1,5 @@
 module;
+#include <cstdint>
 #include <strings.h>
 
 export module aai.gfx.vk.gpu_data;
@@ -7,7 +8,8 @@ import glm;
 export {
     enum class gpu_data_type {
         CAMERA =0,
-        INSTANCE
+        INSTANCE,
+        INSTANCED_RECT,
     };
     struct camera_data {
         glm::vec4 viewport;
@@ -19,6 +21,16 @@ export {
     };
     struct instance_data {
         glm::mat4 model;
+    };
+
+    struct instanced_rect {
+        glm::vec2 position;
+        glm::vec2 size;
+        glm::vec4 uv;
+        glm::vec4 color;
+
+        uint32_t texture_id = 0;
+        uint32_t has_outline = 0;
     };
     
     namespace gfx::dbg {

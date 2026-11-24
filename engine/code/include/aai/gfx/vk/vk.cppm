@@ -32,11 +32,20 @@ export {
 
                 void clean_rts() { render.clean_rts(dev.get_devices()); }
                 void create_texture(const std::string& path, std::shared_ptr<rt::render_target> target);
+                void create_atlas_texture(const std::string& path, std::shared_ptr<rt::render_target> target, uint32_t width, uint32_t height);
+                const glm::vec4& add_atlas_texture(std::shared_ptr<rt::render_target> target, unsigned int texture_wdith, unsigned int texture_height, unsigned char* buffer);
+
+
                 void create_model(const char* path, std::shared_ptr<model::base> m);
+                void create_mesh(const char* path, std::shared_ptr<model::base> m, const std::vector<model::types::vertex>& vertex_buffer, const std::vector<uint16_t>& index_buffer);
                 uint32_t create_material(mat::materials& m, const std::string& name) { return pipe.create_material(dev.get_device(), m, name); } 
                 void push_debug_render_data(rq::data&& r) { rq_debug.push_back(std::move(r)); }
                 void push_static_render_data(rq::data&& r) { rq_static.push_back(std::move(r)); }
                 void push_render_data(rq::data&& r) { rq_render_data.push_back(std::move(r)); }
+
+                void initialize_instanced_rect_data(rq::instanced<instanced_rect>&& rr) { rq_inst_rects = rr; }
+                // todo allocate with some size
+                void push_instanced_rect_data(instanced_rect r) { rq_inst_rects.data.push_back(r); }    
 
                 rt::render_target* get_last_target() { return render.get_last_target(); } 
                 const rt::base::ref& get_attachment_ref(const rt::name::val r) { return render.get_attachment_ref(r); }
@@ -52,6 +61,8 @@ export {
 
                 uint32_t get_skin_id() { return gpu_mem.get_skin_id(); }
                 std::vector<VkDeviceAddress>& get_skin_gpu_address(const std::shared_ptr<model::skin_groups> group) { return gpu_mem.get_skin_gpu_address(group, dev.get_devices()); }
+
+
            private:
                 void init_rt_states();
                 void on_resize();
@@ -64,6 +75,8 @@ export {
                 std::deque<rq::data> rq_render_data;
                 // debug for points and lines
                 std::deque<rq::data> rq_debug;
+
+                rq::instanced<instanced_rect> rq_inst_rects;
                 
                 instance inst;
                 device dev;

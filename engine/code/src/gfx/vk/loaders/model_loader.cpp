@@ -16,10 +16,10 @@ void load_skeletons(const tinygltf::Model& gltf_model, model::info& m) {
     int i = 0;
     for (const tinygltf::Skin& s : gltf_model.skins) {
         m.skeletons[i].name = s.name;
-    
         m.skeletons[i].joints.reserve(s.joints.size());
         for (int join_ind : s.joints) {
             m.skeletons[i].joints.push_back(join_ind);
+        // std::cout << "skeletm name: " << m.nodes[join_ind].name << "\n"; 
         }
         if (s.inverseBindMatrices > -1) {
             const tinygltf::Accessor& accessor = gltf_model.accessors[s.inverseBindMatrices];
@@ -39,6 +39,7 @@ void load_animations(const tinygltf::Model& gltf_model, model::info& m) {
     for (const tinygltf::Animation& anim : gltf_model.animations) {
         m.clips[i].name = anim.name;
         m.clip_names[i] = anim.name;
+        std::cout << "clip name: " << anim.name << "\n"; 
         m.clips[i].samplers.resize(anim.samplers.size());
         int j = 0;
         for (const tinygltf::AnimationSampler& sampler : anim.samplers) {

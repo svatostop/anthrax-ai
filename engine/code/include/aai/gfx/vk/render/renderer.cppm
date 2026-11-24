@@ -9,6 +9,7 @@ export import aai.gfx.vk.device;
 export import aai.gfx.vk.rt.helper;
 export import aai.gfx.vk.rq;
 export import aai.gfx.materials;
+import aai.gfx.vk.pipeline;
 import aai.gfx.vk.model;
 import std;
 export {
@@ -29,9 +30,39 @@ export {
                 void set_window_size(glm::ivec2 w) { window_size = w; }
 
                 void set_instance_bind(VkDeviceAddress buffer_addr) { instance_buffer_address = buffer_addr; }
+                void set_inst_rect_bind(VkDeviceAddress buffer_addr) { inst_rect_buffer_address = buffer_addr; }
                 void set_camera_bind(VkDeviceAddress buffer_addr) { camera_buffer_address = buffer_addr; }
 
                 void refresh_state();
+
+                template <typename T>
+                void blocks(VkCommandBuffer cmd, rq::instanced<T>& rq)
+                {
+                    check_render_state(rq.material_handle);
+                    start_render(cmd, rq.material_handle->attachment_ref);
+                    if (rq.material_handle->dynamic_viewport) {
+                        set_dynamic_viewport(cmd);
+                    }
+                    if (rq.mesh_handle) {
+                            // todo hardcoded
+                            VkDeviceSize offsets[2] = { 0, 0 };
+                            VkBuffer vert_buf[2] = { rq.mesh_handle->get_vertex_buffer(), rq.buffer };
+                            vkCmdBindVertexBuffers(cmd, 0, 2, vert_buf, offsets);
+                            vkCmdBindIndexBuffer(cmd, rq.mesh_handle->get_index_buffer(), 0, VK_INDEX_TYPE_UINT16);
+                            check_bindings(rq.material_handle, nullptr);
+                            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline_layout , 0, 1, &bindless_set, 0, nullptr);
+                            vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rq.material_handle->pipeline);
+
+                            vk::pipeline::push_range constants;
+                            constants.camera_gpu_address = camera_buffer_address;
+
+                            vkCmdPushConstants(cmd, rq.material_handle->pipeline_layout , VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(vk::pipeline::push_range), &constants);
+
+                            vkCmdDraw(cmd, 6, rq.data.size(), 0, 0);
+                        }
+                    end_render(cmd);
+                }
+                
             private:
                 struct render_state {
                     rt::base::ref attachment_ref;
@@ -44,7 +75,7 @@ export {
                     uint32_t instance_ind = 0;
                 };
 
-                void check_render_state(const rq::data& rq);
+                void check_render_state(std::shared_ptr<mat::data> material_handle);
                 void check_bindings(std::shared_ptr<mat::data> material, std::shared_ptr<model::base> mesh);
                 
                 void set_dynamic_viewport(VkCommandBuffer cmd);
@@ -59,6 +90,7 @@ export {
                 VkDescriptorSet bindless_set;
                 VkDeviceAddress camera_buffer_address ;
                 VkDeviceAddress instance_buffer_address ;
+                VkDeviceAddress inst_rect_buffer_address ;
 
                 rt::base rts;
                 render_state state;

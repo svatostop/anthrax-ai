@@ -1,6 +1,6 @@
 {
     "sprite": {
-        "color_blend": "no_alpha_blend",
+        "color_blend": "alpha_blend",
         "rt_ref": "one_quad",
         "viewport": [
             0,

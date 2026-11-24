@@ -23,7 +23,9 @@ export {
                 VkDescriptorSet get_bindless_set() { return bindless_texture_descriptor; }
 
                 const VkDeviceAddress get_buffer_address(const gpu_data_type& t, const uint32_t frame) const;
+                VkBuffer get_buffer(const gpu_data_type& t, const uint32_t frame) const;
 
+                void submit(const gpu_data_type& t, const uint32_t frame, size_t size, void* data, vk::device::handlers devices);
                 void submit_camera(std::shared_ptr<const keeper::camera> cam, const std::uint32_t frame);
                 void submit_instance(const std::deque<rq::data>& rq, const std::uint32_t frame);
                 void submit_debug(std::map<gfx::dbg::primitive_t, std::vector<gfx::dbg::point>>& debug_data, vk::device::handlers devices, const std::uint32_t frame);
@@ -41,6 +43,7 @@ export {
 
                 gpu_data<camera_data> camera[MAX_FRAMES];
                 gpu_data<instance_data> instance[MAX_FRAMES];
+                gpu_data<instanced_rect> instanced_rects[MAX_FRAMES];
 
                 gpu_data<gfx::dbg::point> dbg_points[MAX_FRAMES];
                 gpu_data<gfx::dbg::point> dbg_line[MAX_FRAMES];

@@ -10,9 +10,10 @@ void model::inst::init(const std::shared_ptr<model::base> m, uint32_t skin_id)
     raw_model = m;
 
     const size_t n = m->info.nodes.size();
-    states.translation.resize(n);
-    states.rotation.resize(n);
-    states.scale.resize(n);
+    // states.translation.resize(n);
+    // states.rotation.resize(n);
+    // states.scale.resize(n);
+    states.resize(n);
     gltf_matrix.resize(n);
     local.resize(n, glm::mat4(1.0f));
     global.resize(n, glm::mat4(1.0f));
@@ -37,8 +38,19 @@ void model::inst::init(const std::shared_ptr<model::base> m, uint32_t skin_id)
     anim.set_model_matrix(model_matrix);
    
     if (has_anim()) {
-        anim.play(0, 0);
-        anim.play(1, 1);
+        anim.add_blend_factor();
+        float blend_factor = 0.0f;
+        auto& clip1 = anim.add_clip();
+        clip1.clip = 0;
+        clip1.loop = true;
+        clip1.weight_to_sum = 1.0f - blend_factor;
+        clip1.offset_time = 0.7;
+        anim.play(0);
+        auto& clip2 = anim.add_clip();
+        clip2.clip = 1;
+        clip2.loop = true;
+        clip2.weight_to_sum = blend_factor;
+        anim.play(1);
     }
 }
 

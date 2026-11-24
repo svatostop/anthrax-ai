@@ -47,11 +47,8 @@ export {
                     }
                     utils::job_sys::wait();
                 }
-                void watch(uint32_t val, model::inst& inst, aai::editor& editor) {
-                    editor.watch(val, inst.get_clip_names(), [&](uint32_t slot, const std::string& s) {
-                        if (s != inst.get_current_clip(slot))
-                            inst.update_clip(slot, s);
-                    });
+                void watch(model::inst& inst, aai::editor& editor) {
+                    editor.watch(utils::editor_types::ANIMATION, inst.get_animator()); 
                 }
 
                 std::deque<back_datas>& get_back_data() { return back_data; }

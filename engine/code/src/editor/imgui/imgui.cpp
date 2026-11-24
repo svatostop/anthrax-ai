@@ -1,7 +1,9 @@
 module;
+#include <cstdint>
 #include <glm/geometric.hpp>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
 #include <vulkan/vulkan_core.h>
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
@@ -10,7 +12,9 @@ module;
 
 module aai.editor.imgui;
 import aai.gfx.debug;
+import aai.gfx.font;
 import aai.utils.threads;
+import aai.gfx.vk.model.anim;
 import aai.io;
 
 void imgui_backend::shutdown(VkDevice device) 
@@ -43,6 +47,21 @@ void imgui_backend::backend_render_data(VkCommandBuffer cmd)
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
 }
 
+template <typename T>
+void combo_lookup(T& current_value, const std::string& label)
+{
+    int idx = 0;
+    if (ImGui::BeginCombo(label.c_str(), get_value(current_value).c_str()))
+    {
+        for (int n = 0; n < T::SIZE; n++)
+            if (ImGui::Selectable(get_value(static_cast<T>(n)).c_str(), idx == n)) {
+                idx = n;
+                current_value = static_cast<T>(n);
+            }
+        ImGui::EndCombo();
+    }
+}
+
 void imgui_backend::process()
 {
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
@@ -61,26 +80,153 @@ void imgui_backend::process()
     if (ImGui::BeginTabBar("MyTabBar")) {
         if (ImGui::BeginTabItem("animations"))
         {
-            if (!watch_vec.empty()) {
-                int v1 = glm::clamp((int)watch_initial_val , 0, (int)watch_vec.size());
-                int v2 = glm::clamp((int)watch_initial_val + 1, 0, (int)watch_vec.size());
-                static std::string tag[MAX_BLEND_SIZE] = { watch_vec[v1], watch_vec[v2] } ;
-                for (int i = 0; i < MAX_BLEND_SIZE; i++) {
-                    int idx = 0;
-                    std::string label = "robot blend [" + std::to_string(i) + "]";
-                    if (ImGui::BeginCombo(label.c_str(), tag[i].c_str()))
-                    {
-                        for (int n = 0; n < watch_vec.size(); n++)
-                            if (ImGui::Selectable(watch_vec[n].c_str(), idx == n)) {
-                                idx = n;
-                                tag[i] = watch_vec[n]; 
-                            }
-                        ImGui::EndCombo();
-                    }
-                    watch_callback(i, tag[i]);
-                }
-            }
+            anim::base* anim = reinterpret_cast<anim::base*>(output_datas[utils::editor_types::ANIMATION]);
+            if (anim && anim->is_model_valid()) {
+                int i = 0;
+                const std::vector<std::string>& names = anim->get_clip_names();
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0.0, 0.9));
+                ImGui::SeparatorText("Clips"); 
+                ImGui::PopStyleColor();
+                ImGui::Separator();
+                
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0.0, 0.9));
+                ImGui::Text("weight blend method");
+                ImGui::PopStyleColor();
+                ImGui::Separator();
+                
+                combo_lookup<anim::blend_method::val>(anim->blend_method, "blend method");
 
+                uint32_t blend_factor_size = anim->get_blend_factors().size();
+                if (anim->blend_method == anim::blend_method::val::FACTOR) {
+                    if (ImGui::Button("add blend factor")) {
+                        anim->add_blend_factor();
+                    }
+                    int j = 0;
+                    for (float& f : anim->get_blend_factors()) {
+                        std::string text_label = "blend factor [" + std::to_string(j) + "]";
+                        ImGui::DragFloat(text_label.c_str(), &f, 0.001, 0.0f, 1.0f, "%.3f");
+                        j++;
+                    }
+                }
+
+                ImGui::Separator();
+                
+                if (ImGui::Button("add clip")) {
+                    auto& clip2 = anim->add_clip();
+                    clip2.clip = 1;
+                    clip2.loop = true;
+                    clip2.weight_to_sum = 0.0f;
+                    anim->play(anim->clips.size() - 1);
+                }
+
+                for (anim::base::clip_info& clip : anim->clips) {
+                    int idx = clip.clip;
+                    std::string text_label = "clip info for [" + std::to_string(i) + "]";
+                    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1, 0.1, 0.1, 1));
+                    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.07, 0.07, 0.07, 1));
+                    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.07, 0.07, 0.07, 1));
+                    if (ImGui::TreeNodeEx(text_label.c_str(), ImGuiTreeNodeFlags_Framed)) {
+                        ImGui::PopStyleColor();
+                        ImGui::PopStyleColor();
+                        ImGui::PopStyleColor();
+                        ImGui::PushID(i);
+  
+                        int32_t new_clip = clip.clip;
+                        if (ImGui::BeginCombo("clips", names[clip.clip].c_str()))
+                        {
+                            for (int n = 0; n < names.size(); n++)
+                                if (ImGui::Selectable(names[n].c_str(), idx == n)) {
+                                    idx = n;
+                                    new_clip = n; 
+                                }
+                            ImGui::EndCombo();
+                        }ImGui::SameLine();
+                        if (ImGui::Button("remove clip")) {
+                            anim->remove_clip(i);
+                            ImGui::PopID();
+                            ImGui::TreePop();
+                            break;
+                        }
+                        ImGui::Checkbox("loop", &clip.loop);
+                        ImGui::Separator();
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0.0, 0.9));
+                        ImGui::Text("%s", "mask:"); 
+                        ImGui::PopStyleColor();
+                        combo_lookup<anim::mask::val>(clip.mask_type, "type");
+                        ImGui::Separator();
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0.0, 0.9));
+                        ImGui::Text("%s", "weights:"); 
+                        ImGui::PopStyleColor();
+                        if (anim->blend_method == anim::blend_method::val::WEIGHT_SUM)
+                            ImGui::DragFloat("weight to sum", &clip.weight_to_sum, 0.01, 0.0f, 1.0f, "%.2f");
+
+                        if (anim->blend_method == anim::blend_method::val::FACTOR) {
+
+                            ImGui::Columns(2);
+                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0.0, 0.9));
+                            ImGui::Text("%s", "first multiplier:"); 
+                            ImGui::PopStyleColor();
+                            ImGui::PushID(100);
+                            std::string id_str = std::to_string(clip.mults[0].blend_factor_ind);
+                            int blend_ind = clip.mults[0].blend_factor_ind;
+                            if (ImGui::BeginCombo("blind ids", id_str.c_str()))
+                            {
+                                 for (int n = 0; n < anim->get_blend_factors().size(); n++)
+                                    if (ImGui::Selectable(std::to_string(n).c_str(), blend_ind == n)) {
+                                        blend_ind = n;
+                                        clip.mults[0].blend_factor_ind = n; 
+                                    }
+                                ImGui::EndCombo();
+                            }
+                            ImGui::Checkbox("is reversed", &clip.mults[0].is_reversed);ImGui::SameLine();
+                            ImGui::Checkbox("is blank", &clip.mults[0].is_blank);
+                            ImGui::PopID();
+                            ImGui::NextColumn();
+                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0.0, 0.9));
+                            ImGui::Text("%s", "second multiplier:"); 
+                            ImGui::PopStyleColor();
+                            ImGui::PushID(101);
+                            std::string id_str2 = std::to_string(clip.mults[1].blend_factor_ind);
+                            int blend_ind2 = clip.mults[1].blend_factor_ind;
+                            if (ImGui::BeginCombo("blind ids", id_str2.c_str()))
+                            {
+                                 for (int n = 0; n < anim->get_blend_factors().size(); n++)
+                                    if (ImGui::Selectable(std::to_string(n).c_str(), blend_ind2 == n)) {
+                                        blend_ind2 = n;
+                                        clip.mults[1].blend_factor_ind = n; 
+                                    }
+                                ImGui::EndCombo();
+                            }
+
+                            ImGui::Checkbox("is reversed", &clip.mults[1].is_reversed);ImGui::SameLine();
+                            ImGui::Checkbox("is blank", &clip.mults[1].is_blank);
+                            ImGui::PopID();
+                            ImGui::Columns(1);
+                        }
+                        ImGui::Separator();
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0.0, 0.9));
+                        ImGui::DragFloat("offset time", &clip.offset_time, 0.1, 0.0f, 1.0f, "%.1f");
+                        ImGui::PopStyleColor();
+                        if (new_clip != clip.clip) {
+                            clip.clip = new_clip;
+                            anim->play(i);
+                        }
+                        ImGui::PopID();
+                        ImGui::TreePop();
+                    }
+                    else {
+                        ImGui::PopStyleColor();
+                        ImGui::PopStyleColor();
+                        ImGui::PopStyleColor();
+                    }
+                    i++;
+                    ImGui::Separator();
+                } 
+            }
+            
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0.0, 0.9));
+            ImGui::SeparatorText("Other"); 
+            ImGui::PopStyleColor();
             ImGui::Separator();
             bool enable = gfx::dbg::draw::get()->enabled();
             ImGui::Checkbox("enable debug draw", &enable);
@@ -90,11 +236,7 @@ void imgui_backend::process()
             ImGui::DragFloat("global anim time mult", &anim_mult, 0.1, 0.0f, 2.0f, "%.1f");
             gfx::dbg::draw::get()->set_global_anim_mult(anim_mult);
 
-            ImGui::Separator();
-            float blend = gfx::dbg::draw::get()->get_blend_factor();
-            ImGui::DragFloat("blend", &blend, 0.001, 0.0f, 1.0f, "%.3f");
-            gfx::dbg::draw::get()->set_blend_factor(blend);
-
+           
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("threads")) {
@@ -126,6 +268,24 @@ void imgui_backend::process()
                 }
             }
             ImGui::Columns(1);
+            ImGui::EndTabItem(); 
+        }
+        if (ImGui::BeginTabItem("ui"))
+        {
+            ui::font::context* ft = reinterpret_cast<ui::font::context*>(output_datas[utils::editor_types::FONT]);
+                
+            if (ft) {
+                ImGui::Text("font size: %d", ft->size); ImGui::SameLine();
+                static char input_buf[1024];
+                ImGui::InputText("font text", input_buf, 1024);
+                ft->text = input_buf;
+                ImGui::DragFloat("scale", &ft->scale, 0.1, 0.0f, 2.0f, "%.1f");
+                float pos[2] = { ft->pos.x, ft->pos.y };
+                ImGui::DragFloat2("position", pos, 1.0, 0.0f, 2000.0f, "%.1f");
+                ft->pos = glm::vec2(pos[0], pos[1]);
+                ImGui::DragFloat("size x", &ft->size_x, 1.0, 1.0f, 2000.0f, "%.1f");
+                combo_lookup<ui::alignment::val>(ft->align, "alignment");
+            }
             ImGui::EndTabItem(); 
         }
         ImGui::EndTabBar();

@@ -17,7 +17,8 @@ void aai::core::init()
     gfx.populate_base();
     gfx.init_editor(win.get_glfw_win(), editor);
 
-    keeper.watch(2, keeper.get_test(2), editor);
+    keeper.watch(keeper.get_test(2), editor);
+    gfx.watch(editor);
 
     thread.start(std::bind(&aai::core::render_update_callback, this, std::placeholders::_1), std::bind(&aai::core::logic_update_callback, this, std::placeholders::_1));
 }

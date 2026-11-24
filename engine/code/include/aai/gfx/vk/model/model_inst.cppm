@@ -15,16 +15,13 @@ export {
                 void init(const std::shared_ptr<model::base> m, uint32_t skin_id = 0 );
                 void update(float dt);
                 
+                anim::base* get_animator() { return &anim; }
                 bool has_anim() { return !raw_model->info.skeletons.empty();}
                 const std::string& get_requested_model_name() { return requested_model; }
                 const std::string& get_material_name() { return material_name; }
 
                 const std::string& get_current_clip(uint32_t slot) { return anim.get_current_clip(slot); }
                 const std::vector<std::string>& get_clip_names() { return anim.get_clip_names(); }
-
-                void update_clip(uint32_t slot, const std::string& clip_name) { 
-                    anim.play(slot, anim.find_clip_by_name(clip_name));
-                }
 
                 uint32_t get_model_id() { return model_id; }
                 uint32_t get_material_id() { return material_id; }

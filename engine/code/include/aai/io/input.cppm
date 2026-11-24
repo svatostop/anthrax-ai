@@ -102,6 +102,12 @@ export {
                         info.pressed_pos = info.pos;
                     }
                 }
+                bool is_in_rect(float mouse_x, float mouse_y, float x, float y, float size_x, float size_y) {
+                    return (mouse_x >= x && mouse_x <= x + size_x && mouse_y >= y && mouse_y <= y + size_y);
+                }
+                bool clicked_rect(float x, float y, float size_x, float size_y) {
+                    return is_in_rect(info.pressed_pos.x, info.pressed_pos.y, x, y, size_x, size_y);
+                }
                 void button_callback(GLFWwindow* window, int button, int action, int mods) {
                     switch (action) {
                         case GLFW_PRESS: {

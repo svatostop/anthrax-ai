@@ -19,5 +19,5 @@ void main()
     // debugPrintfEXT("instanceIndex=%d | %f,%f,%f\n", gl_InstanceIndex, model[3][0], model[3][1], model[3][2]);
     vec4 position = proj * view * model * (skin_transform * vec4(vposition.xyz, 1.0f));
     gl_Position = position;
-    outnormal = vnormal;
+    outnormal = vec4(vnormal, 1);
 }

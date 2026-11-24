@@ -7,8 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define MAX_BLEND_SIZE 2
-
 namespace model {
     using skin_data_array = std::vector<std::vector<glm::mat4>>;
     struct skin_groups {
@@ -88,10 +86,17 @@ namespace model {
     };
    
     struct skeleton_state {
+        std::vector<float> weights_translation;
+        std::vector<float> weights_scale;
+        std::vector<float> weights_rotation;
+        // TODO 
         std::vector<glm::vec3> translation; 
         std::vector<glm::quat> rotation;
         std::vector<glm::vec3> scale;
         void resize(size_t n) {
+            weights_translation.resize(n, 0.0f);
+            weights_scale.resize(n, 0.0f);
+            weights_rotation.resize(n, 0.0f);
             translation.resize(n, glm::vec3(0));
             rotation.resize(n, {});
             scale.resize(n, glm::vec3(0));
@@ -100,6 +105,9 @@ namespace model {
             std::fill(translation.begin(), translation.end(), glm::vec3(0));
             std::fill(rotation.begin(), rotation.end(), glm::quat(0,0,0,0));
             std::fill(scale.begin(), scale.end(), glm::vec3(0));
+            std::fill(weights_rotation.begin(), weights_rotation.end(), 0.0f);
+            std::fill(weights_scale.begin(), weights_scale.end(), 0.0f);
+            std::fill(weights_translation.begin(), weights_translation.end(), 0.0f);
         }
     };
 }

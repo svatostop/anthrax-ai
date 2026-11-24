@@ -20,6 +20,8 @@ export {
                 void memory_barrier(VkCommandBuffer cmd, VkImageLayout oldlayout, VkImageLayout newlayout, int layer_count = 1);
 	            void copy(VkCommandBuffer cmd, VkBuffer buffer,  uint32_t width, uint32_t height, int layer_count = 1);
 
+                const glm::vec4& set_offset(uint32_t x, uint32_t y);
+
                 void set_format(VkFormat form) { format = form; }
                 void set_dimensions(const glm::vec2& dim) { dimensions = dim; }
                 void set_device_size(VkDeviceSize dim) { device_size = dim; }
@@ -59,6 +61,10 @@ export {
                 bool is_storage = false;
                 bool is_cube = false;
                 std::string name;
+
+                int32_t current_offset_x = 0;
+                int32_t current_offset_y = 0;
+                glm::vec4 cur_atlas_uv = glm::vec4(0,0,1,1);
        };
 
        class base {

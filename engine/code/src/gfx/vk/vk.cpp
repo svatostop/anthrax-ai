@@ -61,12 +61,16 @@ bool vk::base::begin_frame()
         gpu_mem.submit_debug(debug_data, dev.get_devices(), frame.get_frame_index());
     }
 
+    // todo move to other func
+    size_t size = sizeof(instanced_rect) * rq_inst_rects.data.size();
+    gpu_mem.submit(gpu_data_type::INSTANCED_RECT, frame.get_frame_index(), size, rq_inst_rects.data.data(), dev.get_devices());
     gpu_mem.submit_camera(cam, frame.get_frame_index());
     gpu_mem.submit_instance(rq_render_data, frame.get_frame_index());
     gpu_mem.update(dev.get_devices(), frame.get_frame_index());
 
     render.set_camera_bind(gpu_mem.get_buffer_address(gpu_data_type::CAMERA, frame.get_frame_index()));
     render.set_instance_bind(gpu_mem.get_buffer_address(gpu_data_type::INSTANCE, frame.get_frame_index()));
+    render.set_inst_rect_bind(gpu_mem.get_buffer_address(gpu_data_type::INSTANCED_RECT, frame.get_frame_index()));
 
     return frame.is_swapchain_index_valid();
 }
@@ -104,6 +108,12 @@ void vk::base::execute(float delta_ms)
         render.block(frame.get_cmd(), data);
         unset_debug_render_pass_name(frame.get_cmd());
     }
+  
+    rq_inst_rects.buffer = gpu_mem.get_buffer(gpu_data_type::INSTANCED_RECT, frame.get_frame_index());
+    set_debug_render_pass_name(frame.get_cmd(),  "instanced rects");
+    render.blocks<instanced_rect>(frame.get_cmd(), rq_inst_rects);
+    unset_debug_render_pass_name(frame.get_cmd());
+    rq_inst_rects.data.clear();
 
     if (gfx::dbg::draw::get()->enabled()) {
         if (!debug_data[gfx::dbg::primitive_t::LINE].empty()) {
@@ -130,6 +140,15 @@ void vk::base::execute(float delta_ms)
     set_debug_render_pass_name(frame.get_cmd(), "editor");
     render.block_callback(frame.get_cmd(), editor_render_callback);
     unset_debug_render_pass_name(frame.get_cmd());
+}
+
+void vk::base::create_mesh(const char* path, std::shared_ptr<model::base> m, const std::vector<model::types::vertex>& vertex_buffer, const std::vector<uint16_t>& index_buffer)
+{
+    m->load_simple(path, vertex_buffer, index_buffer, dev.get_devices());
+    set_debug_name(path, reinterpret_cast<uint64_t>(m->get_vertex_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
+    set_debug_name(path, reinterpret_cast<uint64_t>(m->get_vertex_buffer()), VK_OBJECT_TYPE_BUFFER);
+    set_debug_name(path, reinterpret_cast<uint64_t>(m->get_index_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
+    set_debug_name(path, reinterpret_cast<uint64_t>(m->get_index_buffer()), VK_OBJECT_TYPE_BUFFER);
 }
 
 void vk::base::create_model(const char* path, std::shared_ptr<model::base> m)
@@ -162,6 +181,39 @@ void vk::base::create_texture(const std::string& path, std::shared_ptr<rt::rende
     vkFreeMemory(dev.get_device(), stagingbuffer.device_memory, nullptr);
 
     gpu_mem.update_texture(dev.get_device(), target->get_name(), target->get_image_view(), *(target->get_sampler()));
+}
+
+void vk::base::create_atlas_texture(const std::string& path, std::shared_ptr<rt::render_target> target, uint32_t width, uint32_t height)
+{
+    loader::texture::bitmap_atlas(target, path.c_str(), width, height, dev.get_devices());
+    set_debug_name(path, reinterpret_cast<uint64_t>(target->get_device_memory()), VK_OBJECT_TYPE_DEVICE_MEMORY);
+    set_debug_name(path, reinterpret_cast<uint64_t>(target->get_image()), VK_OBJECT_TYPE_IMAGE);
+
+    gpu_mem.update_texture(dev.get_device(), target->get_name(), target->get_image_view(), *(target->get_sampler()));
+}
+
+const glm::vec4& vk::base::add_atlas_texture(std::shared_ptr<rt::render_target> target, unsigned int texture_wdith, unsigned int texture_height, unsigned char* buffer)
+{
+    utils::ASSERT(!target, "vk::base::add_atlas_texture(): error, texture doesn't exist");
+    
+    vk::buffer::handlers stagingbuffer;
+    VkDeviceSize imagesize = texture_wdith * texture_height;
+    vk::buffer::allocate(stagingbuffer, dev.get_devices(), imagesize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    vk::buffer::map_memory(stagingbuffer, dev.get_device(), imagesize, 0, buffer);
+
+    frame.submit(dev.get_device(), dev.get_queue(vk::queues::type::GRAPHICS), [&](VkCommandBuffer cmd) {
+        target->memory_barrier(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    });
+    frame.submit(dev.get_device(), dev.get_queue(vk::queues::type::GRAPHICS), [&](VkCommandBuffer cmd) {
+        target->copy(cmd, stagingbuffer.buffer, texture_wdith, texture_height);
+    });
+    frame.submit(dev.get_device(), dev.get_queue(vk::queues::type::GRAPHICS), [&](VkCommandBuffer cmd) {
+        target->memory_barrier(cmd, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    });
+    vkDestroyBuffer(dev.get_device(), stagingbuffer.buffer, nullptr);
+    vkFreeMemory(dev.get_device(), stagingbuffer.device_memory, nullptr);
+
+    return target->set_offset(texture_wdith, texture_height);
 }
 
 void vk::base::on_resize()

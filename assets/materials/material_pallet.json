@@ -4,6 +4,11 @@
         "vertex": "quad.vert",
         "fragment": "quad.frag"
     },
+    "material_instanced_rect": {
+        "pipeline_ref": "sprite",
+        "vertex": "instanced_rect.vert",
+        "fragment": "instanced_rect.frag"
+    },
     "material_grid": {
         "pipeline_ref": "grid",
         "vertex": "grid.vert",

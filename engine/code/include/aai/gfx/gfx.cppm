@@ -1,5 +1,6 @@
 module;
 #include "aai/io/win_defines.h"
+#include "aai/gfx/vk/model/model_types.h"
 
 export module aai.gfx;
 
@@ -9,6 +10,7 @@ export import aai.gfx.vk;
 export import aai.gfx.assets;
 export import aai.gfx.vk.rt;
 export import aai.gfx.materials;
+export import aai.gfx.font;
 import aai.editor;
 import std;
 import glm;
@@ -23,9 +25,11 @@ export {
                 void populate_inst(model::inst& inst);
 
                 void set_camera(std::shared_ptr<keeper::camera> c) { cam = c; cam->set_position(glm::vec3(0.0f, 0.0f, 10.0f)); }
-
+                
+                void create_font(const std::string& path);
                 uint32_t create_texture(const std::string& path);
                 uint32_t create_model(const std::string& path);
+                uint32_t create_mesh(const std::string& path, const std::vector<model::types::vertex>& vertex_buffer, const std::vector<uint16_t>& index_buffer);
 
                 void clean() { vk.wait_timeline(); clean_resources(); }
 
@@ -36,6 +40,8 @@ export {
                 void init_editor(GLFWwindow* glfw_win, aai::editor& editor) { 
                     vk.init_editor(glfw_win, editor);
                 }
+
+                void watch(aai::editor& editor);
             private:
                 void clean_resources();
                 vk::base vk;
@@ -43,7 +49,9 @@ export {
                 assets::base<model::base> model_mng;
 
                 mat::materials material_pallet;
-
+                
+                ui::font ft;
+                
                 glm::ivec2 window_size;
                 std::shared_ptr<keeper::camera> cam;
         };

@@ -1,9 +1,9 @@
 module;
 #include <cstdint>
 
+export module aai.gfx.assets;
 import aai.gfx.vk.device;
 import aai.utils.threads.job_sys;
-export module aai.gfx.assets;
 import std;
 export {
     namespace assets {

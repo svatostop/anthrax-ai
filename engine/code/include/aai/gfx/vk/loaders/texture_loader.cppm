@@ -32,6 +32,15 @@ export {
                 target->set_sampler(true);
                 target->create(dev);
             }
+
+            void bitmap_atlas(std::shared_ptr<rt::render_target> target, const char* path, uint32_t width, uint32_t height, const vk::device::handlers& dev)
+            {
+                target->set_name(path);
+                target->set_format(VK_FORMAT_R8_UNORM);
+                target->set_dimensions({ width, height });
+                target->set_sampler(true);
+                target->create(dev);
+            }
         }
     }
 };

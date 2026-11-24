@@ -11,6 +11,7 @@ export {
         class base {
             public:
                 void load(const std::string& p, vk::device::handlers devices);
+                void load_simple(const std::string& p, const std::vector<types::vertex>& vertex_buffer, const std::vector<uint16_t>& index_buffer, vk::device::handlers devices);
 
                 const VkBuffer get_vertex_buffer() { return data.vertices.buffer; }
                 const VkDeviceMemory get_vertex_device_memory() { return data.vertices.device_memory; }
@@ -30,6 +31,11 @@ export {
             private:
                 vk_data data;
                 std::string path;
+
+                std::vector<uint16_t> default_indices = {
+                    0, 1, 3,  3, 1, 2,
+                    4, 5, 6, 6, 7, 4
+                };
         };
     }
 };

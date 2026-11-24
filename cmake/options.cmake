@@ -32,7 +32,10 @@ set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "f35a9ac6-8463-4d38-8eec-5d6008153e7d")
 set(CMAKE_CXX_MODULE_STD 1)
 
-
+if (CMAKE_SANITIZE)
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
+endif()
 add_compile_definitions(
 	AAI_${aai_upper_platform}
 	AAI_$<UPPER_CASE:$<CONFIG>>

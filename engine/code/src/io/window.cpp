@@ -4,6 +4,10 @@ module;
 module aai.window;
 import aai.io;
 
+void window_focus_callback(GLFWwindow* window, int focused)
+{
+    
+}
 void aai::window::init()
 {
     glfwInit();
@@ -15,6 +19,7 @@ void aai::window::init()
     glfwSetKeyCallback(win, aai::io::key::callback);
     glfwSetCursorPosCallback(win, aai::io::mouse::pos_callback);
     glfwSetMouseButtonCallback(win, aai::io::mouse::button_callback);
+    // glfwSetWindowFocusCallback(win, window_focus_callback);
     display = glfwGetX11Display();
     x11_win = glfwGetX11Window(win);
 }

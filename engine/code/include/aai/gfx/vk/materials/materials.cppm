@@ -32,6 +32,8 @@ export {
                 void request_mesh_use(const std::string& name, bool use) {infos_map[name].vertex_attributes = use;}
                 void request_mesh_animation(const std::string& name, bool has_anim) { infos_map[name].has_bones = has_anim;}
                 void request_texture_use(const std::string& name, bool use) { infos_map[name].bind_texture = use; }
+                // todo move to json??
+                void request_vertex_type(const std::string& name, mat::vertex_type t) { infos_map[name].vertex_type = t; }
                 void request_rt_ref_change(const std::string& name, const rt::base::ref ref) { infos_map[name].rt_ref = ref; }
                 rt::name::val get_rt_ref_val(const std::string& name) { return infos_map[name].rt_ref_val;  }
                 

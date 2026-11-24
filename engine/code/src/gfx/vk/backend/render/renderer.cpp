@@ -27,30 +27,30 @@ void vk::renderer::refresh_state()
     state.attachment_ref.color_types.clear();
 }
 
-void vk::renderer::check_render_state(const rq::data& rq)
+void vk::renderer::check_render_state(std::shared_ptr<mat::data> material_handle)
 {
     state.attachment_ref.depth_types.rule = rt::helper::rule::LOAD;
-    if (state.attachment_ref.id != rq.material_handle->attachment_ref.id) {
-        rq.material_handle->attachment_ref.depth_types.rule = rt::helper::rule::CLEAR;
-        for (int i = 0;i < rq.material_handle->attachment_ref.color_types.size(); i++) {
-            rq.material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::CLEAR;
-            if (i < state.attachment_ref.color_types.size() && state.attachment_ref.color_types[i].v == rq.material_handle->attachment_ref.color_types[i].v) {
-                rq.material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::LOAD;
+    if (state.attachment_ref.id != material_handle->attachment_ref.id) {
+        material_handle->attachment_ref.depth_types.rule = rt::helper::rule::CLEAR;
+        for (int i = 0;i < material_handle->attachment_ref.color_types.size(); i++) {
+            material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::CLEAR;
+            if (i < state.attachment_ref.color_types.size() && state.attachment_ref.color_types[i].v == material_handle->attachment_ref.color_types[i].v) {
+                material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::LOAD;
             }
         }
-        state.attachment_ref = rq.material_handle->attachment_ref;
+        state.attachment_ref = material_handle->attachment_ref;
     }
     else {
-        rq.material_handle->attachment_ref.depth_types.rule = rt::helper::rule::LOAD;
-        for (int i = 0;i < rq.material_handle->attachment_ref.color_types.size(); i++) {
-            rq.material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::LOAD;
+        material_handle->attachment_ref.depth_types.rule = rt::helper::rule::LOAD;
+        for (int i = 0;i < material_handle->attachment_ref.color_types.size(); i++) {
+            material_handle->attachment_ref.color_types[i].rule = rt::helper::rule::LOAD;
         }
     }
 }
 
 void vk::renderer::block(VkCommandBuffer cmd, const rq::data& rq)
 {
-    check_render_state(rq);
+    check_render_state(rq.material_handle);
         
     start_render(cmd, rq.material_handle->attachment_ref);
 

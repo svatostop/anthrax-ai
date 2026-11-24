@@ -2,10 +2,12 @@ module;
 #include "aai/gfx/vk/model/model_types.h"
 #include "aai/gfx/vk/backend/vk_defines.h"
 #include <shaderc/shaderc.h>
+#include <vulkan/vulkan_core.h>
 
 module aai.gfx.vk.pipeline;
 import aai.gfx.vk.pipeline.helper;
 import aai.gfx.vk.loader.shader;
+import aai.gfx.vk.gpu_data;
 import aai.utils;
 import glm;
 import std;
@@ -68,6 +70,51 @@ VkPipelineVertexInputStateCreateInfo vk::pipeline::vertex_input_create_info(cons
         boneattr.format = VK_FORMAT_R32G32B32A32_SINT;
         boneattr.offset = offsetof(model::types::vertex, bone_ids);
     }
+
+    // todo make it nicer
+    if (mat_info.vertex_type == mat::vertex_type::INSTANCED_RECT) {
+    	VkVertexInputBindingDescription& binding = vert_desc_info.bindings.emplace_back();
+    	binding.binding = 1;
+    	binding.stride = sizeof(instanced_rect);
+        binding.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+
+        VkVertexInputAttributeDescription& position_at = vert_desc_info.attributes.emplace_back();
+        position_at.binding = 1;
+	    position_at.location = 6;
+        position_at.format = VK_FORMAT_R32G32_SFLOAT;
+        position_at.offset = offsetof(instanced_rect, position);
+
+        VkVertexInputAttributeDescription& size_at = vert_desc_info.attributes.emplace_back();
+        size_at.binding = 1;
+	    size_at.location = 7;
+        size_at.format = VK_FORMAT_R32G32_SFLOAT;
+        size_at.offset = offsetof(instanced_rect, size);
+        
+        VkVertexInputAttributeDescription& uv_at = vert_desc_info.attributes.emplace_back();
+        uv_at.binding = 1;
+	    uv_at.location = 8;
+        uv_at.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        uv_at.offset = offsetof(instanced_rect, uv);
+
+        VkVertexInputAttributeDescription& color_at = vert_desc_info.attributes.emplace_back();
+        color_at.binding = 1;
+	    color_at.location = 9;
+        color_at.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        color_at.offset = offsetof(instanced_rect, color);
+        
+        VkVertexInputAttributeDescription& texture_at = vert_desc_info.attributes.emplace_back();
+        texture_at.binding = 1;
+	    texture_at.location = 10;
+        texture_at.format = VK_FORMAT_R8_UINT;
+        texture_at.offset = offsetof(instanced_rect, texture_id);        
+
+        VkVertexInputAttributeDescription& outline_at = vert_desc_info.attributes.emplace_back();
+        outline_at.binding = 1;
+	    outline_at.location = 11;
+        outline_at.format = VK_FORMAT_R8_UINT;
+        outline_at.offset = offsetof(instanced_rect, has_outline);
+    }
+
     info.pVertexAttributeDescriptions = vert_desc_info.attributes.data();
     info.vertexAttributeDescriptionCount = vert_desc_info.attributes.size();
 

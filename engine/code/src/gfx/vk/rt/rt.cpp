@@ -1,5 +1,7 @@
 module;
 #include "aai/gfx/vk/backend/vk_defines.h"
+#include <chrono>
+#include <vulkan/vulkan_core.h>
 
 module aai.gfx.vk.rt;
 import aai.gfx.vk.device;
@@ -132,13 +134,33 @@ void rt::render_target::copy(VkCommandBuffer cmd, VkBuffer buffer,  uint32_t wid
     region.imageSubresource.mipLevel = 0;
     region.imageSubresource.baseArrayLayer = 0;
     region.imageSubresource.layerCount = layer_count;
-    region.imageOffset = {0, 0, 0};
+    region.imageOffset = {current_offset_x, current_offset_y, 0};
     region.imageExtent = {
         static_cast<uint32_t>(width), static_cast<uint32_t>(height),
         1
     };
 
     vkCmdCopyBufferToImage(cmd, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+}
+
+const glm::vec4& rt::render_target::set_offset(uint32_t x, uint32_t y)
+{
+    cur_atlas_uv.x = (float)current_offset_x / dimensions.x;
+    cur_atlas_uv.w = (float)current_offset_y / dimensions.y;
+    cur_atlas_uv.z = (float)(current_offset_x + x) / dimensions.x;
+    cur_atlas_uv.y = (float)(current_offset_y + y) / dimensions.y;
+
+    current_offset_x = current_offset_x + x;
+
+    if (current_offset_x + 64 > dimensions.x) {
+        current_offset_x = 0;
+        current_offset_y = current_offset_y + y;
+
+        if (current_offset_y + 64 > dimensions.y) {
+            current_offset_y = 0;
+        }
+    }
+    return cur_atlas_uv;
 }
 
 void rt::render_target::memory_barrier(VkCommandBuffer cmd, VkImageLayout oldlayout, VkImageLayout newlayout, int layer_count)

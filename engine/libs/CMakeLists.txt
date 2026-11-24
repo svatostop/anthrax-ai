@@ -40,6 +40,11 @@ message(STATUS "Vulkan libraries: ${Vulkan_LIBRARIES}")
 #======================================= glfw  =======================================#
 find_package(glfw3 3.4 REQUIRED)
 list(APPEND _libraries glfw)
+
+#======================================= freetype  =======================================#
+find_package(Freetype REQUIRED)
+list(APPEND _includes ${FREETYPE_INCLUDE_DIRS})
+list(APPEND _libraries freetype)
 #======================================= imgui =======================================#
 FetchContent_Populate(imgui
   URL https://github.com/ocornut/imgui/archive/docking.zip

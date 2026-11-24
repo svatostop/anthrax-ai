@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include "backends/imgui_impl_glfw.h"
 
+import aai.utils; 
 export module aai.editor.imgui;
 export import std;
 export {
@@ -17,10 +18,10 @@ export {
 
             void backend_render_data(VkCommandBuffer cmd);
 
-            void watch(uint32_t init_val, const std::vector<std::string>& vec, std::function<void(uint32_t slot, const std::string& s)>&& callback) { watch_initial_val = init_val; watch_vec = vec, watch_callback = callback; }
-
+            void watch(utils::editor_types t, void* data) { output_datas[t] = data; }
             void process();
         private:
+            std::map<utils::editor_types, void*> output_datas;
 
             VkPipeline pipeline;
             VkPipelineLayout pipeline_layout;
@@ -28,9 +29,6 @@ export {
             VkPipelineCache pipeline_cache;
             bool is_init = false;
 
-            std::vector<std::string> watch_vec;
-            uint32_t watch_initial_val = 0;
-            std::function<void(uint32_t slot, const std::string& s)> watch_callback;
     };
 };
 

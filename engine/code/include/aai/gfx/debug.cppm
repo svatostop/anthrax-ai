@@ -48,15 +48,15 @@ export {
                     float get_global_anim_mult() { return global_anim_mult; }
                     void set_global_anim_mult(float f) { global_anim_mult = f; }
 
-                    float get_blend_factor() { return blend_factor; }
-                    void set_blend_factor(float blend) { blend_factor = blend; } 
+                    // float get_blend_factor() { return blend_factor; }
+                    // void set_blend_factor(float blend) { blend_factor = blend; } 
                 private:                    
                     std::map<primitive_t, VkDeviceAddress> binds[MAX_FRAMES];
                     mutable std::mutex datas_mtx;
                     std::map<primitive_t, std::vector<point>> datas;
                     bool is_enabled = false;
                     float global_anim_mult = 1.0f;
-                    float blend_factor = 0.0f;
+                    // float blend_factor = 0.0f;
             };
         }
     }

@@ -13,7 +13,8 @@ export {
                 camera()  { t = type::EDITOR; };
                 void set_position(const glm::vec3& pos) { position = pos; set_directions();};
                 void set_window_size(const glm::ivec2& w) { window_size = w; }
-                
+               
+                const glm::ivec2& get_window_size() const { return window_size; }
                 const glm::mat4& get_view() const { return view; }
                 const glm::mat4& get_proj() const { return projection; }
                 const glm::mat4& get_reverse_proj() const { return reverse_projection; }

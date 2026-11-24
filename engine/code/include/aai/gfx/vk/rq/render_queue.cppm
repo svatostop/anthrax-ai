@@ -22,6 +22,16 @@ export {
                 size_t instance_count = 1;
                 size_t vertex_count_mult = 1;
             };
+
+            template <typename T>
+            struct instanced {
+                std::shared_ptr<mat::data> material_handle = nullptr;
+                std::shared_ptr<model::base> mesh_handle = nullptr;
+                VkBuffer buffer;
+                VkDeviceAddress buffer_bind = 0;
+                std::vector<T> data;
+                glm::mat4 model_matrix = glm::mat4(1);
+            };
         }
     }
 };

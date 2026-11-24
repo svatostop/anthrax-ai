@@ -65,6 +65,13 @@ DECLARE_LOOKUP_TABLE(TOPOLOGY_LOOKUP, val)
             X(SIZE, "depth size") 
 DECLARE_LOOKUP_TABLE(DEPTH_OP_LOOKUP, val)
         }
+        
+        enum vertex_type {
+            NONE = 0,
+            INSTANCED_RECT
+        };
+
+
         enum shader_type {
             SHADER_FRAG = 0,
             SHADER_VERT,
@@ -105,6 +112,7 @@ DECLARE_LOOKUP_TABLE(DEPTH_OP_LOOKUP, val)
             color_blend_helper color_blend;
             depth_helper depth_stencil;
             std::vector<shader_module> shaders;
+            mat::vertex_type vertex_type = vertex_type::NONE;
             bool multisampling = false;
             bool vertex_attributes = false;
             bool bind_texture = false;
@@ -123,8 +131,6 @@ DECLARE_LOOKUP_TABLE(DEPTH_OP_LOOKUP, val)
                 vkDestroyPipeline(dev, pipeline, nullptr);
             }
         };
-
-
         using material_infos_map = std::map<std::string, info_helper>; 
         using material_map = std::map<std::uint32_t, std::shared_ptr<data>>;
         using material_ids_map = std::map<std::string, std::uint32_t>;

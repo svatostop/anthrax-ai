@@ -5,6 +5,12 @@ export module aai.utils;
 import std;
 export {
     namespace utils {
+
+        enum class editor_types {
+            FONT = 0,
+            ANIMATION,
+        };
+
         template <typename T>
         class singleton
         {

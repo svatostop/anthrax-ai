@@ -13,6 +13,17 @@ void vk::gpu_memory::init(vk::device::handlers dev)
     init_buffers(dev);
 }
 
+VkBuffer vk::gpu_memory::get_buffer(const gpu_data_type& t, const uint32_t frame) const
+{
+    switch (t) {
+       case gpu_data_type::INSTANCED_RECT:
+           return instanced_rects[frame].data.buffer;
+       default:
+           return camera[frame].data.buffer;
+           break;
+    }
+    return camera[frame].data.buffer;
+}
 const VkDeviceAddress vk::gpu_memory::get_buffer_address(const gpu_data_type& t, const uint32_t frame) const
 {
    switch (t) {
@@ -20,6 +31,8 @@ const VkDeviceAddress vk::gpu_memory::get_buffer_address(const gpu_data_type& t,
            return camera[frame].data.gpu_address;
        case gpu_data_type::INSTANCE:
            return instance[frame].data.gpu_address;
+       case gpu_data_type::INSTANCED_RECT:
+           return instanced_rects[frame].data.gpu_address;
        default:
            return 0;
            break;
@@ -29,6 +42,7 @@ const VkDeviceAddress vk::gpu_memory::get_buffer_address(const gpu_data_type& t,
 
 void vk::gpu_memory::submit_camera(std::shared_ptr<const keeper::camera> cam, const std::uint32_t frame)
 {
+    camera[frame].raw_data.viewport = glm::vec4(cam->get_window_size(), 0, 0);
     camera[frame].raw_data.view = cam->get_view();
     camera[frame].raw_data.proj = cam->get_reverse_proj();
     camera[frame].raw_data.non_reverse_proj = cam->get_proj();
@@ -49,6 +63,18 @@ void vk::gpu_memory::submit_instance(const std::deque<rq::data>& rq, const std::
         memcpy(&instance[frame].mapped_data[ind], &d, sizeof(instance_data));
         ind++;
     }
+}
+//todo do it for every type maybe?
+void vk::gpu_memory::submit(const gpu_data_type& t, const uint32_t frame, size_t size, void* data, vk::device::handlers devices) {
+    if (size <= 0)
+        return;
+    switch (t) {
+        case gpu_data_type::INSTANCED_RECT:
+           vk::buffer::map_memory(instanced_rects[frame].data, devices.dev, size, 0, data);
+           break;
+       default:
+           break;
+   }
 }
 
 std::vector<VkDeviceAddress>& vk::gpu_memory::get_skin_gpu_address(const std::shared_ptr<model::skin_groups> group, vk::device::handlers devices)
@@ -214,6 +240,10 @@ void vk::gpu_memory::init_buffers(vk::device::handlers dev)
         vkMapMemory(dev.dev , instance[i].data.device_memory, 0, buffer_size, 0, (void**)&ptr_data);
         instance[i].mapped_data = (instance_data*)ptr_data;
         utils::mem::get()->push(utils::mem::event::DELETE, utils::mem::type::VK, [=,this]() {vkUnmapMemory(dev.dev, instance[i].data.device_memory);});
+
+        buffer_size = sizeof(instanced_rect) * 1000;
+        create_buffer(dev, instanced_rects[i].data, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
+        instanced_rects[i].buffer_size = buffer_size;
 
         buffer_size = sizeof(gfx::dbg::point) * 1000;
         create_buffer(dev, dbg_points[i].data, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer_size);
